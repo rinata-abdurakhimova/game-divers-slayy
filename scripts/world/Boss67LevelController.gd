@@ -26,6 +26,8 @@ const LOOP_WIDTH_PX: float = 52.0 * 48.0
 @export var projectile_interval_min: float = 0.8
 @export var projectile_interval_max: float = 2.0
 @export var purple_chance: float = 0.3
+@export var first_water_distance: int = GameRules.FIRST_WATER_DISTANCE_BLOCKS
+@export var water_retrigger_cooldown_seconds: float = GameRules.WATER_RETRIGGER_COOLDOWN_SECONDS
 
 @export_group("Scenes")
 @export var score_pickup_scene: PackedScene
@@ -39,7 +41,9 @@ var _pickup_root: Node2D
 var _projectile_root: Node2D
 var _pickup_spawns: Node2D
 var _tutorial_done: bool = false
-var _water_triggered: bool = false
+var _first_water_started: bool = false
+var _first_water_finished: bool = false
+var _water_cooldown_left: float = 0.0
 var _last_blocks: int = -1
 
 var _pickup_timer: Timer
@@ -48,7 +52,6 @@ var _projectile_timer: Timer
 var _total_blocks: int = 0
 var _local_blocks: int = 0
 var _purple_unlocked: bool = false
-var _last_water_score_units: int = -1
 
 
 func _ready() -> void:
@@ -79,8 +82,8 @@ func _connect_signals() -> void:
 			ge.restart_requested.connect(_on_restart_requested)
 		if ge.has_signal(&"water_finished"):
 			ge.water_finished.connect(_on_water_finished)
-		if ge.has_signal(&"score_changed"):
-			ge.score_changed.connect(_on_score_changed)
+		if ge.has_signal(&"score_operation_applied"):
+			ge.score_operation_applied.connect(_on_score_operation_applied)
 
 
 func _create_timers() -> void:
@@ -96,6 +99,8 @@ func _create_timers() -> void:
 
 
 func _process(delta: float) -> void:
+	_update_water_cooldown(delta)
+
 	if _camera != null and _player != null:
 		var target_x: float = maxf(_player.global_position.x, 576.0)
 		_camera.global_position = Vector2(target_x, 324.0)
@@ -120,6 +125,8 @@ func _process(delta: float) -> void:
 	if cumulative >= purple_distance and not _purple_unlocked and gs.has_method(&"set_boss_phase"):
 		_purple_unlocked = true
 		gs.set_boss_phase(GameRules.BossPhase.LAND_PURPLE)
+	if cumulative >= first_water_distance and not _first_water_started:
+		_trigger_water(&"distance_28")
 
 
 func _wrap_player() -> void:
@@ -151,28 +158,44 @@ func _on_safe_trigger(_body: Node) -> void:
 	_start_timers()
 
 
-func _trigger_water() -> void:
+func _trigger_water(_reason: StringName) -> void:
 	var gs: Node = get_node_or_null(^"/root/GameState")
-	if gs != null and gs.has_method(&"begin_water_event"):
-		if gs.has_method(&"set_boss_phase"):
-			gs.set_boss_phase(GameRules.BossPhase.WATER)
-		gs.begin_water_event(GameRules.WaterVariant.WATER_A, GameRules.WaterComplication.NONE)
+	if gs == null or not gs.has_method(&"begin_water_event"):
+		return
+
+	var current_water_variant: GameRules.WaterVariant = gs.get("water_variant")
+	if current_water_variant != GameRules.WaterVariant.NONE:
+		return
+
+	_first_water_started = true
+	if gs.has_method(&"set_boss_phase"):
+		gs.set_boss_phase(GameRules.BossPhase.WATER)
+	gs.begin_water_event(GameRules.WaterVariant.WATER_A, GameRules.WaterComplication.NONE)
 
 
-func _on_score_changed(score_cents: int, _display: String) -> void:
-	if not _tutorial_done:
+func _on_score_operation_applied(
+	operation: StringName,
+	value_cents: int,
+	source: StringName
+) -> void:
+	if not _tutorial_done or not _first_water_finished:
 		return
-	var score_units: int = score_cents / 100
-	if score_units <= 0:
+	if _water_cooldown_left > 0.0:
 		return
-	if score_units == _last_water_score_units:
+	if source != &"score_pickup" or operation != GameRules.SCORE_OPERATION_ADD:
 		return
-	if score_units % 6 == 0 or score_units % 7 == 0:
-		_last_water_score_units = score_units
-		_trigger_water()
+	var pickup_units: int = value_cents / 100
+	if pickup_units <= 0:
+		return
+	if pickup_units % 6 == 0 or pickup_units % 7 == 0:
+		_trigger_water(&"score_divisible")
 
 
 func _on_water_finished() -> void:
+	if _first_water_started:
+		_first_water_finished = true
+		_water_cooldown_left = water_retrigger_cooldown_seconds
+
 	var gs: Node = get_node_or_null(^"/root/GameState")
 	if gs == null or not gs.has_method(&"set_boss_phase"):
 		return
@@ -188,16 +211,23 @@ func _on_restart_requested() -> void:
 	_cleanup(_pickup_root)
 	_cleanup(_projectile_root)
 	_tutorial_done = false
-	_water_triggered = false
+	_first_water_started = false
+	_first_water_finished = false
+	_water_cooldown_left = 0.0
 	_last_blocks = -1
 	_total_blocks = 0
 	_local_blocks = 0
 	_purple_unlocked = false
-	_last_water_score_units = -1
 
 	if _safe_wall != null:
 		_safe_wall.hide()
 		_set_wall_collision(false)
+
+
+func _update_water_cooldown(delta: float) -> void:
+	if _water_cooldown_left <= 0.0:
+		return
+	_water_cooldown_left = maxf(0.0, _water_cooldown_left - delta)
 
 
 func _spawn_pickup() -> void:

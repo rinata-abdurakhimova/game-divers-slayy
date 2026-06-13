@@ -27,7 +27,6 @@ func _run() -> void:
 	assert(not boss.get_node(^"BodyVisual").visible)
 	assert(not safe_wall.visible)
 
-	# Walk into the tutorial block, then jump over it into the checkpoint.
 	await _physics_frames(2)
 	Input.action_press(&"move_right")
 	await _physics_frames(80)
@@ -48,7 +47,6 @@ func _run() -> void:
 		if child is Timer:
 			(child as Timer).stop()
 
-	# The closing wall must be behind the player, not seal the route ahead.
 	player.global_position = Vector2(430, 585)
 	player.velocity = Vector2.ZERO
 	await _physics_frames(2)
@@ -62,7 +60,6 @@ func _run() -> void:
 	assert(player.global_position.x > 620.0)
 	assert(player.global_position.y < 648.0)
 
-	# Land pickup applies its configured score operation.
 	var pickup: Area2D = PICKUP_SCENE.instantiate() as Area2D
 	pickup.set(&"value_cents", 200)
 	pickups.add_child(pickup)
@@ -70,7 +67,6 @@ func _run() -> void:
 	await _physics_frames(2)
 	assert(game_state.get("score_cents") == 300)
 
-	# White projectiles collide with ordinary terrain.
 	var white: Area2D = PROJECTILE_SCENE.instantiate() as Area2D
 	white.set(&"speed", 120.0)
 	white.set(&"is_purple", false)
@@ -79,7 +75,6 @@ func _run() -> void:
 	await _physics_frames(80)
 	assert(not is_instance_valid(white))
 
-	# Purple projectiles pass through the same block.
 	var purple: Area2D = PROJECTILE_SCENE.instantiate() as Area2D
 	purple.set(&"speed", 120.0)
 	purple.set(&"is_purple", true)
@@ -90,20 +85,20 @@ func _run() -> void:
 	assert(purple.global_position.x < 384.0)
 	purple.queue_free()
 
-	# Distance milestone switches the boss to LAND_PURPLE.
 	player.global_position = Vector2(576 + 18 * 48, 520)
 	controller.call(&"_process", 0.0)
 	assert(game_state.get("distance_blocks") >= 18)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.LAND_PURPLE)
 
-	# Score milestone (divisible by 6) triggers water event.
-	# Starting score is 100 cents; add 500 → 600 cents → score_units=6, divisible by 6.
 	game_state.call(&"apply_score_operation", GameRules.SCORE_OPERATION_ADD, 500, &"test")
+	assert(game_state.get("phase") != GameRules.RunPhase.WATER)
+
+	player.global_position = Vector2(576 + 28 * 48, 520)
+	controller.call(&"_process", 0.0)
 	assert(game_state.get("phase") == GameRules.RunPhase.WATER)
 	assert(game_state.get("water_seconds_left") > 9.9)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.WATER)
 
-	# New water entities use Water A operations instead of stale land rules.
 	controller.call(&"_spawn_pickup")
 	var water_pickup: Node = pickups.get_child(pickups.get_child_count() - 1)
 	assert(water_pickup.get("operation") == GameRules.SCORE_OPERATION_SUBTRACT)
@@ -113,6 +108,14 @@ func _run() -> void:
 	var water_projectile: Node = projectiles.get_child(projectiles.get_child_count() - 1)
 	assert(water_projectile.get("operation") == GameRules.SCORE_OPERATION_MULTIPLY)
 	assert(water_projectile.get("value_cents") in [115, 120, 130])
+
+	game_state.call(&"finish_water_event")
+	assert(game_state.get("phase") == GameRules.RunPhase.LAND)
+	game_state.call(&"apply_score_operation", GameRules.SCORE_OPERATION_ADD, 600, &"score_pickup")
+	assert(game_state.get("phase") == GameRules.RunPhase.LAND)
+	controller.set(&"_water_cooldown_left", 0.0)
+	game_state.call(&"apply_score_operation", GameRules.SCORE_OPERATION_ADD, 700, &"score_pickup")
+	assert(game_state.get("phase") == GameRules.RunPhase.WATER)
 
 	current_scene.queue_free()
 	await process_frame

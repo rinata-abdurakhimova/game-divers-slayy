@@ -21,8 +21,8 @@ autoload, scene responsibility, or score rule.
 | `scenes/ui/WaterRuleOverlay.tscn` | Rinata | water rule and complication announcement |
 | `scenes/ui/ResultScreen.tscn` | Rinata | victory/failure and restart |
 
-Old scene names such as `Level_01.tscn`, `Level_01_Water.tscn`, `Guardian10.tscn`, `EquationAltar.tscn`,
-and `ResetShell.tscn` are legacy and should not be extended for the new design.
+Old scene names such as `Level_01.tscn`, `Level_01_Water.tscn`, `Guardian10.tscn`,
+`EquationAltar.tscn`, and `ResetShell.tscn` are legacy and should not be extended for the new design.
 
 ## Autoloads
 
@@ -99,7 +99,7 @@ Required methods:
 
 ```gdscript
 func reset_boss_67_run() -> void
-func apply_score_operation(operation: StringName, value_cents: int, source: StringName) -> void
+func apply_score_operation(operation: StringName, value_cents: int, source: StringName) -> bool
 func set_distance_blocks(value: int) -> void
 func begin_water_event(variant: GameRules.WaterVariant, complication: GameRules.WaterComplication) -> void
 func finish_water_event() -> void
@@ -195,21 +195,23 @@ All operations round to the nearest cent after application.
 
 ## Distance Contract
 
-Progress is measured in horizontal blocks from the boss-run start, after the safe tutorial closes.  
-The post-tutorial terrain is a 52-block loop (2496 px). When the player passes the right edge, they
-wrap back to the left — the camera smoothing makes the transition seamless. Cumulative distance
-(`_total_blocks`) never resets and drives permanent boss-phase milestones.
+Progress is measured in horizontal blocks from the boss-run start, after the safe tutorial closes.
+The post-tutorial terrain is a 52-block loop, or 2496 px at the current 48 px block size. When the
+player passes the right edge, they wrap back to the left. Cumulative distance never resets and drives
+permanent boss-phase milestones.
 
 | Distance | Event |
 | --- | --- |
 | `0` | Boss 67 appears. |
 | `18` | Purple projectiles become available. |
+| `28` | First water event starts. |
 
 ## Water Contract
 
-Water events are triggered by **score**, not distance.  
-After every score change, if `score_cents / 100` is divisible by `6` or `7`, a water event begins
-(`WATER_A`, lasts 10 s). Water can re-trigger on each new divisor milestone.
+The first water event starts at the `28` block distance milestone and lasts `10` seconds.
+After the first water event has finished, later water events may start when the player collects a land
+pickup whose value is divisible by `6` or `7`. Later water events must use a cooldown so several
+qualifying pickups cannot stack water events instantly.
 
 ## Power-Up Contract
 
@@ -252,7 +254,8 @@ The new slice is integrated only when:
 - land pickups change score;
 - white projectiles are blocked by terrain;
 - purple projectiles start after `18` blocks and pass through blocks;
-- water starts when `score_cents / 100` is divisible by `6` or `7` and lasts `10` seconds;
+- first water starts after `28` blocks and lasts `10` seconds;
+- later water can retrigger after cooldown when a collected land pickup value is divisible by `6` or `7`;
 - one water variant applies correctly;
 - score can become negative;
 - score `0.00` fails;
