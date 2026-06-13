@@ -50,23 +50,23 @@ func _on_phase_changed(new_phase: GameRules.Phase) -> void:
 			_set_stage_colors(Color("#F3C6A5"), Color("#FFD9B8"))
 			stage_label.text = "SAND PHASE"
 			rule_label.text = "COMBINE"
-			hint_label.text = "Find two numbers that make 10"
+			hint_label.text = "Reach exactly 67"
 		GameRules.Phase.TRANSITION:
 			phase_stage.show()
 			_set_stage_colors(Color("#D98BC8"), Color("#FFDCF6"))
 			stage_label.text = "TIDE RISING"
 			rule_label.text = "CHANGING..."
-			hint_label.text = "The tide is changing the rule"
+			hint_label.text = "Water changes the score rule"
 		GameRules.Phase.WATER:
 			phase_stage.show()
 			_set_stage_colors(Color("#E78DD2"), Color("#FFDCF6"))
 			stage_label.text = "PINK WATER PHASE"
 			rule_label.text = "SPLIT"
-			hint_label.text = "First number minus second number"
+			hint_label.text = "Read the active water rule"
 		GameRules.Phase.COMPLETE:
 			phase_stage.hide()
 			rule_label.text = "COMPLETE"
-			hint_label.text = "Guardian 10 defeated"
+			hint_label.text = "Success"
 
 
 func _on_shield_changed(remaining: int) -> void:

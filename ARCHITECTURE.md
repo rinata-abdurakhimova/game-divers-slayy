@@ -45,11 +45,20 @@ only art, not movement or game logic.
 ## Viewport, Grid, And Scale
 
 - Runtime viewport: `1152 x 648`.
-- Gameplay design grid: `12 columns x 8 rows`.
+- Gameplay vision window: `12 columns x 8 rows`.
 - One block is `1 x 1` gameplay unit.
 - Player body is also `1 x 1` gameplay unit.
 - MVP tile size may be `48`, `54`, or `64` pixels as long as the visible playfield preserves the
   `12 x 8` decision grid.
+- The full Boss 67 route is much longer than one screen. The `12 x 8` grid describes only the readable
+  camera window, not the whole map.
+- During the chase, keep the player near the horizontal center of the camera view whenever possible so
+  the player can read upcoming pickups, projectiles, sand floor, and water changes.
+- The long route loops: when the player reaches the authored end of the route, wrap or reposition the
+  route back to its beginning cleanly instead of hard-stopping the run.
+- Looping must preserve current score, boss phase, water cooldowns, active power-ups, and projectile
+  cleanup. Do not restart the whole run unless the player has won, failed, or explicitly pressed
+  restart.
 - The player initially learns to jump one block.
 - Terrain stacks may be up to `5` blocks high, but every required path must remain reachable with the
   approved movement kit.

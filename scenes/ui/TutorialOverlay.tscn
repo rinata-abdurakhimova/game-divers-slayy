@@ -25,15 +25,13 @@ script = ExtResource("1")
 
 [node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -250.0
-offset_top = -80.0
-offset_right = 250.0
-offset_bottom = 80.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -430.0
+offset_top = 96.0
+offset_right = -24.0
+offset_bottom = 150.0
 
 [node name="ArrowHint" type="PanelContainer" parent="VBox"]
 unique_name_in_owner = true
@@ -43,8 +41,9 @@ theme_override_styles/panel = SubResource("StyleBox_banner")
 [node name="Label" type="Label" parent="VBox/ArrowHint"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
-theme_override_font_sizes/font_size = 24
-text = "USE ARROW KEYS TO MOVE"
+theme_override_font_sizes/font_size = 18
+text = "MOVE: LEFT / RIGHT   JUMP: SPACE"
+horizontal_alignment = 1
 
 [node name="CollectionHint" type="PanelContainer" parent="VBox"]
 unique_name_in_owner = true
@@ -56,7 +55,7 @@ theme_override_styles/panel = SubResource("StyleBox_banner")
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
 theme_override_font_sizes/font_size = 20
-text = "Find two numbers that make 10"
+text = "Collect score values to reach 67"
 
 [node name="SubmissionHint" type="PanelContainer" parent="VBox"]
 unique_name_in_owner = true
@@ -68,7 +67,7 @@ theme_override_styles/panel = SubResource("StyleBox_banner")
 layout_mode = 2
 theme_override_colors/font_color = Color(0.867, 0.984, 1, 1)
 theme_override_font_sizes/font_size = 20
-text = "Walk onto the altar to submit"
+text = "Score changes on contact"
 
 [node name="RuleChangeBanner" type="PanelContainer" parent="VBox"]
 unique_name_in_owner = true
@@ -80,4 +79,4 @@ theme_override_styles/panel = SubResource("StyleBox_banner")
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.58, 0.82, 1)
 theme_override_font_sizes/font_size = 22
-text = "RULES CHANGED: SPLIT"
+text = "WATER RULE CHANGED"
