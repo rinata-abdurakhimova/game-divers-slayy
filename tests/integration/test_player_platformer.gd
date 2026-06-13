@@ -10,14 +10,16 @@ func _run() -> void:
 	game_state.call(&"reset_boss_67_run")
 
 	var change_error: Error = change_scene_to_file(
-		"res://scenes/main/Boss67FallbackLevel.tscn"
+		"res://scenes/world/Boss67Level.tscn"
 	)
 	assert(change_error == OK)
 	await scene_changed
 	await process_frame
 
-	var player: CharacterBody2D = current_scene.get_node(^"Player") as CharacterBody2D
+	var player: CharacterBody2D = current_scene.get_node(^"Actors/Player") as CharacterBody2D
 	assert(player != null)
+	player.global_position.y -= 80.0
+	player.velocity = Vector2.ZERO
 	var spawn_y: float = player.global_position.y
 	await _physics_frames(30)
 	assert(player.global_position.y > spawn_y)

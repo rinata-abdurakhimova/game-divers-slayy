@@ -30,6 +30,12 @@ func _run() -> void:
 	await process_frame
 	assert(game_state.get("phase") == GameRules.RunPhase.WATER)
 	assert((current_scene.get_node(^"UI/WaterRuleOverlay") as Control).visible)
+	var hud: Control = current_scene.get_node(^"UI/HUD") as Control
+	assert(hud.get_node(^"TopMargin/TopRow/LeftColumn/WaterPanel").visible)
+	var rule_label: Label = hud.get_node(
+		^"TopMargin/TopRow/LeftColumn/WaterPanel/WaterColumn/WaterRuleLabel"
+	) as Label
+	assert(not rule_label.text.is_empty())
 	game_events.emit_signal(&"restart_requested")
 	await scene_changed
 	await process_frame
@@ -86,6 +92,14 @@ func _start_gameplay() -> void:
 	await process_frame
 	assert(not intro.visible)
 	assert(current_scene.get_node(^"LevelContainer").get_child_count() == 1)
+	var level: Node = current_scene.get_node(^"LevelContainer").get_child(0)
+	assert(level.name == &"Boss67Level")
+	assert(level.get_node(^"LevelController").get_script() != null)
+	var player: CharacterBody2D = level.get_node(^"Actors/Player") as CharacterBody2D
+	assert(player.global_position.distance_to(Vector2(100, 585)) < 1.0)
+	assert(player.velocity.length_squared() < 1.0)
+	assert(level.get_node(^"Pickups").get_child_count() == 0)
+	assert(level.get_node(^"Projectiles").get_child_count() == 0)
 	assert((current_scene.get_node(^"UI/HUD") as Control).visible)
 
 
@@ -94,6 +108,8 @@ func _assert_intro_state(game_state: Node) -> void:
 	assert(current_scene.get_node(^"LevelContainer").get_child_count() == 0)
 	assert(not (current_scene.get_node(^"UI/HUD") as Control).visible)
 	assert(game_state.get("score_cents") == GameRules.BOSS_67_START_SCORE_CENTS)
+	assert(game_state.get("distance_blocks") == 0)
+	assert(game_state.get("boss_phase") == GameRules.BossPhase.HIDDEN)
 	assert(game_state.get("water_variant") == GameRules.WaterVariant.NONE)
 	assert((game_state.get("active_powerups") as Dictionary).is_empty())
 	assert(game_state.get("input_enabled"))

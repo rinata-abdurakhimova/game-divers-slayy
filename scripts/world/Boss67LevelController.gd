@@ -1,6 +1,8 @@
 class_name Boss67LevelController
 extends Node
 
+const WaterRuleServiceScript = preload("res://scripts/gameplay/WaterRuleService.gd")
+
 @export_group("Node Paths")
 @export var player_path: NodePath
 @export var boss_path: NodePath
@@ -28,7 +30,7 @@ extends Node
 @export var boss_projectile_scene: PackedScene
 
 var _player: Node2D
-var _boss: Boss67
+var _boss: Node2D
 var _camera: Camera2D
 var _safe_wall: StaticBody2D
 var _pickup_root: Node2D
@@ -44,7 +46,7 @@ var _projectile_timer: Timer
 
 func _ready() -> void:
 	_player = get_node_or_null(player_path) as Node2D
-	_boss = get_node_or_null(boss_path) as Boss67
+	_boss = get_node_or_null(boss_path) as Node2D
 	_camera = get_node_or_null(camera_path) as Camera2D
 	_safe_wall = get_node_or_null(safe_wall_path) as StaticBody2D
 	_pickup_root = get_node_or_null(pickup_root_path) as Node2D
@@ -71,6 +73,8 @@ func _connect_signals() -> void:
 	var ge: Node = get_node_or_null(^"/root/GameEvents")
 	if ge != null and ge.has_signal(&"restart_requested"):
 		ge.restart_requested.connect(_on_restart_requested)
+	if ge != null and ge.has_signal(&"water_finished"):
+		ge.water_finished.connect(_on_water_finished)
 
 
 func _create_timers() -> void:
@@ -141,7 +145,18 @@ func _trigger_water() -> void:
 	_water_triggered = true
 	var gs: Node = get_node_or_null(^"/root/GameState")
 	if gs != null and gs.has_method(&"begin_water_event"):
+		if gs.has_method(&"set_boss_phase"):
+			gs.set_boss_phase(GameRules.BossPhase.WATER)
 		gs.begin_water_event(GameRules.WaterVariant.WATER_A, GameRules.WaterComplication.NONE)
+
+
+func _on_water_finished() -> void:
+	var gs: Node = get_node_or_null(^"/root/GameState")
+	if gs == null or not gs.has_method(&"set_boss_phase"):
+		return
+	var next_phase: GameRules.BossPhase = GameRules.BossPhase.LAND_PURPLE \
+		if _last_blocks >= purple_distance else GameRules.BossPhase.LAND_WHITE
+	gs.set_boss_phase(next_phase)
 
 
 func _on_restart_requested() -> void:
@@ -174,13 +189,15 @@ func _spawn_pickup() -> void:
 		_start_pickup_timer()
 		return
 
-	var pickup: ScorePickup = score_pickup_scene.instantiate() as ScorePickup
+	var pickup: Node2D = score_pickup_scene.instantiate() as Node2D
 	if pickup == null:
 		_start_pickup_timer()
 		return
 
-	var values: Array[int] = GameRules.LAND_PICKUP_VALUES_CENTS
-	pickup.value_cents = values[randi() % values.size()]
+	var operations: Array[Dictionary] = _pickup_operations()
+	var operation_data: Dictionary = operations[randi() % operations.size()]
+	pickup.set(&"operation", operation_data["operation"])
+	pickup.set(&"value_cents", operation_data["value_cents"])
 	pickup.global_position = marker.global_position
 	_pickup_root.add_child(pickup)
 	_start_pickup_timer()
@@ -194,19 +211,24 @@ func _spawn_projectile() -> void:
 		_start_projectile_timer()
 		return
 
-	var spawn_positions: Array[Vector2] = _boss.get_spawn_positions()
+	if not _boss.has_method(&"get_spawn_positions"):
+		_start_projectile_timer()
+		return
+	var spawn_positions: Array[Vector2] = _boss.call(&"get_spawn_positions")
 	if spawn_positions.is_empty():
 		_start_projectile_timer()
 		return
 
-	var proj: BossProjectile = boss_projectile_scene.instantiate() as BossProjectile
+	var proj: Node2D = boss_projectile_scene.instantiate() as Node2D
 	if proj == null:
 		_start_projectile_timer()
 		return
 
-	var multipliers: Array[int] = GameRules.LAND_BOSS_MULTIPLIERS_CENTS
-	proj.value_cents = multipliers[randi() % multipliers.size()]
-	proj.is_purple = _last_blocks >= purple_distance and randf() < purple_chance
+	var operations: Array[Dictionary] = _boss_operations()
+	var operation_data: Dictionary = operations[randi() % operations.size()]
+	proj.set(&"operation", operation_data["operation"])
+	proj.set(&"value_cents", operation_data["value_cents"])
+	proj.set(&"is_purple", _last_blocks >= purple_distance and randf() < purple_chance)
 	proj.global_position = spawn_positions[randi() % spawn_positions.size()]
 	_projectile_root.add_child(proj)
 	_start_projectile_timer()
@@ -231,7 +253,25 @@ func _set_wall_collision(enabled: bool) -> void:
 	for child in _safe_wall.get_children():
 		var shape: CollisionShape2D = child as CollisionShape2D
 		if shape != null:
-			shape.disabled = not enabled
+			shape.set_deferred(&"disabled", not enabled)
+
+
+func _pickup_operations() -> Array[Dictionary]:
+	var gs: Node = get_node_or_null(^"/root/GameState")
+	if gs != null:
+		var variant: GameRules.WaterVariant = gs.get("water_variant")
+		if variant != GameRules.WaterVariant.NONE:
+			return WaterRuleServiceScript.floor_operations_for_water(variant)
+	return WaterRuleServiceScript.land_pickup_operations()
+
+
+func _boss_operations() -> Array[Dictionary]:
+	var gs: Node = get_node_or_null(^"/root/GameState")
+	if gs != null:
+		var variant: GameRules.WaterVariant = gs.get("water_variant")
+		if variant != GameRules.WaterVariant.NONE:
+			return WaterRuleServiceScript.boss_operations_for_water(variant)
+	return WaterRuleServiceScript.land_boss_projectile_operations()
 
 
 func _cleanup(node: Node) -> void:

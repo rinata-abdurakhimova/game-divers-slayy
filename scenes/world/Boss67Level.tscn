@@ -10,7 +10,7 @@
 size = Vector2(552, 48)
 
 [sub_resource type="RectangleShape2D" id="Rect_post"]
-size = Vector2(888, 48)
+size = Vector2(960, 48)
 
 [sub_resource type="RectangleShape2D" id="Rect_extra"]
 size = Vector2(1008, 48)
@@ -57,7 +57,7 @@ position = Vector2(276, 624)
 shape = SubResource("Rect_tutorial")
 
 [node name="PostFloor" type="CollisionShape2D" parent="Terrain"]
-position = Vector2(1068, 624)
+position = Vector2(1032, 624)
 shape = SubResource("Rect_post")
 
 [node name="ExtraFloor" type="CollisionShape2D" parent="Terrain"]
@@ -101,11 +101,11 @@ polygon = PackedVector2Array(-48, -24, 48, -24, 48, 24, -48, 24)
 collision_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SafeWall"]
-position = Vector2(588, 576)
+position = Vector2(300, 576)
 shape = SubResource("Rect_wall")
 
 [node name="Visual" type="Polygon2D" parent="SafeWall"]
-position = Vector2(588, 576)
+position = Vector2(300, 576)
 color = Color(0.4, 0.25, 0.15, 1)
 polygon = PackedVector2Array(-24, -72, 24, -72, 24, 72, -24, 72)
 

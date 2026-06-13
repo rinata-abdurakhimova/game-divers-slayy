@@ -1,6 +1,8 @@
 class_name ScorePickup
 extends Area2D
 
+const ScoreServiceScript = preload("res://scripts/gameplay/ScoreService.gd")
+
 @export var value_cents: int = 100
 @export var operation: StringName = GameRules.SCORE_OPERATION_ADD
 
@@ -37,4 +39,4 @@ func _on_body_entered(body: Node) -> void:
 func _update_label() -> void:
 	var label: Label = get_node_or_null(^"Label")
 	if label != null:
-		label.text = ScoreService.format_score(value_cents)
+		label.text = ScoreServiceScript.format_score(value_cents)
