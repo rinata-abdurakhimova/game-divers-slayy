@@ -39,4 +39,25 @@ func _on_body_entered(body: Node) -> void:
 func _update_label() -> void:
 	var label: Label = get_node_or_null(^"Label")
 	if label != null:
-		label.text = ScoreServiceScript.format_score(value_cents)
+		label.text = _operation_text()
+	var bg: Polygon2D = get_node_or_null(^"Bg") as Polygon2D
+	if bg != null:
+		match operation:
+			GameRules.SCORE_OPERATION_ADD:
+				bg.color = Color(0.2, 0.85, 0.55, 1.0)
+			GameRules.SCORE_OPERATION_SUBTRACT:
+				bg.color = Color(0.2, 0.45, 0.95, 1.0)
+			GameRules.SCORE_OPERATION_MULTIPLY:
+				bg.color = Color(0.95, 0.75, 0.15, 1.0)
+
+
+func _operation_text() -> String:
+	var amount_text: String = ScoreServiceScript.format_score(value_cents)
+	match operation:
+		GameRules.SCORE_OPERATION_ADD:
+			return "+%s" % amount_text
+		GameRules.SCORE_OPERATION_SUBTRACT:
+			return "-%s" % amount_text
+		GameRules.SCORE_OPERATION_MULTIPLY:
+			return "x%s" % amount_text
+	return amount_text

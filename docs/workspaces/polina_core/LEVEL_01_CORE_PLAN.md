@@ -75,10 +75,13 @@ Movement:
 Map/grid assumptions:
 
 - Visible design chunk is `12 x 8` tiles.
+- Full Level 1 route is `52` authored cells from the board reference.
 - One tile is one cube.
 - Player is `1 x 1` tile.
 - Maximum intended terrain stack is 5 tiles high.
 - Every required route must be reachable with the approved movement kit.
+- The route loops only at the right edge. Walking left after the boss starts must clamp or block the
+  player, not wrap into another chunk.
 
 Opening flow:
 
@@ -86,6 +89,7 @@ Opening flow:
 - The player starts in a safe sand-and-sky tutorial area.
 - The first interaction teaches walking, falling, and one-block jumping.
 - After the first successful tutorial jump/block, the safe start closes behind the player.
+- The safe-start closure must not read as a visible stone/block in the middle of the playfield.
 - Boss 67 appears only after the player has demonstrated basic platforming.
 
 ## Land Phase
@@ -115,6 +119,8 @@ Rules:
 - `*0` is rare because it causes immediate failure through score `0.00`.
 - White boss digits collide with blocks and are destroyed.
 - Boss/projectile difficulty should be readable before it becomes punishing.
+- Boss digits should clearly spawn from Boss 67 and use readable labels for long operations such as
+  `x1.15`.
 
 ## Distance Gates
 
@@ -219,15 +225,20 @@ Polina provides:
 
 Outcome signals should be emitted by `GameState`, not directly by Player:
 
-- `score_changed(snapshot: Dictionary)`
+- `score_changed(score_cents: int, display: String)`
+- `score_operation_applied(operation: StringName, value_cents: int, source: StringName)`
+- `distance_changed(blocks: int)`
+- `boss_phase_changed(phase: GameRules.BossPhase)`
+- `water_started(variant: GameRules.WaterVariant, complication: GameRules.WaterComplication, seconds: float)`
+- `water_timer_changed(seconds_left: float)`
+- `water_finished()`
+- `powerup_started(kind: StringName, seconds: float)`
+- `powerup_finished(kind: StringName)`
 - `player_failed(reason: StringName)`
+- `boss_67_defeated()`
 - `level_completed(level_id: StringName)`
-- `water_started(variant: StringName, complication: StringName, duration_seconds: float)`
-- `water_finished`
-- `boss_phase_changed(phase: StringName)`
-- `power_up_started(power_up_id: StringName, duration_seconds: float)`
-- `power_up_finished(power_up_id: StringName)`
-- `restart_requested`
+- `game_over(won: bool, reason: StringName, score_cents: int)`
+- `restart_requested()`
 
 ## Implementation Order
 
@@ -267,6 +278,8 @@ Movement:
 Progression:
 
 - Boss appears after the tutorial jump.
+- Safe-start closure does not leave a visible center block.
+- Walking left after the boss starts does not wrap the player into another chunk.
 - Purple projectiles unlock at 18 blocks.
 - First water starts at 28 blocks.
 - Later water starts only after qualifying land pickups and cooldown.
@@ -278,7 +291,7 @@ Progression:
 
 To Alina:
 
-- Build side-view terrain on the `12 x 8` readable chunk rule.
+- Build side-view terrain on the `52` authored cells / `12 x 8` readable chunk rule.
 - Keep required jumps inside the approved movement ability.
 - Use sand/blocks from the selected visual asset pack.
 - White projectiles need block collision. Purple projectiles need pass-through behavior.

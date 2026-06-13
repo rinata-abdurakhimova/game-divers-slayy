@@ -52,10 +52,14 @@ only art, not movement or game logic.
   `12 x 8` decision grid.
 - The full Boss 67 route is much longer than one screen. The `12 x 8` grid describes only the readable
   camera window, not the whole map.
+- The board reference defines a `52` cell authored route for Level 1. The route should be rebuilt as
+  deliberate 12-column camera chunks, not as random low blocks along the floor.
 - During the chase, keep the player near the horizontal center of the camera view whenever possible so
   the player can read upcoming pickups, projectiles, sand floor, and water changes.
-- The long route loops: when the player reaches the authored end of the route, wrap or reposition the
-  route back to its beginning cleanly instead of hard-stopping the run.
+- The long route loops only at the authored right edge: when the player reaches the end of the route,
+  wrap or reposition the route back to its beginning cleanly instead of hard-stopping the run.
+- Walking left must never wrap the player to another chunk. During the boss run, clamp the player at
+  the left edge of the active route or block retreat with the safe-start closure.
 - Looping must preserve current score, boss phase, water cooldowns, active power-ups, and projectile
   cleanup. Do not restart the whole run unless the player has won, failed, or explicitly pressed
   restart.
@@ -110,19 +114,29 @@ test starts from `Main.tscn`.
 
 - Player spawns in a safe sand-and-pink-sky area.
 - No boss projectiles are active.
+- The safe start is only the first visible screen. It teaches movement and then stops being a place the
+  player can return to during the boss run.
 - Teach:
   - move left/right;
   - fall and land;
   - jump onto one block;
   - short hop versus held jump if implemented.
 - After the player clears the first one-block jump checkpoint, the safe area closes or disappears so
-  the player cannot retreat into the tutorial.
+  the player cannot retreat into the tutorial. If a backstop is needed, it should not read as a
+  foreground stone/platform block in the middle of the screen.
 - Boss 67 appears immediately after that checkpoint.
 
 ### 3. Land Boss Phase
 
 Boss 67 throws white number projectiles. White projectiles collide with blocks and are destroyed by
 blocks.
+
+Projectile readability requirements:
+
+- Projectiles spawn from visible Boss 67 anchors and travel left toward the player.
+- The number operation must be readable against the sky and water overlays.
+- White projectiles use high-contrast white/red number treatment.
+- Purple projectiles must be visibly purple, less frequent, and visually distinct from pickups.
 
 Land score pickups spawn on:
 
@@ -322,15 +336,19 @@ Restart:
 3. Spawn in safe sand-and-sky area.
 4. Walk, fall, land, and jump onto one block.
 5. Confirm safe start closes after the first taught jump.
-6. Confirm Boss 67 appears.
-7. Collect land pickups and avoid `*0`, `*0.5`, `*0.8`.
-8. Reach 18 blocks and confirm rare purple projectiles begin.
-9. Reach 28 blocks and confirm water lasts `10` seconds.
-10. Confirm the selected water rule set is shown in the HUD.
-11. Confirm score can go negative but `0.00` fails.
-12. Reach exactly `67.00` and confirm victory.
-13. Restart and confirm a clean run.
-14. Run `tools\qa.cmd`.
+6. Confirm there is no visible stone-like wall/block left in the center of the playfield after closure.
+7. Walk left after the boss run starts and confirm the player is clamped or blocked, not wrapped into
+   another route chunk.
+8. Confirm Boss 67 appears.
+9. Confirm boss projectiles visibly originate from Boss 67 and their operations are readable.
+10. Collect land pickups and avoid `*0`, `*0.5`, `*0.8`.
+11. Reach 18 blocks and confirm rare purple projectiles begin.
+12. Reach 28 blocks and confirm water lasts `10` seconds.
+13. Confirm the selected water rule set is shown in the HUD.
+14. Confirm score can go negative but `0.00` fails.
+15. Reach exactly `67.00` and confirm victory.
+16. Restart and confirm a clean run.
+17. Run `tools\qa.cmd`.
 
 ## Scope Warning
 

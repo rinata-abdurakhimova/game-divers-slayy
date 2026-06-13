@@ -47,7 +47,11 @@ Run this after Polina-owned files are implemented in the real project.
 - [ ] Confirm player starts in the safe sand/sky tutorial area.
 - [ ] Walk, fall, land, and jump one block.
 - [ ] Confirm the safe start closes after the tutorial jump.
+- [ ] Confirm the closure does not leave a visible center stone/block.
+- [ ] Walk left after the boss run starts.
+- [ ] Confirm the player is clamped or blocked instead of wrapping into another chunk.
 - [ ] Confirm Boss 67 appears.
+- [ ] Confirm boss digits are readable and clearly come from Boss 67.
 - [ ] Confirm white boss digits collide with blocks.
 - [ ] Reach 18 horizontal blocks from boss-run start.
 - [ ] Confirm purple projectiles can appear and pass through blocks.

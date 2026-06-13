@@ -25,9 +25,13 @@ The player must always know:
 ## Grid And Scale
 
 - Design grid: `12 x 8`.
+- Level 1 route: `52` authored cells from the board reference, shown through the `12 x 8` camera
+  window.
 - One block = one gameplay unit.
 - Player = one gameplay unit.
 - Use a clear side-view platform layout.
+- Do not make the route read as random floor clutter. Each block should either teach movement, shape
+  a jump, block a white projectile, or create a readable pickup choice.
 - Avoid dense decoration that hides blocks, projectiles, pickups, or the player.
 
 ## HUD
@@ -72,6 +76,9 @@ Visuals:
 
 After the first taught jump, visually close or remove the safe start so the boss fight begins.
 
+The safe-start closure must not look like a foreground stone/platform block in the middle of the
+screen. Use an invisible backstop, offscreen closure, camera lock, or another clear transition.
+
 ## Numbers
 
 All numbers must be readable.
@@ -80,6 +87,8 @@ All numbers must be readable.
 - Do not bake digits into sprites for the first version.
 - White boss digits are blockable.
 - Purple boss digits pass through blocks.
+- Boss digits should visibly travel from Boss 67 toward the player.
+- Make projectile labels large enough for `x1.15`, `x0.5`, `-10`, and `+7`.
 - Land pickups should contrast against sand.
 - Water pickups should contrast against blue overlay.
 
@@ -152,6 +161,8 @@ Do not import the full pack.
 - Player remains readable under water overlay.
 - All pickups are readable.
 - White and purple projectiles are visually distinct.
+- Boss projectiles visibly originate from Boss 67.
+- Safe-start closure is not visible as a center block.
 - Score text is readable while moving.
 - Water rule set is understandable within two seconds.
 - Power-up icons are distinguishable.

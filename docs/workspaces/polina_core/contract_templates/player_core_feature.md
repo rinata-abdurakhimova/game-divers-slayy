@@ -57,6 +57,8 @@ Core gameplay provides:
 - distance thresholds for boss/purple/water gates.
 - land and water operation pools.
 - water retrigger logic for land values divisible by 6 or 7.
+- right-edge-only route loop support through contract constants/state; walking left after the boss
+  starts must clamp or block instead of wrapping.
 
 Assets:
 
@@ -112,14 +114,17 @@ Main-scene test:
 3. Enter the safe tutorial area.
 4. Walk, fall, and jump one block.
 5. Confirm safe start closes behind the player.
-6. Confirm Boss 67 appears.
-7. Reach 18 blocks and confirm purple projectiles are enabled.
-8. Reach 28 blocks and confirm first water starts.
-9. Confirm water lasts 10 seconds.
-10. Reach exact `67.00` and confirm victory.
-11. Trigger score `0.00` and confirm failure.
-12. Restart without relaunching the app.
-13. Run `tools\qa.cmd`.
+6. Confirm the closure does not leave a visible center stone/block.
+7. Walk left and confirm the player does not wrap into another chunk.
+8. Confirm Boss 67 appears.
+9. Confirm boss digits are readable and clearly come from Boss 67.
+10. Reach 18 blocks and confirm purple projectiles are enabled.
+11. Reach 28 blocks and confirm first water starts.
+12. Confirm water lasts 10 seconds.
+13. Reach exact `67.00` and confirm victory.
+14. Trigger score `0.00` and confirm failure.
+15. Restart without relaunching the app.
+16. Run `tools\qa.cmd`.
 
 Fallback/cut:
 

@@ -19,6 +19,9 @@ const LOOP_WIDTH_PX: float = 52.0 * 48.0
 @export_group("Tuning")
 @export var block_size: float = 48.0
 @export var tutorial_end_x: float = 576.0
+@export var safe_start_left_bound_x: float = 48.0
+@export var boss_run_left_bound_x: float = 576.0
+@export var boss_camera_offset: Vector2 = Vector2(220.0, -244.0)
 @export var purple_distance: int = 18
 @export var max_active_pickups: int = 7
 @export var pickup_interval_min: float = 2.0
@@ -101,9 +104,13 @@ func _create_timers() -> void:
 func _process(delta: float) -> void:
 	_update_water_cooldown(delta)
 
+	if _player != null:
+		_clamp_player_left_edge()
+
 	if _camera != null and _player != null:
 		var target_x: float = maxf(_player.global_position.x, 576.0)
 		_camera.global_position = Vector2(target_x, 324.0)
+		_position_boss_for_camera()
 
 	if _player == null or not _tutorial_done:
 		return
@@ -134,6 +141,25 @@ func _wrap_player() -> void:
 		return
 	_player.global_position.x -= LOOP_WIDTH_PX
 	_total_blocks += LOOP_WIDTH_BLOCKS
+
+
+func _clamp_player_left_edge() -> void:
+	if _player == null:
+		return
+	var minimum_x: float = boss_run_left_bound_x if _tutorial_done else safe_start_left_bound_x
+	if _player.global_position.x >= minimum_x:
+		return
+
+	_player.global_position.x = minimum_x
+	var body: CharacterBody2D = _player as CharacterBody2D
+	if body != null and body.velocity.x < 0.0:
+		body.velocity.x = 0.0
+
+
+func _position_boss_for_camera() -> void:
+	if not _tutorial_done or _boss == null or _camera == null:
+		return
+	_boss.global_position = _camera.global_position + boss_camera_offset
 
 
 func _on_safe_trigger(_body: Node) -> void:

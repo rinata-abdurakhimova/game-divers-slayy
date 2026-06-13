@@ -40,10 +40,14 @@ survive water twists -> hit exact 67 -> win or hit 0 -> play again
 
 - Side-view platformer.
 - Design grid: `12 x 8`.
+- Level 1 uses a `52` cell authored route from the board reference. The player sees only a `12 x 8`
+  camera window at a time.
 - One block is one gameplay unit.
 - Player is one gameplay unit.
 - Teach walking and one-block jumping before the boss starts.
 - Platform stacks may be up to `5` blocks high, but required movement must remain readable.
+- The route loops only at the right edge. Walking left after the boss starts must clamp or block the
+  player, not move them into another route chunk.
 - Reference controller: `docs/PLATFORMER_CONTROLLER.md`.
 
 ## Opening Flow
@@ -51,7 +55,8 @@ survive water twists -> hit exact 67 -> win or hit 0 -> play again
 1. Placeholder cutscene.
 2. Safe sand-and-sky start.
 3. Player learns to walk and jump onto one block.
-4. Safe start closes after the first taught jump.
+4. Safe start closes after the first taught jump. The closure should not look like an extra foreground
+   stone block in the middle of the route.
 5. Boss 67 appears.
 6. Score chase begins.
 
@@ -70,6 +75,7 @@ Rules:
 - Boss throws `*0`, `*0.5`, and `*0.8`.
 - `*0` is very rare.
 - White boss digits are destroyed by blocks.
+- Boss digits must be readable and should clearly travel from Boss 67 toward the player.
 
 ## Boss Distance Escalation
 
@@ -214,14 +220,17 @@ Power-ups are rare and spawn on high points.
 2. Skip/finish cutscene.
 3. Learn walk and one-block jump in safe sand area.
 4. Cross first jump and close safe start.
-5. Boss 67 appears.
-6. Collect land pickups and change score.
-7. Avoid a `*0` or prove it fails if touched.
-8. Reach `18` blocks and see purple digits begin.
-9. Reach `28` blocks and enter water for `10` seconds.
-10. Apply one water variant correctly.
-11. Reach exact `67.00` and win.
-12. Restart and confirm clean state.
+5. Confirm no visible center stone/block remains from the safe-start closure.
+6. Walk left and confirm the player does not wrap into another chunk.
+7. Boss 67 appears.
+8. Confirm boss digits are readable and clearly come from Boss 67.
+9. Collect land pickups and change score.
+10. Avoid a `*0` or prove it fails if touched.
+11. Reach `18` blocks and see purple digits begin.
+12. Reach `28` blocks and enter water for `10` seconds.
+13. Apply one water variant correctly.
+14. Reach exact `67.00` and win.
+15. Restart and confirm clean state.
 
 ## Scope Warning
 

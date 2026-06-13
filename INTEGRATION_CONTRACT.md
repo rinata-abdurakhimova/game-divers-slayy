@@ -196,9 +196,13 @@ All operations round to the nearest cent after application.
 ## Distance Contract
 
 Progress is measured in horizontal blocks from the boss-run start, after the safe tutorial closes.
-The post-tutorial terrain is a 52-block loop, or 2496 px at the current 48 px block size. When the
-player passes the right edge, they wrap back to the left. Cumulative distance never resets and drives
+The post-tutorial terrain is a 52-block loop, or 2496 px at the current 48 px block size. This 52-block
+route comes from the board reference and must be authored as readable 12-column chunks. When the player
+passes the right edge, they wrap back to the left. Cumulative distance never resets and drives
 permanent boss-phase milestones.
+
+Only the right edge loops. Walking left must not wrap the player into another chunk. After the safe
+start closes, the player is clamped or blocked at the left edge of the boss route.
 
 | Distance | Event |
 | --- | --- |
@@ -243,6 +247,10 @@ result and HUD UI controls
 The platformer asset pack is visual-only. It does not provide movement, score, water, boss, or restart
 logic.
 
+Projectile digits must stay readable over both land sky and water overlay. White projectiles should
+read as white/red arithmetic, and purple projectiles should read as purple arithmetic that is distinct
+from green pickups and power-ups.
+
 ## Integration Gate
 
 The new slice is integrated only when:
@@ -251,6 +259,8 @@ The new slice is integrated only when:
 - player walks, falls, lands, and jumps in an isolated test room;
 - safe start teaches one-block jump;
 - Boss 67 appears after the safe start closes;
+- the safe-start closure does not leave a visible stone-like block in the middle of the screen;
+- the player cannot walk left and wrap into another chunk;
 - land pickups change score;
 - white projectiles are blocked by terrain;
 - purple projectiles start after `18` blocks and pass through blocks;

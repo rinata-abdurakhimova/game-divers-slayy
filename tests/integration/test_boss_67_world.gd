@@ -41,13 +41,22 @@ func _run() -> void:
 	await _physics_frames(20)
 	Input.action_release(&"move_right")
 	assert(safe_wall.visible)
+	assert(not safe_wall.get_node(^"Visual").visible)
 	assert(boss.get_node(^"BodyVisual").visible)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.LAND_WHITE)
+	controller.call(&"_process", 0.0)
+	assert(boss.global_position.x > player.global_position.x)
 	for child: Node in controller.get_children():
 		if child is Timer:
 			(child as Timer).stop()
 
 	player.global_position = Vector2(430, 585)
+	player.velocity = Vector2(-200, 0)
+	controller.call(&"_process", 0.0)
+	assert(player.global_position.x >= controller.get("boss_run_left_bound_x"))
+	assert(player.velocity.x >= 0.0)
+
+	player.global_position = Vector2(576, 585)
 	player.velocity = Vector2.ZERO
 	await _physics_frames(2)
 	assert(player.is_on_floor())
