@@ -26,7 +26,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		or event.is_action_pressed(&"move_up") or event.is_action_pressed(&"move_down"):
 		_movement_seen = true
 		arrow_hint.hide()
-		collection_hint.show()
+		collection_hint.hide()
 		get_viewport().set_input_as_handled()
 
 
@@ -39,7 +39,7 @@ func _on_equation_changed(snapshot: Dictionary) -> void:
 		collection_hint.hide()
 	elif _movement_seen and current_phase == GameRules.Phase.LAND:
 		submission_hint.hide()
-		collection_hint.show()
+		collection_hint.hide()
 
 
 func _on_phase_changed(new_phase: GameRules.Phase) -> void:

@@ -31,7 +31,7 @@ polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 648, 0, 648)
 [node name="WaterVisual" type="Polygon2D" parent="Background"]
 visible = false
 color = Color(0.95, 0.28, 0.72, 0.4)
-polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 648, 0, 648)
+polygon = PackedVector2Array(640, 0, 1152, 0, 1152, 648, 640, 648)
 
 [node name="Navigation" type="Node2D" parent="."]
 

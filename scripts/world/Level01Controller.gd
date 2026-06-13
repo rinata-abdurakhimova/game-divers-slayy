@@ -72,7 +72,7 @@ func _start_tide_transition() -> void:
 	var sand: CanvasItem = get_node_or_null(sand_visual_path) as CanvasItem
 	var water: CanvasItem = get_node_or_null(water_visual_path) as CanvasItem
 	if sand != null:
-		sand.visible = false
+		sand.visible = true
 	if water != null:
 		water.visible = true
 

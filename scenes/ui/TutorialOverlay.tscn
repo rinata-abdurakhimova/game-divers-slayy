@@ -48,6 +48,7 @@ text = "USE ARROW KEYS TO MOVE"
 
 [node name="CollectionHint" type="PanelContainer" parent="VBox"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_banner")
 
@@ -59,6 +60,7 @@ text = "Find two numbers that make 10"
 
 [node name="SubmissionHint" type="PanelContainer" parent="VBox"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_banner")
 
@@ -70,6 +72,7 @@ text = "Walk onto the altar to submit"
 
 [node name="RuleChangeBanner" type="PanelContainer" parent="VBox"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_banner")
 
