@@ -1,20 +1,20 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="1_hud"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
-bg_color = Color(0.188, 0.141, 0.239, 0.92)
+bg_color = Color(0.188, 0.141, 0.239, 0.94)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 content_margin_left = 16.0
-content_margin_top = 10.0
+content_margin_top = 8.0
 content_margin_right = 16.0
-content_margin_bottom = 10.0
+content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_equation"]
-bg_color = Color(0.337, 0.235, 0.361, 0.96)
+bg_color = Color(0.337, 0.235, 0.361, 0.97)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -24,20 +24,52 @@ corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
-content_margin_left = 24.0
-content_margin_top = 10.0
-content_margin_right = 24.0
-content_margin_bottom = 10.0
+content_margin_left = 28.0
+content_margin_top = 8.0
+content_margin_right = 28.0
+content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_hint"]
-bg_color = Color(0.188, 0.141, 0.239, 0.82)
+bg_color = Color(0.188, 0.141, 0.239, 0.86)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 content_margin_left = 18.0
-content_margin_top = 8.0
+content_margin_top = 7.0
 content_margin_right = 18.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_shield_active"]
+bg_color = Color(0.337, 0.235, 0.361, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.58, 0.82, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_shield_cleared"]
+bg_color = Color(0.188, 0.141, 0.239, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.867, 0.984, 1, 0.55)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
 content_margin_bottom = 8.0
 
 [node name="HUD" type="Control"]
@@ -50,91 +82,178 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_hud")
 
-[node name="SafeMargin" type="MarginContainer" parent="."]
+[node name="TopSafeMargin" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 10
 anchor_right = 1.0
-anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = 20.0
+offset_top = 18.0
 offset_right = -24.0
-offset_bottom = -20.0
+offset_bottom = 86.0
 grow_horizontal = 2
-grow_vertical = 2
+mouse_filter = 2
 
-[node name="TopRow" type="HBoxContainer" parent="SafeMargin"]
+[node name="TopRow" type="HBoxContainer" parent="TopSafeMargin"]
 layout_mode = 2
-alignment = 1
+theme_override_constants/separation = 16
 
-[node name="TargetPanel" type="PanelContainer" parent="SafeMargin/TopRow"]
-custom_minimum_size = Vector2(170, 54)
+[node name="TargetPanel" type="PanelContainer" parent="TopSafeMargin/TopRow"]
+custom_minimum_size = Vector2(170, 58)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_panel")
 
-[node name="TargetLabel" type="Label" parent="SafeMargin/TopRow/TargetPanel"]
+[node name="TargetLabel" type="Label" parent="TopSafeMargin/TopRow/TargetPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 23
 text = "TARGET 10"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LeftSpacer" type="Control" parent="SafeMargin/TopRow"]
+[node name="EquationPanel" type="PanelContainer" parent="TopSafeMargin/TopRow"]
+custom_minimum_size = Vector2(430, 64)
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="EquationPanel" type="PanelContainer" parent="SafeMargin/TopRow"]
-custom_minimum_size = Vector2(360, 62)
-layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_equation")
 
-[node name="EquationLabel" type="Label" parent="SafeMargin/TopRow/EquationPanel"]
+[node name="EquationLabel" type="Label" parent="TopSafeMargin/TopRow/EquationPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 32
 text = "_ + _ = 10"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RightSpacer" type="Control" parent="SafeMargin/TopRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="RulePanel" type="PanelContainer" parent="SafeMargin/TopRow"]
-custom_minimum_size = Vector2(210, 54)
+[node name="RulePanel" type="PanelContainer" parent="TopSafeMargin/TopRow"]
+custom_minimum_size = Vector2(190, 58)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_panel")
 
-[node name="RuleColumn" type="VBoxContainer" parent="SafeMargin/TopRow/RulePanel"]
-layout_mode = 2
-
-[node name="RuleLabel" type="Label" parent="SafeMargin/TopRow/RulePanel/RuleColumn"]
+[node name="RuleLabel" type="Label" parent="TopSafeMargin/TopRow/RulePanel"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.58, 0.82, 1)
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 22
 text = "COMBINE"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="ShieldLabel" type="Label" parent="SafeMargin/TopRow/RulePanel/RuleColumn"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.867, 0.984, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "SHIELDS [X][X]"
-horizontal_alignment = 1
-
-[node name="HintPanel" type="PanelContainer" parent="SafeMargin"]
-layout_mode = 2
-size_flags_vertical = 8
+[node name="HintPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -255.0
+offset_top = -132.0
+offset_right = 255.0
+offset_bottom = -88.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBox_hint")
 
-[node name="HintLabel" type="Label" parent="SafeMargin/HintPanel"]
+[node name="HintLabel" type="Label" parent="HintPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 19
 text = "Find two numbers that make 10"
 horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PhaseStage" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -76.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="PhaseBackground" type="ColorRect" parent="PhaseStage"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.953, 0.776, 0.647, 0.98)
+
+[node name="PhaseHighlight" type="ColorRect" parent="PhaseStage"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 5.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(1, 0.851, 0.722, 1)
+
+[node name="StageLabel" type="Label" parent="PhaseStage"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 24.0
+offset_top = -14.0
+offset_right = 190.0
+offset_bottom = 14.0
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.302, 0.208, 0.329, 1)
+theme_override_font_sizes/font_size = 18
+text = "SAND PHASE"
+vertical_alignment = 1
+
+[node name="ShieldRow" type="HBoxContainer" parent="PhaseStage"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -342.0
+offset_top = -24.0
+offset_right = -24.0
+offset_bottom = 24.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="ShieldOne" type="PanelContainer" parent="PhaseStage/ShieldRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_shield_active")
+
+[node name="ShieldOneLabel" type="Label" parent="PhaseStage/ShieldRow/ShieldOne"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
+theme_override_font_sizes/font_size = 17
+text = "SHIELD 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ShieldTwo" type="PanelContainer" parent="PhaseStage/ShieldRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_shield_active")
+
+[node name="ShieldTwoLabel" type="Label" parent="PhaseStage/ShieldRow/ShieldTwo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
+theme_override_font_sizes/font_size = 17
+text = "SHIELD 2"
+horizontal_alignment = 1
+vertical_alignment = 1

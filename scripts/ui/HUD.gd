@@ -3,8 +3,14 @@ extends Control
 @onready var target_label: Label = %TargetLabel
 @onready var equation_label: Label = %EquationLabel
 @onready var rule_label: Label = %RuleLabel
-@onready var shield_label: Label = %ShieldLabel
 @onready var hint_label: Label = %HintLabel
+@onready var phase_stage: Control = %PhaseStage
+@onready var phase_background: ColorRect = %PhaseBackground
+@onready var phase_highlight: ColorRect = %PhaseHighlight
+@onready var stage_label: Label = %StageLabel
+@onready var shield_one: PanelContainer = %ShieldOne
+@onready var shield_two: PanelContainer = %ShieldTwo
+@onready var shield_one_label: Label = %ShieldOneLabel
 
 var _feedback_tween: Tween
 
@@ -40,26 +46,48 @@ func _on_equation_changed(snapshot: Dictionary) -> void:
 func _on_phase_changed(new_phase: GameRules.Phase) -> void:
 	match new_phase:
 		GameRules.Phase.LAND:
+			phase_stage.show()
+			_set_stage_colors(Color("#F3C6A5"), Color("#FFD9B8"))
+			stage_label.text = "SAND PHASE"
 			rule_label.text = "COMBINE"
 			hint_label.text = "Find two numbers that make 10"
 		GameRules.Phase.TRANSITION:
+			phase_stage.show()
+			_set_stage_colors(Color("#D98BC8"), Color("#FFDCF6"))
+			stage_label.text = "TIDE RISING"
 			rule_label.text = "CHANGING..."
 			hint_label.text = "The tide is changing the rule"
 		GameRules.Phase.WATER:
+			phase_stage.show()
+			_set_stage_colors(Color("#E78DD2"), Color("#FFDCF6"))
+			stage_label.text = "PINK WATER PHASE"
 			rule_label.text = "SPLIT"
 			hint_label.text = "First number minus second number"
 		GameRules.Phase.COMPLETE:
+			phase_stage.hide()
 			rule_label.text = "COMPLETE"
 			hint_label.text = "Guardian 10 defeated"
 
 
 func _on_shield_changed(remaining: int) -> void:
-	var filled: int = clampi(remaining, 0, GameRules.LEVEL_01_STARTING_SHIELDS)
-	var empty: int = GameRules.LEVEL_01_STARTING_SHIELDS - filled
-	shield_label.text = "SHIELDS %s%s" % [
-		"[X]".repeat(filled),
-		"[ ]".repeat(empty),
-	]
+	if remaining >= GameRules.LEVEL_01_STARTING_SHIELDS:
+		shield_one.show()
+		shield_one_label.text = "SHIELD 1"
+		shield_one.modulate = Color.WHITE
+		shield_two.hide()
+	elif remaining == 1:
+		shield_one.show()
+		shield_one_label.text = "SHIELD 1 CLEARED"
+		shield_one.modulate = Color(1.0, 1.0, 1.0, 0.62)
+		shield_two.show()
+	else:
+		shield_one.hide()
+		shield_two.hide()
+
+
+func _set_stage_colors(background_color: Color, highlight_color: Color) -> void:
+	phase_background.color = background_color
+	phase_highlight.color = highlight_color
 
 
 func _on_equation_submitted(correct: bool) -> void:
