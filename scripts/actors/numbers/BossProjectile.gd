@@ -8,6 +8,7 @@ extends Area2D
 
 var _life_seconds: float = 12.0
 var _hit: bool = false
+var _direction: Vector2 = Vector2(-1.0, 0.3)   # default: fly left and slightly down
 
 # Collision layer constants matching INTEGRATION_CONTRACT.md:
 #   Layer 1  - player body
@@ -33,16 +34,15 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _hit:
 		return
-
-	# Move left toward the player.
-	position.x -= speed * delta
-	# Slight arc downward.
-	position.y += 18.0 * delta
-
+	# Move along the direction vector toward the target.
+	position += _direction * speed * delta
 	_life_seconds -= delta
-	# Destroy if expired or fell off screen.
-	if _life_seconds <= 0.0 or global_position.y > 700.0:
+	if _life_seconds <= 0.0 or global_position.y > 750.0 or global_position.y < -100.0:
 		queue_free()
+
+
+func set_direction(dir: Vector2) -> void:
+	_direction = dir.normalized() if dir.length_squared() > 0.001 else Vector2(-1.0, 0.3)
 
 
 func _on_body_entered(body: Node) -> void:

@@ -1,83 +1,103 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/Boss67LevelController.gd" id="1_ctrl"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Boss67.tscn" id="3_boss67"]
 [ext_resource type="PackedScene" path="res://scenes/actors/numbers/ScorePickup.tscn" id="4_pickup"]
 [ext_resource type="PackedScene" path="res://scenes/actors/numbers/BossProjectile.tscn" id="5_projectile"]
+[ext_resource type="PackedScene" path="res://scenes/actors/powerups/PowerUp.tscn" id="6_powerup"]
 
 [sub_resource type="RectangleShape2D" id="Rect_floor"]
-size = Vector2(3200, 48)
+size = Vector2(3200, 40)
 
 [sub_resource type="RectangleShape2D" id="Rect_boundary"]
 size = Vector2(3200, 20)
 
 [sub_resource type="RectangleShape2D" id="Rect_safe_wall"]
-size = Vector2(48, 500)
+size = Vector2(48, 600)
 
 [sub_resource type="RectangleShape2D" id="Rect_tutorial_block"]
 size = Vector2(48, 48)
 
 [sub_resource type="RectangleShape2D" id="Rect_trigger_safe"]
-size = Vector2(48, 120)
+size = Vector2(60, 500)
+
+[sub_resource type="RectangleShape2D" id="Rect_safe_zone_floor"]
+size = Vector2(240, 40)
+
+[sub_resource type="RectangleShape2D" id="Rect_safe_zone_ceil"]
+size = Vector2(240, 20)
 
 [node name="Boss67Level" type="Node2D"]
 
 [node name="Background" type="Node2D" parent="."]
 
 [node name="Sky" type="Polygon2D" parent="Background"]
-color = Color(0.19, 0.15, 0.31, 1)
-polygon = PackedVector2Array(-200, -100, 3400, -100, 3400, 312, -200, 312)
+color = Color(0.13, 0.09, 0.22, 1)
+polygon = PackedVector2Array(-200, -50, 3400, -50, 3400, 570, -200, 570)
 
 [node name="SandFill" type="Polygon2D" parent="Background"]
 color = Color(0.85, 0.65, 0.38, 1)
-polygon = PackedVector2Array(-200, 312, 3400, 312, 3400, 450, -200, 450)
+polygon = PackedVector2Array(-200, 570, 3400, 570, 3400, 700, -200, 700)
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(576, 324)
+position = Vector2(288, 324)
 position_smoothing_enabled = true
-position_smoothing_speed = 8.0
+position_smoothing_speed = 10.0
 
 [node name="Terrain" type="StaticBody2D" parent="."]
 collision_layer = 2
 
-[node name="Floor" type="CollisionShape2D" parent="Terrain"]
-position = Vector2(1600, 336)
+[node name="MainFloor" type="CollisionShape2D" parent="Terrain"]
+position = Vector2(1600, 586)
 shape = SubResource("Rect_floor")
 
 [node name="TutorialBlock" type="CollisionShape2D" parent="Terrain"]
-position = Vector2(144, 288)
+position = Vector2(240, 540)
 shape = SubResource("Rect_tutorial_block")
 
 [node name="TerrainVisual" type="Node2D" parent="."]
 
 [node name="FloorVisual" type="Polygon2D" parent="TerrainVisual"]
 color = Color(0.75, 0.55, 0.28, 1)
-polygon = PackedVector2Array(0, 312, 3200, 312, 3200, 360, 0, 360)
+polygon = PackedVector2Array(0, 570, 3200, 570, 3200, 608, 0, 608)
 
 [node name="TutorialBlockVisual" type="Polygon2D" parent="TerrainVisual"]
-position = Vector2(144, 288)
+position = Vector2(240, 540)
 color = Color(0.60, 0.42, 0.18, 1)
 polygon = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
+
+[node name="SafeZone" type="Node2D" parent="."]
+
+[node name="SafeZoneBgLeft" type="Polygon2D" parent="SafeZone"]
+color = Color(0.18, 0.14, 0.28, 0.85)
+polygon = PackedVector2Array(-200, -50, 170, -50, 170, 570, -200, 570)
+
+[node name="SafeLabel" type="Label" parent="SafeZone"]
+position = Vector2(10, 30)
+theme_override_colors/font_color = Color(0.6, 0.9, 1.0, 0.7)
+theme_override_font_sizes/font_size = 14
+text = "SAFE\nZONE"
+horizontal_alignment = 1
 
 [node name="SafeWall" type="StaticBody2D" parent="."]
 collision_layer = 2
 
 [node name="WallShape" type="CollisionShape2D" parent="SafeWall"]
-position = Vector2(240, 100)
+position = Vector2(0, 284)
 shape = SubResource("Rect_safe_wall")
 
 [node name="Boundaries" type="StaticBody2D" parent="."]
 collision_layer = 32
 
 [node name="FloorBoundary" type="CollisionShape2D" parent="Boundaries"]
-position = Vector2(1600, 348)
+position = Vector2(1600, 596)
 shape = SubResource("Rect_boundary")
 
 [node name="Navigation" type="Node2D" parent="."]
 
 [node name="SafeTrigger" type="Area2D" parent="Navigation"]
-position = Vector2(200, 270)
+position = Vector2(310, 300)
 monitoring = true
 
 [node name="TriggerShape" type="CollisionShape2D" parent="Navigation/SafeTrigger"]
@@ -86,15 +106,17 @@ shape = SubResource("Rect_trigger_safe")
 [node name="Actors" type="Node2D" parent="."]
 
 [node name="Player" parent="Actors" instance=ExtResource("2_player")]
-position = Vector2(48, 297)
+position = Vector2(80, 551)
 
 [node name="Boss67" parent="Actors" instance=ExtResource("3_boss67")]
-position = Vector2(900, 100)
+position = Vector2(576, -60)
 visible = false
 
 [node name="Pickups" type="Node2D" parent="."]
 
 [node name="Projectiles" type="Node2D" parent="."]
+
+[node name="PowerUps" type="Node2D" parent="."]
 
 [node name="LevelController" type="Node" parent="."]
 script = ExtResource("1_ctrl")
@@ -102,10 +124,13 @@ player_path = NodePath("../Actors/Player")
 boss_path = NodePath("../Actors/Boss67")
 camera_path = NodePath("../Camera2D")
 safe_wall_path = NodePath("../SafeWall")
+safe_zone_path = NodePath("../SafeZone")
 safe_trigger_path = NodePath("../Navigation/SafeTrigger")
 pickup_root_path = NodePath("../Pickups")
 projectile_root_path = NodePath("../Projectiles")
+powerup_root_path = NodePath("../PowerUps")
 terrain_visual_path = NodePath("../TerrainVisual")
 terrain_path = NodePath("../Terrain")
 score_pickup_scene = ExtResource("4_pickup")
 boss_projectile_scene = ExtResource("5_projectile")
+powerup_scene = ExtResource("6_powerup")
