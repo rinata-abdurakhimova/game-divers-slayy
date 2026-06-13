@@ -12,6 +12,10 @@ func _initialize() -> void:
 	assert(game_state.get("input_enabled"))
 
 	assert(game_state.call(&"try_collect_operand", 4))
+	assert(not game_state.call(&"submit_equation"))
+	assert((game_state.get("operands") as Array).is_empty())
+
+	assert(game_state.call(&"try_collect_operand", 4))
 	assert(game_state.call(&"try_collect_operand", 6))
 	assert(not game_state.call(&"try_collect_operand", 2))
 	assert(game_state.call(&"submit_equation"))

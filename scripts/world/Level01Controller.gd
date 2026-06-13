@@ -43,9 +43,6 @@ func _on_equation_submitted(correct: bool) -> void:
 	match current_phase:
 		GameRules.Phase.LAND:
 			_start_tide_transition()
-		GameRules.Phase.WATER:
-			if gs.has_method(&"complete_level"):
-				gs.complete_level()
 
 
 func _on_operands_cleared() -> void:

@@ -7,7 +7,14 @@ var _collected: bool = false
 
 
 func _ready() -> void:
+	_update_label()
 	body_entered.connect(_on_body_entered)
+
+
+func _update_label() -> void:
+	var label: Label = get_node_or_null(^"Label") as Label
+	if label != null:
+		label.text = str(value)
 
 
 func _on_body_entered(body: Node) -> void:
