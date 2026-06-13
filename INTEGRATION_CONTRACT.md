@@ -1,173 +1,256 @@
 # Integration Contract
 
-This contract is locked for the Level 1 Easy vertical slice. Update it before changing a shared name,
-payload, input, collision layer, autoload, or scene responsibility.
+This contract replaces the old top-down arithmetic-room contract. It is locked for the Boss 67
+platformer vertical slice. Update it before changing a shared name, payload, input, collision layer,
+autoload, scene responsibility, or score rule.
 
 ## Core Scenes
 
 | Scene | Owner | Responsibility |
 | --- | --- | --- |
-| `scenes/main/Main.tscn` | Rinata | composition root and run lifecycle |
-| `scenes/world/Level_01.tscn` | Alina | authored Level 1 arena and phase presentation |
-| `scenes/actors/Player.tscn` | Polina | player movement and phase visual response |
-| `scenes/actors/numbers/Operand.tscn` | Alina | collectible integer operand |
-| `scenes/actors/enemies/Guardian10.tscn` | Alina | shield and defeat presentation |
-| `scenes/world/interactions/EquationAltar.tscn` | Alina | equation submission trigger |
-| `scenes/world/interactions/ResetShell.tscn` | Alina | clear current operands |
-| `scenes/ui/HUD.tscn` | Rinata | target, operation, operands, rule, shield display |
-| `scenes/ui/TutorialOverlay.tscn` | Rinata | Level 1 onboarding |
-| `scenes/ui/RuleChangeOverlay.tscn` | Rinata | tide rule-change presentation |
-| `scenes/ui/ResultScreen.tscn` | Rinata | completion and restart |
+| `scenes/main/Main.tscn` | Rinata | composition root, intro flow, restart |
+| `scenes/world/Boss67Level.tscn` | Alina | side-view platformer level and authored chunks |
+| `scenes/world/PlatformerTestRoom.tscn` | Alina | isolated movement validation room |
+| `scenes/actors/Player.tscn` | Polina | platformer player, detection area, phase visual response |
+| `scenes/actors/Boss67.tscn` | Alina | Boss 67 presentation and projectile spawn anchors |
+| `scenes/actors/numbers/ScorePickup.tscn` | Alina | collectible operation/value item |
+| `scenes/actors/numbers/BossProjectile.tscn` | Alina | white and purple boss number projectiles |
+| `scenes/actors/powerups/PowerUp.tscn` | Alina | star slow and green double-jump pickups |
+| `scenes/ui/HUD.tscn` | Rinata | score, target, rule, water timer, power-up indicators |
+| `scenes/ui/CutsceneIntro.tscn` | Rinata | placeholder intro scene |
+| `scenes/ui/WaterRuleOverlay.tscn` | Rinata | water rule and complication announcement |
+| `scenes/ui/ResultScreen.tscn` | Rinata | victory/failure and restart |
+
+Old scene names such as `Level_01.tscn`, `Level_01_Water.tscn`, `Guardian10.tscn`, `EquationAltar.tscn`,
+and `ResetShell.tscn` are legacy and should not be extended for the new design.
 
 ## Autoloads
 
 | Name | Path | Owner | Contract |
 | --- | --- | --- | --- |
-| `GameEvents` | `scripts/autoload/GameEvents.gd` | Rinata | global signals only |
-| `GameState` | `scripts/autoload/GameState.gd` | Rinata with Polina review | resettable Level 1 state and equation API |
+| `GameEvents` | `scripts/autoload/GameEvents.gd` | Rinata | global signal hub only |
+| `GameState` | `scripts/autoload/GameState.gd` | Rinata with Polina review | score, run phase, water state, win/fail |
 | `AudioBus` | `scripts/autoload/AudioBus.gd` | Rinata | stable sound-ID playback |
-| `SceneLoader` | `scripts/autoload/SceneLoader.gd` | Rinata | start and fresh restart |
+| `SceneLoader` | `scripts/autoload/SceneLoader.gd` | Rinata | intro, start run, restart |
 
-No additional autoload is allowed for Level 1.
+No additional autoload is allowed for this slice without agreement from all three members.
 
 ## Shared Code
 
 | Type | Path | Owner | Contract |
 | --- | --- | --- | --- |
-| `GameRules` | `scripts/gameplay/GameRules.gd` | Polina | enums, constants, Level 1 operands, sound IDs |
-| `EquationService` | `scripts/gameplay/EquationService.gd` | Polina | pure addition/subtraction validation |
-| `Level01Controller` | `scripts/world/Level01Controller.gd` | Alina | LAND to TRANSITION to WATER to COMPLETE sequence |
+| `GameRules` | `scripts/gameplay/GameRules.gd` | Polina | constants, score operations, water variants, distances |
+| `ScoreService` | `scripts/gameplay/ScoreService.gd` | Polina | pure fixed-point score operations and win/fail checks |
+| `WaterRuleService` | `scripts/gameplay/WaterRuleService.gd` | Polina | water variant and complication selection |
+| `Boss67LevelController` | `scripts/world/Boss67LevelController.gd` | Alina | distance milestones, chunk flow, spawn requests |
+| `PlatformerPlayer` | `scripts/actors/player/Player.gd` | Polina | adapted movement controller in existing Player file |
 
-## Signals
-
-| Signal | Payload | Producer | Consumers |
-| --- | --- | --- | --- |
-| `run_started` | `level_id: StringName` | Main | level, HUD, tutorial, audio |
-| `phase_changed` | `phase: GameRules.Phase` | GameState | LevelController, HUD, Player |
-| `operand_collected` | `value: int, slot: int` | GameState | HUD, world feedback, audio |
-| `operands_cleared` | none | GameState | HUD, LevelController |
-| `equation_submitted` | `correct: bool` | GameState | LevelController, HUD, audio |
-| `equation_changed` | `snapshot: Dictionary` | GameState | HUD |
-| `shield_changed` | `remaining: int` | GameState | Guardian10, HUD, audio |
-| `tide_started` | none | LevelController | world visuals, overlay, audio |
-| `tide_finished` | none | LevelController | HUD, tutorial, Player |
-| `level_completed` | `level_id: StringName` | GameState | Main, HUD, audio |
-| `restart_requested` | none | ResultScreen/input | SceneLoader |
-
-The repository QA script also reserves these template names for later levels:
-
-| Reserved signal | Level 1 Easy rule |
-| --- | --- |
-| `player_died` | declare only if required by the QA skeleton; do not emit |
-| `health_changed` | declare only if required by the QA skeleton; no health system |
-| `score_changed` | declare only if required by the QA skeleton; no score system |
-| `game_over` | declare only if required by the QA skeleton; completion uses `level_completed` |
-
-Reserved signals must not create unused gameplay systems in Level 1.
-
-## GameState Methods
-
-```gdscript
-func reset_level_01() -> void
-func try_collect_operand(value: int) -> bool
-func clear_operands() -> void
-func submit_equation() -> bool
-func begin_tide_transition() -> void
-func enter_water_phase() -> void
-func complete_level() -> void
-func get_equation_snapshot() -> Dictionary
-```
-
-No world or UI script may write GameState fields directly.
-
-## Input Actions
+## Inputs
 
 | Action | Default keys | Purpose |
 | --- | --- | --- |
-| `move_left` | Left, A | move left |
-| `move_right` | Right, D | move right |
-| `move_up` | Up, W | move up |
-| `move_down` | Down, S | move down |
-| `action` | Space, Enter | reserved altar fallback |
-| `restart` | R | restart after completion |
+| `move_left` | Left, A | walk left |
+| `move_right` | Right, D | walk right |
+| `jump` | Space, Up, W | jump; hold for higher jump |
+| `action` | Enter, E | skip cutscene/overlay or confirm where needed |
+| `restart` | R | restart after outcome |
 | `pause` | Escape | pause |
+
+`Space` is no longer `action`; it is `jump`.
 
 ## Collision Layers
 
 | Layer | Purpose |
 | --- | --- |
 | `1` | player body |
-| `2` | operands |
-| `3` | altars and ResetShell |
-| `4` | solid world and CoralGate |
+| `2` | solid terrain and one-way platforms |
+| `3` | score pickups and power-ups |
+| `4` | boss projectiles |
+| `5` | boss body/presentation |
+| `6` | water boundaries or water-only collision helpers |
 
-## Level 1 Authored Data
+White projectiles collide with terrain. Purple projectiles ignore terrain and are destroyed only by the
+floor/water boundary or expiry.
 
-| Phase | Operation | Correct operands | Distractors | Target |
-| --- | --- | --- | --- | --- |
-| Land | addition | `4`, `6` | `2`, `7` | `10` |
-| Water | subtraction in collection order | `14`, `4` | `8`, `3` | `10` |
+## Run State
 
-## Stable Assets
+Required `GameState` fields:
 
-```text
-assets/sprites/player_idle.png
-assets/sprites/player_water.png
-assets/sprites/operand.png
-assets/sprites/guardian_10.png
-assets/sprites/guardian_10_hurt.png
-assets/sprites/guardian_10_defeated.png
-assets/sprites/level_01_sand.png
-assets/sprites/level_01_water.png
-assets/audio/sfx_operand_collect.wav
-assets/audio/sfx_equation_wrong.wav
-assets/audio/sfx_shield_break.wav
-assets/audio/sfx_tide.wav
-assets/audio/sfx_level_win.wav
+```gdscript
+var score_cents: int
+var phase: GameRules.RunPhase
+var distance_blocks: int
+var water_variant: GameRules.WaterVariant
+var water_complication: GameRules.WaterComplication
+var water_seconds_left: float
+var input_enabled: bool
+var outcome_locked: bool
 ```
 
-Placeholders may replace any asset while preserving its path or updating all consumers in one change.
-UI panels and placeholders should use Godot `Control`, `Label`, `ColorRect`, and `StyleBoxFlat`
-resources rather than adding image dependencies. Visual implementation must follow `docs/UI_STYLE.md`.
-
-### Third-Party Asset Subset
-
-Only these optional asset roles are approved for the current pass:
+Score is stored as fixed-point cents:
 
 ```text
-assets/third_party/o_lobster/level_01_backdrop.png
-assets/third_party/o_lobster/level_01_prop_01.png
-assets/third_party/o_lobster/level_01_prop_02.png
-assets/third_party/o_lobster/level_01_prop_03.png
-THIRD_PARTY_NOTICES.md
+1.00 -> 100
+67.00 -> 6700
+0.00 -> fail
 ```
 
-The prop files are optional; unused slots should not be created. Rinata owns selection, import
-settings, filenames, attribution, and license review. Alina owns placement inside
-`Level_01.tscn`.
+Required methods:
 
-No gameplay code may depend on these files. Missing optional art falls back to the existing
-`SandVisual` and `WaterVisual` polygons. No new signal, autoload, input action, collision layer,
-TileMap, or node-path contract is introduced.
+```gdscript
+func reset_boss_67_run() -> void
+func apply_score_operation(operation: StringName, value_cents: int, source: StringName) -> void
+func set_distance_blocks(value: int) -> void
+func begin_water_event(variant: GameRules.WaterVariant, complication: GameRules.WaterComplication) -> void
+func finish_water_event() -> void
+func activate_powerup(kind: StringName, seconds: float) -> void
+func fail_run(reason: StringName) -> void
+func complete_run() -> void
+func get_run_snapshot() -> Dictionary
+```
 
-The o_lobster source is CC BY 4.0 and must be credited. CraftPix files are not approved for repository
-commit until their source-file redistribution terms are confirmed for this project.
+No world or UI script may write these fields directly.
 
-## Reset Contract
+## Core Signals
 
-- Wrong Easy-mode submission clears operands and restores active operands without reloading the level.
-- Full restart removes the old Level 1 instance, resets GameState, creates a fresh instance, resets UI,
-  emits `run_started`, and enables input.
-- Transition can happen only once per run.
-- Old nodes and signal connections must not survive a full restart.
+All cross-owner signals live in `GameEvents.gd`.
+
+| Signal | Payload | Producer | Consumers |
+| --- | --- | --- | --- |
+| `run_started` | none | Main / SceneLoader | HUD, level, audio |
+| `cutscene_finished` | none | CutsceneIntro | SceneLoader |
+| `score_changed` | `score_cents: int, display: String` | GameState | HUD, audio |
+| `score_operation_applied` | `operation: StringName, value_cents: int, source: StringName` | GameState | HUD feedback, audio |
+| `distance_changed` | `blocks: int` | LevelController | HUD, boss |
+| `boss_phase_changed` | `phase: GameRules.BossPhase` | LevelController | Boss67, HUD, audio |
+| `water_started` | `variant: GameRules.WaterVariant, complication: GameRules.WaterComplication, seconds: float` | GameState | HUD, player, world, audio |
+| `water_timer_changed` | `seconds_left: float` | GameState | HUD |
+| `water_finished` | none | GameState | HUD, player, world |
+| `powerup_started` | `kind: StringName, seconds: float` | GameState | player, boss, HUD, audio |
+| `powerup_finished` | `kind: StringName` | GameState | player, boss, HUD |
+| `health_changed` | `current: int, maximum: int` | GameState | HUD compatibility |
+| `player_failed` | `reason: StringName` | GameState | ResultScreen, audio |
+| `player_died` | `reason: StringName` | GameState | legacy/QA compatibility |
+| `boss_67_defeated` | none | GameState | ResultScreen, audio |
+| `level_completed` | `level_id: StringName` | GameState | ResultScreen, audio, QA |
+| `game_over` | `won: bool, reason: StringName, score_cents: int` | GameState | ResultScreen, audio, QA |
+| `restart_requested` | none | ResultScreen/input | SceneLoader |
+
+Signal payloads are contracts. Do not pass scene nodes or mutable gameplay objects.
+
+Compatibility notes:
+
+- Boss 67 does not use a traditional health bar in the MVP. `health_changed` is retained as a
+  compatibility signal for existing QA/HUD expectations and should mirror run survivability, for
+  example `1/1` during play and `0/1` after fail.
+- `player_died` is an alias-style failure signal for older consumers; new logic should prefer
+  `player_failed`.
+- Exact `67.00` should emit both `boss_67_defeated` and `level_completed("boss_67_level_01")`.
+- Any terminal outcome should emit `game_over` after the specific win/fail signal.
+
+## Numeric Contract
+
+Start:
+
+```text
+score = 1.00
+target = 67.00
+```
+
+Win:
+
+```text
+score == 67.00
+```
+
+Fail:
+
+```text
+score == 0.00
+```
+
+Score may be negative. Score may exceed `67.00`. The player continues until exact `67.00` or `0.00`.
+
+Land pickups:
+
+```text
++1, +2, +3, +5, +6, +7
+```
+
+Land boss projectiles:
+
+```text
+*0, *0.5, *0.8
+```
+
+Water variants:
+
+| Variant | Boss projectiles | Floor pickups |
+| --- | --- | --- |
+| `WATER_A` | `*1.15`, `*1.2`, `*1.3` | `-10`, `-12`, `-8`, `-6` |
+| `WATER_B` | `+3`, `+5`, `+6`, `+7` | `*0.5`, `*0.2`, `*0.3`, `*0` |
+| `WATER_C` | `-5`, `-1`, `-2`, `-7`, `-10` | `*2`, `*6`, `*3`, `*1` |
+
+All operations round to the nearest cent after application.
+
+## Distance Contract
+
+Progress is measured in horizontal blocks from the boss-run start, after the safe tutorial closes.
+
+| Distance | Event |
+| --- | --- |
+| `0` | Boss 67 appears. |
+| `18` | Purple projectiles become available. |
+| `28` | First water event starts. |
+
+After the first water event, collecting a land pickup divisible by `6` or `7` can trigger the next
+water event after cooldown.
+
+## Power-Up Contract
+
+| Kind | Visual | Effect | Duration |
+| --- | --- | --- | --- |
+| `slow` | star | Boss and projectiles slow down. | `5` seconds |
+| `double_jump` | green up arrow | Player gets one temporary extra jump. | `5` seconds |
+
+Power-ups are rare and spawn at high points.
+
+## Stable Asset Roles
+
+Exact filenames may change after import, but these roles are stable:
+
+```text
+player idle/run/jump/fall/hit/death strips
+player jump dust strips
+sand block tileset
+pink sky / land background
+solid blue water overlay
+score pickup orb
+boss projectile digit visual
+Boss67 visual
+star slow powerup
+green up-arrow double-jump powerup
+result and HUD UI controls
+```
+
+The platformer asset pack is visual-only. It does not provide movement, score, water, boss, or restart
+logic.
 
 ## Integration Gate
 
-Level 1 is integrated only when:
+The new slice is integrated only when:
 
-- `4 + 6 = 10` triggers the tide;
-- `14 - 4 = 10` defeats Guardian10;
-- wrong answers recover immediately;
-- result-screen restart returns to untouched dry state;
-- `tools/qa.cmd` passes;
-- the twelve-step manual test in `ARCHITECTURE.md` passes.
+- cutscene can be skipped;
+- player walks, falls, lands, and jumps in an isolated test room;
+- safe start teaches one-block jump;
+- Boss 67 appears after the safe start closes;
+- land pickups change score;
+- white projectiles are blocked by terrain;
+- purple projectiles start after `18` blocks and pass through blocks;
+- first water starts after `28` blocks and lasts `10` seconds;
+- one water variant applies correctly;
+- score can become negative;
+- score `0.00` fails;
+- score `67.00` wins;
+- restart clears score, projectiles, water, power-ups, and stale listeners;
+- `tools/qa.cmd` passes.

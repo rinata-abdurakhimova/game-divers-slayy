@@ -1,6 +1,6 @@
-# Level 1 Easy Player/Core Contract Notes
+# Level 1 Boss 67 Player/Core Contract Notes
 
-Feature: Level 1 Easy Core Systems
+Feature: Boss 67 platformer score-fight core systems
 
 Owner: Polina
 
@@ -9,8 +9,10 @@ Owned scenes/scripts:
 - `scenes/actors/Player.tscn`
 - `scripts/actors/player/Player.gd`
 - `scripts/gameplay/GameRules.gd`
-- `scripts/gameplay/EquationService.gd`
-- `tests/gameplay/test_equation_service.gd`
+- `scripts/gameplay/ScoreService.gd`
+- `scripts/gameplay/WaterRuleService.gd`
+- `tests/gameplay/test_score_service.gd`
+- `tests/gameplay/test_water_rule_service.gd`
 
 Inputs:
 
@@ -18,61 +20,110 @@ Inputs:
 - `move_right`
 - `move_up`
 - `move_down`
-- `action` remains reserved as an altar fallback, but MVP should not require it.
+- `jump`
+- `action`
+- `pause`
+- `restart`
 
-Emits directly:
+Keyboard defaults:
 
-- Local player movement signals only if needed for tutorial/debug.
-- No UI text, audio, score, health, death, or result signals from Player.
+- `move_left`: Left, A
+- `move_right`: Right, D
+- `move_up`: Up, W
+- `move_down`: Down, S
+- `jump`: Space
+- `action`: Enter, E
+- `pause`: Escape
+- `restart`: R
 
-Consumes:
+Player emits directly:
 
-- Player input actions.
-- `GameEvents.phase_changed(phase)` for water visual response.
-- `GameState.input_enabled` or an equivalent integration method when Rinata exposes it.
-- World collisions from Alina's authored boundaries.
+- local movement/debug signals only if useful for tutorial or tests.
+- no HUD text, audio playback, final score display, or scene changes.
+
+Player consumes:
+
+- input actions.
+- `GameState.input_enabled`.
+- current water/complication state exposed by `GameState`.
+- world collisions from Alina.
+
+Core gameplay provides:
+
+- fixed-point score math.
+- exact `67.00` victory detection.
+- exact `0.00` failure detection.
+- negative score support.
+- distance thresholds for boss/purple/water gates.
+- land and water operation pools.
+- water retrigger logic for land values divisible by 6 or 7.
 
 Assets:
 
-- Placeholder sprite or shape is allowed.
-- Expected final names:
-  - `assets/sprites/player_idle.png`
-  - `assets/sprites/player_water.png`
+- Placeholder sprite or shape is allowed during movement tests.
+- Final visuals should use selected pack assets, but the pack supplies visuals only.
+- Star power-up means 5-second slow.
+- Green up arrow power-up means 5-second temporary double jump.
 
 Reset behavior:
 
-- Position returns to spawn/start position.
-- Velocity clears to zero.
-- Input is restored unless `GameState.input_enabled` says otherwise.
-- Water/land visual matches the current phase.
-- Transient listeners do not duplicate.
+- Score returns to `1.00`.
+- Position returns to the correct spawn/checkpoint.
+- Velocity clears.
+- Input is restored unless disabled by current scene flow.
+- Gravity returns to normal.
+- Controls return to normal.
+- Water timer stops.
+- Active water variant/complication clears.
+- Temporary power-ups expire.
+- Movement listeners/timers do not duplicate.
 
 Isolation test:
 
-1. Run `Player.tscn` or a temporary sandbox scene.
-2. Move in four directions.
-3. Confirm diagonal movement is not faster than cardinal movement.
-4. Confirm collision boundaries stop the player.
-5. Emit or simulate `phase_changed(WATER)` and confirm only visual state changes.
-6. Reset and confirm the player can move again.
-7. Run EquationService checks:
-   - `4, 6, ADD, 10` succeeds.
-   - `6, 4, ADD, 10` succeeds.
-   - `14, 4, SUBTRACT, 10` succeeds.
-   - `4, 14, SUBTRACT, 10` fails.
-   - missing or extra operands fail without crash.
+1. Run the movement sandbox or `Player.tscn`.
+2. Walk left and right.
+3. Fall from a ledge.
+4. Land on a floor/platform.
+5. Jump once.
+6. Confirm tap jump is shorter than held jump.
+7. Confirm coyote time.
+8. Confirm jump buffering.
+9. Confirm no repeated airborne jump without active double-jump power-up.
+10. Activate temporary double jump and confirm it expires after 5 seconds.
+11. Simulate reversed controls and restore normal controls.
+12. Simulate inverted gravity and restore normal gravity.
+13. Reset and confirm movement state is clean.
+
+Score test:
+
+1. Start score at `1.00`.
+2. Apply land pickups: `+1`, `+2`, `+3`, `+5`, `+6`, `+7`.
+3. Apply land boss multipliers: `*0`, `*0.5`, `*0.8`.
+4. Apply all three water variants.
+5. Confirm exact `67.00` wins.
+6. Confirm `67.01` and `66.99` do not win.
+7. Confirm exact `0.00` fails.
+8. Confirm negative scores continue.
 
 Main-scene test:
 
 1. Launch from `Main.tscn`.
-2. Start a run.
-3. Move and collect operands.
-4. Submit `4 + 6 = 10`.
-5. Complete the tide handoff.
-6. Submit `14 - 4 = 10`.
-7. Restart without relaunch.
+2. See the placeholder cutscene first.
+3. Enter the safe tutorial area.
+4. Walk, fall, and jump one block.
+5. Confirm safe start closes behind the player.
+6. Confirm Boss 67 appears.
+7. Reach 18 blocks and confirm purple projectiles are enabled.
+8. Reach 28 blocks and confirm first water starts.
+9. Confirm water lasts 10 seconds.
+10. Reach exact `67.00` and confirm victory.
+11. Trigger score `0.00` and confirm failure.
+12. Restart without relaunching the app.
+13. Run `tools\qa.cmd`.
 
 Fallback/cut:
 
-- Keep movement, `GameRules`, `EquationService`, and exact Level 1 arithmetic.
-- Cut health, score, timer, action cooldowns, random pairs, and extra operations first.
+- Keep movement, score math, exact 67 victory, zero failure, one land loop, one water variant, and
+  restart.
+- Cut rare power-ups, water complications, purple projectiles, extra water variants, and cinematic
+  story first if the build is unstable.

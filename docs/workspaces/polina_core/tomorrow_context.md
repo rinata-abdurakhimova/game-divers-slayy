@@ -2,61 +2,90 @@
 
 Role: Polina, Core Systems.
 
-Current slice: Level 1 Easy for `Slay Diver: Rise of 67`.
+Current slice: Level 1 Boss 67 platformer score fight for `Slay Diver: Rise of 67`.
+
+Source of truth:
+
+- `ARCHITECTURE.md`
+- `INTEGRATION_CONTRACT.md`
+- `docs/SCOPE.md`
+- `docs/PLATFORMER_CONTROLLER.md`
+- `docs/workspaces/polina_core/LEVEL_01_CORE_PLAN.md`
 
 Owned areas:
 
 - `scenes/actors/Player.tscn`
 - `scripts/actors/player/`
 - `scripts/gameplay/`
-- player behavior
-- core mechanic
-- shared rule constants
-- arithmetic validation
-- phase response for player visuals
-- Polina review of equation behavior in `GameState`
+- player movement and reset
+- score math and exact-67 victory
+- zero-score failure
+- land/water rule state
+- water trigger rules
+- power-up timers and core state hooks
+- Polina review of score mutation in `GameState`
 
-Current project status:
+Current logic:
 
-- No `project.godot` yet.
-- Level 1 Easy architecture and integration contract are locked.
-- Existing reserved input actions:
-  - `move_left`
-  - `move_right`
-  - `move_up`
-  - `move_down`
-  - `action`
-  - `pause`
-  - `restart`
-- Level 1 global signals:
-  - `run_started(level_id: StringName)`
-  - `phase_changed(phase: GameRules.Phase)`
-  - `operand_collected(value: int, slot: int)`
-  - `operands_cleared`
-  - `equation_submitted(correct: bool)`
-  - `equation_changed(snapshot: Dictionary)`
-  - `shield_changed(remaining: int)`
-  - `tide_started`
-  - `tide_finished`
-  - `level_completed(level_id: StringName)`
-  - `restart_requested`
+- The old Guardian10 equation room is replaced.
+- Level starts with a placeholder cutscene, then a safe platformer tutorial.
+- Player starts at score `1.00`.
+- Goal is exact score `67.00`.
+- Score can be negative.
+- Score `0.00` means fail/play again.
+- Boss 67 appears after the first safe jump tutorial block.
+- First purple projectiles unlock at 18 horizontal blocks.
+- First water starts at 28 horizontal blocks.
+- Water lasts 10 seconds.
+- Later water can start after collecting a land value divisible by 6 or 7.
 
-First implementation target:
+Reserved inputs:
 
-Arrow movement -> collect two operands -> validate `4 + 6 = 10` -> trigger tide handoff -> validate
-`14 - 4 = 10` -> complete Level 1 -> restart cleanly.
+- `move_left`
+- `move_right`
+- `move_up`
+- `move_down`
+- `jump`
+- `action`
+- `pause`
+- `restart`
 
-Ask Codex:
+Movement conversion:
 
-Use `$jam-architecture` before changing any boundary with World, UI, autoloads, signals, input, or
-collision layers. Use `$jam-implement` for Polina-owned files after Rinata has the Godot project and
-autoload skeletons.
+- Adapt only walking, gravity, falling, one jump, short hop, coyote time, jump buffering, and
+  floor/platform collision from the Noasey controller reference.
+- Do not paste the controller unchanged.
+- Do not enable dash, roll, crouch, run modifier, wall mechanics, permanent double jump, ground pound,
+  or corner correction.
+- Temporary double jump is only a 5-second green up-arrow power-up.
+
+Core signals expected from `GameState`:
+
+- `run_started(level_id: StringName)`
+- `score_changed(snapshot: Dictionary)`
+- `distance_changed(blocks_from_boss_start: int)`
+- `boss_phase_changed(phase: StringName)`
+- `water_started(variant: StringName, complication: StringName, duration_seconds: float)`
+- `water_finished`
+- `power_up_started(power_up_id: StringName, duration_seconds: float)`
+- `power_up_finished(power_up_id: StringName)`
+- `player_failed(reason: StringName)`
+- `level_completed(level_id: StringName)`
+- `restart_requested`
+
+First implementation target after docs are accepted:
+
+```text
+ScoreService tests -> platformer movement sandbox -> score mutation through GameState ->
+safe tutorial -> Boss 67 land loop -> first water event -> exact 67 victory -> zero failure -> restart
+```
 
 Preferred prompt:
 
 ```text
-I am Polina. Use $jam-architecture and $jam-implement. Implement the Polina-owned Level 1 Easy core
-slice: GameRules, EquationService, Player movement, phase visual response, and arithmetic tests.
-Use only scenes/actors/Player.tscn, scripts/actors/player/, scripts/gameplay/, and tests/gameplay/
-unless the contract requires a shared edit. Start from docs/workspaces/polina_core only as reference.
+I am Polina. Use $jam-architecture, $jam-implement, and $jam-qa. Implement only the Polina-owned
+Level 1 Boss 67 core slice: fixed-point ScoreService, WaterRuleService, side-view Player movement
+conversion, score failure/victory hooks, and restart-safe core state. Stay inside
+scenes/actors/Player.tscn, scripts/actors/player/, scripts/gameplay/, and tests/gameplay/ unless the
+contract requires a shared markdown or GameState edit.
 ```

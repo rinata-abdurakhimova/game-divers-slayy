@@ -1,32 +1,33 @@
-# Polina Level 1 Easy Core Plan
+# Polina Level 1 Boss 67 Core Plan
 
 ## Skill Pass
 
-- `$jam-brainstorm`: concept is already selected, so do not generate new concepts. Lock scope to
-  `Slay Diver: Rise of 67`, Level 1 Easy, Guardian 10.
-- `$jam-architecture`: use the locked contract as the boundary. Polina owns Player, rules constants,
-  arithmetic validation, and phase response only.
-- `$jam-implement`: implement the smallest Polina-owned slice after Rinata creates `project.godot`,
-  input actions, autoload skeletons, and `Main.tscn`.
-- `$jam-qa`: verify arithmetic isolation first, then the twelve-step Main-scene Level 1 route.
+- `$jam-brainstorm`: concept is locked. Do not generate new concepts unless the team resets scope.
+- `$jam-architecture`: source of truth is `ARCHITECTURE.md` and `INTEGRATION_CONTRACT.md`.
+- `$jam-implement`: use only after the platformer contract is accepted and Alina/Rinata have their
+  side-view test room, inputs, and scene shell ready.
+- `$jam-qa`: required before merging movement conversion, water behavior, boss projectiles, score
+  rules, or restart changes.
 
 ## Goal
 
-Deliver the Polina-owned core for the first level:
+Deliver the Polina-owned core for Level 1:
 
 ```text
-move -> collect operands -> validate addition -> tide handoff -> validate subtraction -> complete
+intro cutscene placeholder -> safe platformer tutorial -> Boss 67 appears -> collect and avoid
+arithmetic values -> survive land/water rule shifts -> reach exact score 67 -> victory
 ```
 
-The first level teaches one readable mechanic: numbers are the attack. Land combines with addition;
-water splits with subtraction. No health, score, timer, oxygen, random equations, or Level 2 work.
+This is no longer the old two-equation room. Level 1 is a side-view platformer score fight. The player
+must build the score to exactly `67.00`. Score may become negative. Score `0.00` means immediate
+failure/play-again.
 
 ## Acting Role
 
 Polina, Core Systems.
 
-Primary promise: make the arithmetic and player feel reliable enough that Alina and Rinata can build
-world, HUD, audio, and restart around stable contracts.
+Primary promise: make movement, score math, water rule changes, failure/victory, and restart stable
+enough that Alina can build the level around them and Rinata can present them clearly.
 
 ## Files And Ownership
 
@@ -35,173 +36,284 @@ Polina-owned implementation files:
 - `scenes/actors/Player.tscn`
 - `scripts/actors/player/Player.gd`
 - `scripts/gameplay/GameRules.gd`
-- `scripts/gameplay/EquationService.gd`
-- `tests/gameplay/test_equation_service.gd`
+- `scripts/gameplay/ScoreService.gd`
+- `scripts/gameplay/WaterRuleService.gd`
+- `tests/gameplay/test_score_service.gd`
+- `tests/gameplay/test_water_rule_service.gd`
 
-Shared files Polina may review, not own:
+Shared files Polina may edit only with the contract open:
 
-- `scripts/autoload/GameState.gd`: Rinata owns the file; Polina reviews equation mutation behavior.
-- `INTEGRATION_CONTRACT.md`: edit only before changing a shared name, payload, input, or layer.
+- `scripts/autoload/GameState.gd`: shared runtime state; keep Rinata looped in.
+- `INTEGRATION_CONTRACT.md`: update before changing signals, payloads, inputs, methods, or layers.
 
-Do not edit for this slice:
+Do not edit for this slice without explicit handoff:
 
-- `scenes/world/`, `scripts/world/`, `scenes/actors/enemies/`: Alina.
-- `project.godot`, `scenes/main/`, `scripts/autoload/`, `scenes/ui/`, `scripts/ui/`: Rinata.
+- `scenes/world/`, `scripts/world/`, terrain, boss placement, hazards, and pickup placement: Alina.
+- `project.godot`, `scenes/main/`, `scripts/autoload/`, UI, audio, exports, and build scripts: Rinata.
 
-## Architecture
+## Core Rules
 
-Smallest scene tree for Polina:
+Score:
 
-```text
-Player (CharacterBody2D)
-|- CollisionShape2D
-|- LandVisual
-`- WaterVisual
-```
+- Start score is `1.00`, not `0.00`.
+- Target score is exactly `67.00`.
+- `0.00` triggers failure immediately.
+- Negative score is valid and should continue.
+- Use fixed-point integer cents internally: `1.00 = 100`, `67.00 = 6700`.
+- Display up to two decimals, but never use raw floating-point equality for victory/failure.
 
-`Player.gd` responsibilities:
+Movement:
 
-- read `move_left`, `move_right`, `move_up`, `move_down`;
-- use `Input.get_vector` so diagonal movement is normalized;
-- call `move_and_slide`;
-- expose movement tuning with `@export`;
-- stop movement when integration disables input;
-- react to `phase_changed` by toggling visual children only;
-- reset position and velocity safely for isolated tests.
+- Side-view `CharacterBody2D`.
+- Horizontal movement, gravity, falling, one jump, short hop, coyote time, and jump buffering.
+- Temporary double jump exists only from the green up-arrow power-up for 5 seconds.
+- Disable dash, roll, crouch, run modifier, wall jump, wall slide, wall latch, double jump by default,
+  ground pound, and corner correction from the referenced controller pack.
+- Preserve `DetectionArea`, `GameState.input_enabled`, movement/reset signals, collision contracts,
+  and phase visuals.
 
-`GameRules.gd` responsibilities:
+Map/grid assumptions:
 
-- define `Phase` and `Operation`;
-- define immutable Level 1 constants: target `10`, land `4, 6`, water `14, 4`, distractors, sound IDs;
-- avoid layout positions, UI text, or audio streams.
+- Visible design chunk is `12 x 8` tiles.
+- One tile is one cube.
+- Player is `1 x 1` tile.
+- Maximum intended terrain stack is 5 tiles high.
+- Every required route must be reachable with the approved movement kit.
 
-`EquationService.gd` responsibilities:
+Opening flow:
 
-- provide pure typed validation functions;
-- accept addition in either order;
-- preserve subtraction collection order;
-- fail missing, extra, unknown, or unsupported operands without crashing.
+- A cutscene scene appears first. Story text is deferred.
+- The player starts in a safe sand-and-sky tutorial area.
+- The first interaction teaches walking, falling, and one-block jumping.
+- After the first successful tutorial jump/block, the safe start closes behind the player.
+- Boss 67 appears only after the player has demonstrated basic platforming.
 
-## Implementation Order
+## Land Phase
 
-1. Wait for Rinata's project skeleton.
-   Required before Polina implementation: `project.godot`, input actions, autoload stubs, and main
-   scene path exist.
-2. Add `GameRules.gd`.
-   This unblocks Alina's operand values and Rinata's HUD/audio IDs.
-3. Add `EquationService.gd` and tests.
-   This is the safest first code because it has no scene coupling.
-4. Add `Player.tscn` and `Player.gd`.
-   Use placeholders only; no art dependency.
-5. Connect phase visual response.
-   Consume `GameEvents.phase_changed` if present, but fail safely in isolation.
-6. Review `GameState.gd` equation methods with Rinata.
-   Confirm it delegates validation to `EquationService` and emits the locked signals.
-7. Run isolation tests and `tools\qa.cmd`.
-8. Hand off to Alina and Rinata for full Main-scene integration.
+Land pickups:
+
+- `+1`
+- `+2`
+- `+3`
+- `+5`
+- `+6`
+- `+7`
+
+Spawn density:
+
+- 6 or 7 collectible score values per visible `12 x 8` chunk.
+- Pickups may sit on floor/block tops or 2 tiles above a floor/block so the player must jump.
+
+Boss land projectiles:
+
+- `*0`
+- `*0.5`
+- `*0.8`
+
+Rules:
+
+- `*0` is rare because it causes immediate failure through score `0.00`.
+- White boss digits collide with blocks and are destroyed.
+- Boss/projectile difficulty should be readable before it becomes punishing.
+
+## Distance Gates
+
+Distance is counted in horizontal blocks from the start of the boss-run section.
+
+- `0` blocks: Boss 67 appears.
+- `18` blocks: purple projectiles become available.
+- `28` blocks: first water event starts.
+
+Purple projectile rules:
+
+- Spawn less often than white projectiles.
+- Pass through blocks.
+- Are destroyed only by the floor/water boundary or an explicit projectile cleanup rule.
+- Apply their score operation on player contact.
+
+## Water Phase
+
+Water lasts exactly 10 seconds.
+
+First water:
+
+- Starts when the player reaches 28 horizontal blocks from boss-run start.
+
+Later water:
+
+- May start after the player collects a land pickup whose value is divisible by 6 or 7.
+- Use a cooldown so water cannot chain instantly.
+- Do not trigger water from boss projectiles.
+
+Water movement:
+
+- Movement becomes smoother/slipperier.
+- Jump tuning may feel floatier, but must remain controllable and testable.
+
+Water rule variants:
+
+| Variant | Boss Throws | Floor Pickups |
+| --- | --- | --- |
+| A | `*1.15`, `*1.2`, `*1.3` | `-10`, `-12`, `-8`, `-6` |
+| B | `+3`, `+5`, `+6`, `+7` | `*0.5`, `*0.2`, `*0.3`, `*0` |
+| C | `-5`, `-1`, `-2`, `-7`, `-10` | `*2`, `*6`, `*3`, `*1` |
+
+Water complications:
+
+- At most one complication per water event.
+- Possible complication 1: reversed controls.
+- Possible complication 2: inverted gravity with ceiling blocks and upward gravity.
+- The first water event may use no complication or the gentlest version if readability is at risk.
+
+## Power-Ups
+
+Power-ups are rare and should appear on high or risky routes.
+
+- Star: slows Boss 67 and boss projectiles for 5 seconds.
+- Green up arrow: grants temporary double jump for 5 seconds.
+
+Power-ups must expire through timers and reset cleanly on restart.
+
+## Required Core APIs
+
+`ScoreService.gd` should provide pure, typed helpers:
+
+- apply addition, subtraction, and multiplication operations to fixed-point score.
+- parse operation definitions without UI strings controlling logic.
+- detect exact target score.
+- detect zero failure.
+- preserve negative score.
+
+`WaterRuleService.gd` should provide pure or mostly pure helpers:
+
+- distance thresholds for boss/purple/water.
+- land pickup pools.
+- boss projectile pools by phase.
+- water variant pools.
+- water retrigger checks for values divisible by 6 or 7.
+
+`Player.gd` should provide:
+
+- side-view platformer movement.
+- input disable behavior.
+- reset behavior.
+- phase/complication response hooks.
+- temporary double-jump power-up support.
+- no direct UI or audio calls.
 
 ## Signals And Dependencies
 
 Polina consumes:
 
-- `phase_changed(phase: GameRules.Phase)` for Player visual response.
 - input actions from `project.godot`.
-- collision boundaries authored by Alina.
+- terrain and collision bodies from Alina.
+- `GameState.input_enabled`.
+- documented phase/complication state from `GameState`.
 
 Polina provides:
 
-- `GameRules` constants used by GameState, Level01Controller, operands, HUD, and AudioBus.
-- `EquationService` validation used by GameState.
-- `Player.tscn` root on collision layer `1`.
+- player movement and reset behavior.
+- pure score and progression rules.
+- stable constants for pickups, projectiles, thresholds, and target score.
+- review for GameState score mutation.
 
-Polina does not emit global outcome signals directly in Level 1. `GameState` emits:
+Outcome signals should be emitted by `GameState`, not directly by Player:
 
-- `equation_submitted(correct: bool)`
-- `equation_changed(snapshot: Dictionary)`
-- `shield_changed(remaining: int)`
-- `phase_changed(phase: GameRules.Phase)`
+- `score_changed(snapshot: Dictionary)`
+- `player_failed(reason: StringName)`
 - `level_completed(level_id: StringName)`
+- `water_started(variant: StringName, complication: StringName, duration_seconds: float)`
+- `water_finished`
+- `boss_phase_changed(phase: StringName)`
+- `power_up_started(power_up_id: StringName, duration_seconds: float)`
+- `power_up_finished(power_up_id: StringName)`
+- `restart_requested`
+
+## Implementation Order
+
+1. Confirm docs and contract are accepted by all three owners.
+2. Build or update a side-view isolated movement test room before converting Level 1.
+3. Implement `ScoreService.gd` with tests.
+4. Implement `WaterRuleService.gd` with tests.
+5. Convert `Player.gd` movement in isolation.
+6. Add score mutation through `GameState` with documented signals.
+7. Integrate land pickups and boss projectiles through contract methods, not direct node coupling.
+8. Add water timer and one water variant at a time.
+9. Add power-up timers.
+10. Verify restart from failure, victory, land, and water.
+11. Run `tools\qa.cmd`.
+
+## Test Checklist
+
+Score math:
+
+- `1.00 + 6 = 7.00`.
+- `67.00` wins exactly.
+- `67.01` does not win.
+- `0.00` fails.
+- Negative scores do not fail by themselves.
+- `*0.5`, `*0.2`, `*0.3`, `*0.8`, `*1.15`, `*1.2`, and `*1.3` are deterministic.
+
+Movement:
+
+- Player walks, falls, lands, and jumps.
+- Holding jump is higher than tapping jump.
+- Coyote time works.
+- Jump buffering works.
+- Repeated airborne jumps do not happen unless the temporary double-jump power-up is active.
+- Input disable clears or freezes motion according to contract.
+- Restart restores normal gravity, controls, movement, and score.
+
+Progression:
+
+- Boss appears after the tutorial jump.
+- Purple projectiles unlock at 18 blocks.
+- First water starts at 28 blocks.
+- Later water starts only after qualifying land pickups and cooldown.
+- Water lasts 10 seconds.
+- Victory triggers at exact 67.
+- Failure triggers at 0.
 
 ## Teammate Handoff
 
 To Alina:
 
-- Player body uses collision layer `1`.
-- Operands should be on layer `2`.
-- Altars and ResetShell should be on layer `3`.
-- Solid world and CoralGate should be on layer `4`.
-- World scripts call only documented `GameState` methods; no direct Player method calls.
+- Build side-view terrain on the `12 x 8` readable chunk rule.
+- Keep required jumps inside the approved movement ability.
+- Use sand/blocks from the selected visual asset pack.
+- White projectiles need block collision. Purple projectiles need pass-through behavior.
+- Place land pickups using the Polina pool and density rules.
 
 To Rinata:
 
-- Define all input actions before Player testing.
-- Register `GameEvents` and `GameState` before integrated testing.
-- HUD reads `equation_changed(snapshot)` and never reads Player or world node paths.
-- Restart must create a fresh Level 1 instance and reset GameState before input resumes.
-
-## Test Checklist
-
-Arithmetic isolation:
-
-- `4, 6, ADD, 10` passes.
-- `6, 4, ADD, 10` passes.
-- `14, 4, SUBTRACT, 10` passes.
-- `4, 14, SUBTRACT, 10` fails.
-- `[4]`, `[4, 6, 2]`, and empty operands fail without crashing.
-
-Player isolation:
-
-- Player moves in four directions.
-- Diagonal movement is not faster.
-- Player stops on collision boundaries.
-- Input disable clears velocity.
-- Water phase changes visuals only.
-- Reset clears velocity and restores the correct visual state.
-
-Main-scene route:
-
-- Launch `Main.tscn`.
-- Collect `4`, then `6`.
-- Submit `4 + 6 = 10`.
-- Tide transition starts and input pauses.
-- Collect `14`, then `4`.
-- Submit `14 - 4 = 10`.
-- Guardian10 is defeated.
-- Result screen restart returns to dry state.
-- Wrong pair clears operands and allows immediate retry.
-- `tools\qa.cmd` passes.
+- Add `jump` input on `Space`, with optional `Up`/`W`.
+- Keep `action` on `Enter` or `E`.
+- HUD should display score, collected recent operations, water timer, active water rule, and power-up
+  timers through signals/state snapshots.
+- Restart must fully reset score, water, power-ups, boss phase, projectile cleanup, and input.
+- Add attribution for Noasey's controller pack if movement concepts are adapted.
 
 ## Scope Warning
 
-Keep the first level small. Do not add health, score, timer, oxygen, random equations, combat,
-dialogue systems, Boss 67, Level 2, Hard mode, or moving currents until Level 1 Easy passes the manual
-Main-scene route and QA.
+Do not add health, weapons, enemies beyond Boss 67, shops, multiple levels, procedural maps, long
+cutscenes, or extra boss patterns until this Level 1 path is playable and `tools\qa.cmd` passes.
 
 ## Integration Notes
 
 Dependencies:
 
-- Rinata: Godot project skeleton, input actions, autoload stubs, Main composition.
-- Alina: authored Level 1 boundaries, operand scenes, altars, ResetShell, Guardian10, CoralGate.
-
-Emitted signals:
-
-- Polina-owned code should not emit global outcome signals directly in Level 1.
-- GameState emits the locked equation, shield, phase, and completion signals.
-
-Consumers:
-
-- Player consumes `phase_changed`.
-- GameState consumes `EquationService`.
-- World, HUD, tutorial, audio, and result screen consume GameEvents.
+- Alina: side-view test room, terrain, pickup/projectile scenes, boss placement.
+- Rinata: input map, `GameState`, main scene flow, UI/audio, restart, QA/export health.
 
 Assets:
 
-- Player placeholders are allowed.
-- Final stable assets remain `assets/sprites/player_idle.png` and `assets/sprites/player_water.png`.
+- Visual pack is art only, not reusable gameplay logic.
+- Use player, tileset, background, orb/pickup, door/save, and effect assets selectively.
+- Star means slow effect. Green up arrow means temporary double jump.
 
 Shortest manual test:
 
 ```text
-Main.tscn -> move -> 4 + 6 -> tide -> 14 - 4 -> complete -> restart -> wrong pair recovery
+Main.tscn -> cutscene placeholder -> safe jump tutorial -> Boss 67 -> collect/avoid values ->
+water at 28 blocks -> reach exact 67 -> restart -> fail by 0 -> restart
 ```

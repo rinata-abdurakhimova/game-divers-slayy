@@ -1,558 +1,330 @@
-# Level 1 Easy Architecture
+# Slay Diver 67 Architecture
 
 ## Goal
 
-Build one complete vertical slice of `Slay Diver: Rise of 67`:
+Build one complete vertical slice of `Slay Diver: Rise of 67` as a side-view platformer boss chase.
 
-1. Start from `Main.tscn`.
-2. Learn arrow-key movement.
-3. Solve `4 + 6 = 10` on land.
-4. Watch the pink tide change the rule.
-5. Solve `14 - 4 = 10` underwater.
-6. Defeat Guardian 10.
-7. Reach the result screen and restart reliably.
+The game now starts with:
 
-Only Level 1 Easy is in scope. Do not start Level 2, Hard mode, or Boss 67 until this path passes
-`tools/qa.cmd` and the manual test at the end of this document.
+1. A short cutscene placeholder. Story text is intentionally deferred.
+2. Immediate confrontation with Boss 67.
+3. A safe sand-and-sky tutorial strip where the player learns walking and one-block jumping.
+4. The safe strip closes behind the player after the first taught jump.
+5. Boss 67 appears and attacks while the player tries to make the score exactly `67`.
+6. The level alternates between land rules and short water-rule bursts.
+7. Reaching score `67.00` wins. Reaching score `0.00` fails and shows play-again/restart.
+
+Only this single Boss 67 vertical slice is in scope. Do not build Guardian 10, Guardian 12, multi-level
+progression, top-down arenas, altars, equation submission rooms, or the old `4 + 6` / `14 - 4` loop.
+
+## Core Game Idea
+
+The player does not type equations. The player survives platforming pressure and collects or dodges
+number operations that change a running score.
+
+```text
+platform movement -> choose pickups/dodge attacks -> score changes -> water rule twist -> exact 67 or 0
+```
+
+Boss 67 is not an unwinnable tutorial boss. The first playable objective is to beat 67.
 
 ## Design Reference
 
-Use the following Celeste principles, not its platforming mechanics:
+Use Celeste principles, not Celeste mechanics:
 
-- simple controls with immediate response;
-- short, hand-authored challenges;
-- every failure clearly teaches what was wrong;
-- fast recovery without replaying unnecessary content;
-- strong visual and audio feedback for important state changes.
+- responsive side-view movement;
+- short authored platform chunks;
+- readable hazards and collectibles;
+- fast recovery after failure;
+- one clear numeric objective;
+- pressure created by space and timing, not complex combat.
 
-Our Level 1 is one compact top-down room rather than a platformer. Movement uses arrows only. Arithmetic
-choices replace precision jumps.
+The board reference defines the gameplay layout and rule phases. The current visual asset pack provides
+only art, not movement or game logic.
 
-The provided visual screenshots are mood references only. The binding simplification rules, HUD tree,
-palette, tide presentation, responsive layout, and asset budget are defined in `docs/UI_STYLE.md`.
-Nobody should reproduce the screenshots' dense backgrounds, lighting, parallax, weather, or large
-tile-set requirements for Level 1.
+## Viewport, Grid, And Scale
 
-## Limited Third-Party Asset Pass
+- Runtime viewport: `1152 x 648`.
+- Gameplay design grid: `12 columns x 8 rows`.
+- One block is `1 x 1` gameplay unit.
+- Player body is also `1 x 1` gameplay unit.
+- MVP tile size may be `48`, `54`, or `64` pixels as long as the visible playfield preserves the
+  `12 x 8` decision grid.
+- The player initially learns to jump one block.
+- Terrain stacks may be up to `5` blocks high, but every required path must remain reachable with the
+  approved movement kit.
+- Camera may follow horizontally after the safe tutorial strip, but each screen-length chunk should
+  still read as a `12 x 8` board.
 
-Goal: improve the placeholder presentation without changing the top-down game plan, scene structure,
-collisions, controls, arithmetic, or tide sequence.
-
-For the first pass, use only a small environmental subset from the o_lobster
-`PLATFORMER/METROIDVANIA ASSET PACK`:
-
-- one static background or backdrop image;
-- at most three static decorative props;
-- optional recoloring or cropping for the existing pink, sand, and plum palette.
-
-Do not import the full ZIP. Do not use its hero, enemies, attacks, traps, HUD, GIF files, platform
-tiles, or collision shapes. The side-view art must never turn Level 1 into a platformer or require a
-TileMap rewrite.
-
-The CraftPix cloud pack is deferred for this pass. Its clouds are optional decoration rather than a
-gameplay dependency, and its license restricts redistribution of source art. Do not commit its PNG
-files to the repository until Rinata confirms that the repository and release method comply with the
-license.
-
-Approved runtime structure remains:
+## Runtime Scene Shape
 
 ```text
-Level01/Background
-|- SandVisual
-|- WaterVisual
-`- Decoration (optional Node2D owned by Alina)
+Main
+|- CutsceneIntro
+|- LevelContainer
+|  `- Boss67Level
+|     |- Background
+|     |  |- LandSky
+|     |  |- SandLayer
+|     |  `- WaterOverlay
+|     |- Terrain
+|     |  |- Blocks
+|     |  |- SafeStart
+|     |  `- WaterCeilingBlocks
+|     |- Actors
+|     |  |- Player
+|     |  `- Boss67
+|     |- Pickups
+|     |- Projectiles
+|     `- LevelController
+|- UI
+|  |- HUD
+|  |- TutorialOverlay
+|  |- WaterRuleOverlay
+|  `- ResultScreen
+`- Audio
 ```
 
-`SandVisual` and `WaterVisual` keep their current names and phase behavior. Decorative sprites use
-`z_index` and `mouse_filter`/collision-free nodes only. If imported art is missing or unreadable, the
-existing polygon placeholders remain the fallback and the game must still boot.
+`Main.tscn` remains the authoritative entry point. Feature scenes may run in isolation, but the final
+test starts from `Main.tscn`.
+
+## Level Flow
+
+### 1. Cutscene Placeholder
+
+- Show a short non-final cutscene screen.
+- Story copy is TBD and must not block implementation.
+- Cutscene can be skipped.
+- After it ends, load the Boss 67 level.
+
+### 2. Safe Start
+
+- Player spawns in a safe sand-and-pink-sky area.
+- No boss projectiles are active.
+- Teach:
+  - move left/right;
+  - fall and land;
+  - jump onto one block;
+  - short hop versus held jump if implemented.
+- After the player clears the first one-block jump checkpoint, the safe area closes or disappears so
+  the player cannot retreat into the tutorial.
+- Boss 67 appears immediately after that checkpoint.
+
+### 3. Land Boss Phase
+
+Boss 67 throws white number projectiles. White projectiles collide with blocks and are destroyed by
+blocks.
+
+Land score pickups spawn on:
+
+- block tops;
+- floor tiles;
+- two tiles above a floor or block so the player must jump to collect them.
+
+There should be `6` or `7` collectible score pickups visible per `12 x 8` screen chunk.
+
+Land pickup values:
+
+```text
++1, +2, +3, +5, +6, +7
+```
+
+Land boss attack operations:
+
+```text
+*0, *0.5, *0.8
+```
+
+`*0` is rare because score `0.00` immediately fails the run.
+
+### 4. Distance Milestones
+
+Progress is measured in horizontal blocks from the start of the boss run.
+
+| Distance | Change |
+| --- | --- |
+| `0` | Boss 67 appears after the safe jump. |
+| `18` blocks | Boss starts adding rare purple projectiles. |
+| `28` blocks | First water event starts. |
+
+Purple projectiles:
+
+- are fired less often than white projectiles;
+- pass through blocks;
+- are destroyed only by the floor or the water/ceiling boundary;
+- apply their operation if they touch the player before being destroyed.
+
+### 5. Water Events
+
+Water lasts exactly `10` seconds.
+
+When water starts:
+
+- a solid blue, opaque water rectangle covers the playfield;
+- the sand and blocks remain visible enough to show the terrain silhouette;
+- movement becomes smoother/slipperier;
+- a water rule set is selected;
+- at most one water complication is active.
+
+First water event:
+
+- starts at the `28` block distance milestone;
+- should be readable and not overloaded;
+- may use no complication if playtesting shows the first water is too chaotic.
+
+Later water events:
+
+- can start after the first water has ended;
+- trigger when the player, while on land, collects a number divisible by `6` or `7`;
+- use a cooldown so collecting multiple qualifying pickups does not stack water events.
+
+### 6. Water Rule Sets
+
+Choose one water rule set per water event.
+
+| Variant | Boss throws | Floor / terrain pickups |
+| --- | --- | --- |
+| Water A | `*1.15`, `*1.2`, `*1.3` | `-10`, `-12`, `-8`, `-6` |
+| Water B | `+3`, `+5`, `+6`, `+7` | `*0.5`, `*0.2`, `*0.3`, `*0` |
+| Water C | `-5`, `-1`, `-2`, `-7`, `-10` | `*2`, `*6`, `*3`, `*1` |
+
+The rule set must be displayed clearly in the HUD. The player should know whether Boss 67 and the
+floor are currently helpful or dangerous.
+
+### 7. Water Complications
+
+Each water event can optionally use one complication:
+
+| Complication | Behavior |
+| --- | --- |
+| Reversed controls | `left` becomes `right`, `right` becomes `left`, `up/jump` and `down` swap only if the final controls include vertical swim input. |
+| Inverted gravity | Blocks are on the ceiling and gravity pulls upward. The player effectively plays upside down for the water duration. |
+
+MVP rule:
+
+- never combine both complications in the same water event;
+- first water should be no complication or the gentler option;
+- always show a clear icon/text before enabling the complication.
+
+### 8. Score Rules
+
+- Score starts at `1.00`.
+- Score can be negative.
+- Score `0.00` is immediate failure / play again.
+- Score `67.00` is immediate victory.
+- Score may exceed `67`; the player can continue until another operation brings it to exactly `67`.
+- Use fixed-point arithmetic internally, rounded to two decimal places, to avoid floating-point drift.
+- Display score with up to two decimals.
+- When a projectile or pickup would produce `0.00`, show the failure state after applying the effect.
+
+### 9. Power-Ups
+
+Power-ups are rare and appear on high or risky platform points.
+
+| Icon | Meaning | Duration |
+| --- | --- | --- |
+| Star | Slow Boss 67 and all projectiles. | `5` seconds |
+| Green up arrow | Temporary double jump. | `5` seconds |
+
+Do not add more power-ups until the core score chase works.
 
 ## Ownership
 
-| Role | Member | Owns for Level 1 |
+| Role | Member | Owns |
 | --- | --- | --- |
-| Core Systems | Polina | player, equation state, arithmetic validation, phase state |
-| World and Content | Alina | Level 1 layout, operands, Guardian 10, gates, tide-ready world state |
-| Experience and Integration | Rinata | Godot project, Main, autoloads, HUD, tutorial, transition, audio, result and restart |
-
-Each member edits only the paths listed in their section. Changes to shared constants, signals, scene
-names, or input names require an `INTEGRATION_CONTRACT.md` update before code changes.
-
-## Runtime Scene Tree
-
-```text
-Main (Node)
-|- LevelContainer (Node)
-|  `- Level01 (Node2D)
-|     |- Background (Node2D)
-|     |  |- SandVisual
-|     |  `- WaterVisual
-|     |- Navigation (Node2D)
-|     |  |- PlayerSpawn (Marker2D)
-|     |  |- LandOperandSpawns (Node2D)
-|     |  |- WaterOperandSpawns (Node2D)
-|     |  |- LandAltarSpawn (Marker2D)
-|     |  `- WaterAltarSpawn (Marker2D)
-|     |- Actors (Node2D)
-|     |  |- Player
-|     |  |- Guardian10
-|     |  `- ActiveOperands
-|     |- Interactions (Node2D)
-|     |  |- LandAltar
-|     |  |- WaterAltar
-|     |  |- ResetShell
-|     |  `- CoralGate
-|     `- LevelController
-|- UI (CanvasLayer)
-|  |- HUD
-|  |- TutorialOverlay
-|  |- RuleChangeOverlay
-|  `- ResultScreen
-`- Audio (Node)
-```
-
-`Main.tscn` is the only authoritative end-to-end entry point. `Player.tscn`, `Operand.tscn`,
-`Guardian10.tscn`, `HUD.tscn`, and `Level_01.tscn` must also run in isolation with safe placeholder
-defaults.
-
-## Runtime Responsibilities
-
-### Main
-
-- Instantiates Level 1 and UI.
-- Starts a new run through `GameState.reset_level_01()`.
-- Shows the result screen after `level_completed`.
-- Reloads Level 1 after `restart_requested`.
-- Does not calculate equations or access child nodes inside Level 1.
-
-### LevelController
-
-- Owns the authored sequence `LAND -> TRANSITION -> WATER -> COMPLETE`.
-- Spawns the correct operand set for the active phase.
-- Enables the correct altar and route.
-- Requests phase changes from `GameState`.
-- Does not update HUD labels or play audio directly.
-
-### GameState
-
-- Holds the current Level 1 run snapshot.
-- Owns collected operand slots and validates submissions.
-- Exposes read-only getters and explicit mutation methods.
-- Emits state changes through `GameEvents`.
-- Does not own scene nodes, animation, audio files, or spawn positions.
-
-### GameEvents
-
-- Contains global signals only.
-- Does not store state or implement gameplay.
-
-### SceneLoader
-
-- Starts Level 1 and reloads it on restart.
-- Does not decide whether the player won.
-
-### AudioBus
-
-- Maps stable sound IDs to streams and plays them.
-- Gameplay producers request sound IDs; they never load audio files.
-
-## Shared Types And Constants
-
-Create `scripts/gameplay/GameRules.gd` owned by Polina. It is a non-autoload reference containing the
-shared enums and immutable Level 1 values.
-
-```gdscript
-class_name GameRules
-extends RefCounted
-
-enum Phase {
-    LAND,
-    TRANSITION,
-    WATER,
-    COMPLETE,
-}
-
-enum Operation {
-    ADD,
-    SUBTRACT,
-}
-
-const LEVEL_01_ID: StringName = &"level_01"
-const LEVEL_01_TARGET: int = 10
-const MAX_OPERAND_SLOTS: int = 2
-
-const LAND_OPERATION: Operation = Operation.ADD
-const LAND_CORRECT_OPERANDS: Array[int] = [4, 6]
-const LAND_DISTRACTORS: Array[int] = [2, 7]
-
-const WATER_OPERATION: Operation = Operation.SUBTRACT
-const WATER_CORRECT_OPERANDS: Array[int] = [14, 4]
-const WATER_DISTRACTORS: Array[int] = [8, 3]
-
-const PLAYER_SPEED: float = 220.0
-const TIDE_TRANSITION_SECONDS: float = 2.0
-const HINT_DELAY_SECONDS: float = 8.0
-
-const SFX_OPERAND_COLLECT: StringName = &"operand_collect"
-const SFX_EQUATION_WRONG: StringName = &"equation_wrong"
-const SFX_SHIELD_BREAK: StringName = &"shield_break"
-const SFX_TIDE: StringName = &"tide"
-const SFX_LEVEL_WIN: StringName = &"level_win"
-```
-
-Rules:
-
-- No member duplicates these values in another script.
-- Level layout positions remain exported values on Alina's scenes, not constants here.
-- UI wording remains in Rinata's UI scripts/resources, not constants here.
-- If tuning `PLAYER_SPEED` in the inspector is useful, Player may expose it with the constant as its
-  default.
-- Only exact integer arithmetic is allowed. Level 1 has no negative numbers, fractions, random pairs,
-  timer, oxygen, health loss, or procedural generation.
-
-## GameState Contract
-
-Create `scripts/autoload/GameState.gd`, owned by Rinata. Polina supplies and reviews the arithmetic
-behavior because it is Core Systems logic.
-
-Required state:
-
-```gdscript
-var level_id: StringName
-var phase: GameRules.Phase
-var target: int
-var operation: GameRules.Operation
-var operands: Array[int]
-var shield_segments: int
-var input_enabled: bool
-```
-
-Required public methods:
-
-```gdscript
-func reset_level_01() -> void
-func try_collect_operand(value: int) -> bool
-func clear_operands() -> void
-func submit_equation() -> bool
-func begin_tide_transition() -> void
-func enter_water_phase() -> void
-func complete_level() -> void
-func get_equation_snapshot() -> Dictionary
-```
-
-Validation:
-
-- Addition accepts either operand order.
-- Subtraction preserves collection order: first collected minus second collected.
-- Submission requires exactly two operands.
-- Correct land submission leaves the phase change to `LevelController`.
-- Correct water submission completes the level.
-- Wrong submission clears both slots in Easy mode.
-- Calls made during `TRANSITION` or `COMPLETE` are ignored.
-
-`get_equation_snapshot()` returns:
-
-```gdscript
-{
-    "target": int,
-    "operation": GameRules.Operation,
-    "operands": Array[int],
-    "phase": GameRules.Phase,
-}
-```
-
-Consumers must not mutate returned arrays.
-
-## Signal Contract
-
-All cross-owner signals live in `GameEvents.gd`.
-
-| Signal | Payload | Producer | Consumers |
-| --- | --- | --- | --- |
-| `run_started` | `level_id: StringName` | Main | level, HUD, tutorial, audio |
-| `phase_changed` | `phase: GameRules.Phase` | GameState | LevelController, HUD, player visuals |
-| `operand_collected` | `value: int, slot: int` | GameState | HUD, world feedback, audio |
-| `operands_cleared` | none | GameState | HUD, operand respawn logic |
-| `equation_submitted` | `correct: bool` | GameState | LevelController, HUD, audio |
-| `equation_changed` | `snapshot: Dictionary` | GameState | HUD |
-| `shield_changed` | `remaining: int` | GameState | Guardian10, HUD, audio |
-| `tide_started` | none | LevelController | world visuals, overlay, audio |
-| `tide_finished` | none | LevelController | HUD, tutorial, player |
-| `level_completed` | `level_id: StringName` | GameState | Main, HUD, audio |
-| `restart_requested` | none | ResultScreen/input | SceneLoader |
-
-Signal payloads are contracts. Do not add UI nodes, scene references, or mutable gameplay objects to a
-payload.
-
-## Input Contract
-
-Rinata defines these actions in `project.godot`:
-
-| Action | Default keys | Owner consumer |
-| --- | --- | --- |
-| `move_left` | Left arrow, A | Player |
-| `move_right` | Right arrow, D | Player |
-| `move_up` | Up arrow, W | Player |
-| `move_down` | Down arrow, S | Player |
-| `action` | Space, Enter | altar interaction if automatic overlap proves unclear |
-| `restart` | R | ResultScreen/Main |
-| `pause` | Escape | Main |
-
-The MVP should use automatic operand collection and altar submission on overlap. Keep `action`
-reserved as a fallback; do not require it unless playtesting shows accidental submissions.
-
-## Polina: Core Systems Instructions
-
-Owned files:
-
-```text
-scenes/actors/Player.tscn
-scripts/actors/player/Player.gd
-scripts/gameplay/GameRules.gd
-scripts/gameplay/EquationService.gd
-tests/gameplay/test_equation_service.gd
-```
-
-Tasks:
-
-1. Create a `CharacterBody2D` player with typed four-direction movement.
-2. Normalize diagonal input so diagonal movement is not faster.
-3. Clamp the player to the authored arena using collision boundaries, not screen-size assumptions.
-4. Disable movement while `GameState.input_enabled` is false.
-5. Change only the player's visual child when entering water; movement logic stays identical.
-6. Implement `EquationService` as pure typed functions for addition and subtraction validation.
-7. Ensure collection order matters only for subtraction.
-8. Provide safe behavior for missing visuals or collision nodes so placeholder tests still run.
-9. Keep the current Player placeholder for this asset pass. No platformer hero sprites or movement
-   animation changes are required.
-
-Polina emits no UI text and loads no audio.
-
-Isolation test:
-
-- Player moves in four directions and cannot leave a test boundary.
-- `4, 6, ADD, 10` succeeds.
-- `6, 4, ADD, 10` succeeds.
-- `14, 4, SUBTRACT, 10` succeeds.
-- `4, 14, SUBTRACT, 10` fails.
-- Missing or extra operands fail without crashing.
-
-Handoff to Alina:
-
-- Player root uses collision layer `1`.
-- Player detection area uses mask `2` for operands and mask `3` for interactions.
-- Alina's scenes must not call Player methods directly.
-
-Handoff to Rinata:
-
-- Player consumes `phase_changed`.
-- HUD reads equation state only from `equation_changed`.
-
-## Alina: World And Content Instructions
-
-Owned files:
-
-```text
-scenes/world/Level_01.tscn
-scripts/world/Level01Controller.gd
-scenes/actors/numbers/Operand.tscn
-scripts/actors/numbers/Operand.gd
-scenes/actors/enemies/Guardian10.tscn
-scripts/actors/enemies/Guardian10.gd
-scenes/world/interactions/EquationAltar.tscn
-scenes/world/interactions/ResetShell.tscn
-scenes/world/interactions/CoralGate.tscn
-```
-
-Tasks:
-
-1. Build one compact `1152 x 648` authored arena with clear room for the HUD.
-2. Place PlayerSpawn, four land operand markers, four water operand markers, two altars, ResetShell,
-   Guardian10, CoralGate, and solid outer boundaries.
-3. Use `GameRules` values for operand content. Spawn instances at authored markers.
-4. Operand exposes `@export var value: int` and reports collection to
-   `GameState.try_collect_operand(value)`.
-5. Hide or disable an operand only when collection succeeds.
-6. On `operands_cleared`, restore the active phase's collected operands.
-7. LandAltar is active only in `LAND`; WaterAltar only in `WATER`.
-8. A correct land submission starts the tide. A correct water submission completes the level.
-9. During transition, disable interactions, close the dry route, animate water, open the coral route,
-   swap operand sets, then enter `WATER`.
-10. Guardian10 reacts to `shield_changed`; it does not validate arithmetic.
-11. Add the approved background and no more than three decorative sprites under
-    `Level01/Background/Decoration`.
-12. Preserve every gameplay position, collision shape, NodePath, and the existing `SandVisual` and
-    `WaterVisual` visibility contract.
-13. Decorations must stay behind the player, operands, altars, and Guardian and must not reduce number
-    readability.
-
-Collision layers:
-
-| Layer | Purpose |
-| --- | --- |
-| `1` | player body |
-| `2` | operands |
-| `3` | altars and ResetShell |
-| `4` | solid world boundaries and CoralGate |
-
-Level layout requirement:
-
-- The player must see Guardian10 from the starting area.
-- `4` and `6` must require movement in different directions.
-- `2` and `7` must look equally reachable.
-- After flooding, the new route must visually lead toward Guardian10.
-- `14` must be collected before `4` in the intended route so subtraction order is taught spatially.
-- ResetShell remains reachable in both phases.
-
-Isolation test:
-
-- Running `Level_01.tscn` with placeholder Player and GameState shows all required landmarks.
-- Only four operands are active per phase.
-- Tide swaps visuals, routes, altars, and operands exactly once.
-- Reset returns every world object to its authored state.
-
-Handoff to Polina:
-
-- Operand and interaction scripts call only documented `GameState` methods.
-
-Handoff to Rinata:
-
-- World emits state signals only; Rinata owns overlays, text, audio, and result presentation.
-
-## Rinata: Experience And Integration Instructions
-
-Owned files:
-
-```text
-project.godot
-scenes/main/Main.tscn
-scripts/main/Main.gd
-scenes/ui/HUD.tscn
-scripts/ui/HUD.gd
-scenes/ui/TutorialOverlay.tscn
-scripts/ui/TutorialOverlay.gd
-scenes/ui/RuleChangeOverlay.tscn
-scripts/ui/RuleChangeOverlay.gd
-scenes/ui/ResultScreen.tscn
-scripts/ui/ResultScreen.gd
-scripts/autoload/GameEvents.gd
-scripts/autoload/GameState.gd
-scripts/autoload/AudioBus.gd
-scripts/autoload/SceneLoader.gd
-assets/audio/
-assets/fonts/
-```
-
-Tasks:
-
-1. Create the Godot 4.x project with `Main.tscn` as the main scene and define all input actions.
-2. Register only the four agreed autoloads.
-3. Compose Level 1 and UI without reaching into Level 1 child paths.
-4. HUD displays target `10`, active operation, both operand slots, active rule, and two shield segments.
-5. Represent empty slots as `_`, addition as `+`, and subtraction as `-`.
-6. Tutorial sequence:
-   - show arrow keys until the player moves;
-   - explain `Find two numbers that make 10`;
-   - explain submission when both slots are filled;
-   - after flooding, show `RULES CHANGED: SPLIT`;
-   - explain that subtraction uses collection order.
-7. Pause gameplay input during the two-second tide overlay.
-8. Keep the rule card visible after the overlay closes.
-9. Play audio through stable IDs from `GameRules`.
-10. ResultScreen shows Level 1 complete and offers restart. Next Level remains disabled or labelled
-    `Coming next` until Level 2 exists.
-11. Restart must replace the current Level 1 instance and call `reset_level_01()` before resuming.
-12. Select and import only the approved PNG files, keep nearest-neighbor filtering, and add their
-    attribution and source link to `THIRD_PARTY_NOTICES.md`.
-13. Reject unused ZIP contents and verify that no `.gif`, `.DS_Store`, `__MACOSX`, or duplicate
-    sprites enter the repository.
-14. Confirm license compatibility before any CraftPix file is committed.
-
-HUD must consume signals and snapshots. It must not search for Player, Guardian10, operands, or altars.
-
-Isolation test:
-
-- HUD correctly renders snapshots for empty, one-operand, two-operand, land, and water states.
-- Rule overlay blocks input, animates, and emits no gameplay result.
-- Result screen emits `restart_requested`.
-- Missing audio files log a warning and do not stop the game.
-
-Handoff:
-
-- Rinata performs the final integration from `Main.tscn`.
-- Any required node-path lookup outside Rinata-owned composition files is an architecture bug.
-
-## Reset And Failure Behavior
-
-Easy Mode has no death state in Level 1.
-
-Wrong equation:
-
-1. `equation_submitted(false)` is emitted.
-2. HUD flashes the equation.
-3. Audio plays `equation_wrong`.
-4. Both slots clear.
-5. Collected active-phase operands return to their authored markers.
-6. Player remains in place and can retry immediately.
-
-Level restart:
-
-1. Disable input.
-2. Remove the current Level 1 instance.
-3. Call `GameState.reset_level_01()`.
-4. Instantiate a fresh `Level_01.tscn`.
-5. Reset HUD/tutorial/result UI.
-6. Emit `run_started(GameRules.LEVEL_01_ID)`.
-7. Enable input.
-
-No node or signal connection from the old level may survive restart.
+| Core Systems | Polina | platformer player adaptation, score math, score effects, win/fail rules, water rule selection |
+| World and Content | Alina | side-view level chunks, blocks, pickup spawn positions, boss/projectile authored lanes, safe tutorial |
+| Experience and Integration | Rinata | intro cutscene shell, Main composition, HUD, water overlay, inputs, audio, restart, attribution, QA |
+
+Shared docs and contracts must be updated before code changes.
+
+## Platformer Controller Integration
+
+Use `docs/PLATFORMER_CONTROLLER.md`.
+
+Only adapt:
+
+- horizontal movement;
+- gravity and falling;
+- one jump;
+- short hop;
+- coyote time;
+- jump buffering;
+- floor/platform collision.
+
+Do not add dash, roll, crouch, wall jump, wall slide, wall latch, double jump by default, ground pound,
+or corner correction unless explicitly accepted later. The temporary double-jump power-up is a game
+effect, not a permanent movement ability.
+
+## Assets
+
+The attached platformer pack contains visual assets only. It does not provide movement, score logic,
+Boss 67 AI, water mode, projectiles, pickup behavior, or restart behavior.
+
+Use:
+
+- player strips, recolored pink with a cyan diving mask;
+- `tileset_32x32(new).png` for sand blocks and platforms;
+- `background.png` or 2-3 recolored background layers for land;
+- opaque blue rectangle overlay for water;
+- star icon for slow effect;
+- green up-arrow icon for temporary double jump.
+
+Do not import the full pack. Keep minimum asset import documented in `THIRD_PARTY_NOTICES.md`.
+
+## Reset And Failure
+
+Failure:
+
+- score becomes `0.00`;
+- player is hit by an explicitly fatal hazard if one is later approved;
+- player falls out of the world.
+
+Victory:
+
+- score becomes exactly `67.00`.
+
+Restart:
+
+- reset score to `1.00`;
+- clear projectiles, pickups, power-ups, water timers, and complications;
+- return to the post-cutscene safe start or replay cutscene depending on the menu setting;
+- no stale signal connections survive.
 
 ## Integration Order
 
-1. Rinata creates `project.godot`, autoload skeletons, input actions, and empty Main composition.
-2. Polina adds `GameRules`, `EquationService`, Player, and arithmetic tests.
-3. Alina adds Level 1, operands, landmarks, and placeholder interactions.
-4. Rinata connects HUD to state signals.
-5. Integrate the land equation end to end.
-6. Add tide transition and water equation.
-7. Add Guardian feedback, tutorial, audio, result, and restart.
-8. Rinata imports the approved asset subset and records attribution.
-9. Alina places the background and up to three decorations without changing gameplay nodes.
-10. Run QA and freeze Level 1 before Level 2 work begins.
-
-Parallel work is allowed after steps 1 and 2 publish the shared contracts.
+1. Update docs and contract. No code until the team accepts this reset.
+2. Rinata updates inputs: `jump`, `action`, movement, restart.
+3. Polina creates isolated side-view Player movement test.
+4. Alina creates a small side-view test room with sand blocks and a one-block jump.
+5. Polina adds score math and operation application tests.
+6. Alina adds Boss 67 projectile lanes and pickup placement rules.
+7. Rinata connects HUD score/rule/water timer/restart.
+8. Integrate first land segment to 18 blocks.
+9. Add purple projectiles from 18 blocks.
+10. Add first water event at 28 blocks.
+11. Add one water complication only after the water event is understandable.
+12. Run QA and manual playtest.
 
 ## Manual Main-Scene Test
 
 1. Launch `Main.tscn`.
-2. Confirm the arrow tutorial disappears after movement.
-3. Collect `4`, then `6`; HUD displays `4 + 6 = 10`.
-4. Submit and confirm one shield breaks.
-5. Confirm input pauses while the pink tide fills the arena.
-6. Confirm the rule card changes to subtraction and the water route opens.
-7. Collect `14`, then `4`; HUD displays `14 - 4 = 10`.
-8. Submit and confirm Guardian10 is defeated.
-9. Restart from the result screen.
-10. Confirm the level returns to dry land with empty slots and two shields.
-11. Submit a wrong pair and confirm immediate recovery without a crash or scene reload.
-12. Run `tools/qa.cmd`.
-
-## Definition Of Done
-
-- All manual steps pass from `Main.tscn`.
-- Arithmetic isolation tests pass.
-- `tools/qa.cmd` passes on Windows.
-- No warnings are caused by stale signal connections after three restarts.
-- Every shared name matches `INTEGRATION_CONTRACT.md`.
-- Another teammate can replace placeholder art without editing gameplay scripts.
-- The game still boots and remains playable if the optional decoration nodes are removed.
-- Only approved third-party files are committed and their attribution is recorded.
+2. Skip or finish the placeholder cutscene.
+3. Spawn in safe sand-and-sky area.
+4. Walk, fall, land, and jump onto one block.
+5. Confirm safe start closes after the first taught jump.
+6. Confirm Boss 67 appears.
+7. Collect land pickups and avoid `*0`, `*0.5`, `*0.8`.
+8. Reach 18 blocks and confirm rare purple projectiles begin.
+9. Reach 28 blocks and confirm water lasts `10` seconds.
+10. Confirm the selected water rule set is shown in the HUD.
+11. Confirm score can go negative but `0.00` fails.
+12. Reach exactly `67.00` and confirm victory.
+13. Restart and confirm a clean run.
+14. Run `tools\qa.cmd`.
 
 ## Scope Warning
 
-Do not add health, oxygen, timers, moving currents, random equations, Level 2, Hard mode, combat,
-dialogue systems, save data, or Boss 67 during this slice. The only polish priorities are readability,
-responsive movement, the tide moment, equation feedback, and reliable restart.
-
-The asset pass must not add parallax, animated weather, a new TileMap, platforming, new enemies, new
-collisions, or a complete art-pack import. Stop after one background and three decorations.
+Do not build multiple levels, old Guardian fights, top-down rooms, altar equations, weapons, shops,
+health bars, inventories, dialogue trees, or procedural maps. The vertical slice is one platformer
+boss fight where the player wins by making score `67`.

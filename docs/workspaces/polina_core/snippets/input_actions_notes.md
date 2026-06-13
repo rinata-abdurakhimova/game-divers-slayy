@@ -8,6 +8,7 @@ Use these names because they are reserved in `INTEGRATION_CONTRACT.md`.
 - `move_right`
 - `move_up`
 - `move_down`
+- `jump`
 - `action`
 - `pause`
 - `restart`
@@ -18,17 +19,19 @@ Use these names because they are reserved in `INTEGRATION_CONTRACT.md`.
 - `move_right`: Right, D
 - `move_up`: Up, W
 - `move_down`: Down, S
-- `action`: Space, Enter
+- `jump`: Space
+- `action`: Enter, E
 - `pause`: Escape
 - `restart`: R
 
 ## Suggested Controller Defaults
 
 - movement: left stick or D-pad
-- `action`: south face button
+- `jump`: south face button
+- `action`: east/west face button
 - `pause`: start/options
 - `restart`: select/back or hold action after outcome
 
-Level 1 Easy should use automatic operand collection and altar submission on overlap. Keep `action`
-reserved as a fallback only. Do not rename these after integration without updating producers and
-consumers together.
+Level 1 Boss 67 should use automatic pickup/projectile score application on collision. Keep `action`
+reserved for future interact prompts only. Do not rename these after integration without updating
+producers and consumers together.

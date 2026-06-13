@@ -9,11 +9,12 @@ Primary areas:
 - `scenes/actors/Player.tscn`
 - `scripts/actors/player/`
 - `scripts/gameplay/`
-- core mechanic, rules, health, score, timer, win/lose calculation
+- core mechanic, player movement, score rules, water state, power-up timers, win/lose calculation
 
 Current asset-pass responsibility:
 
-- No required changes. Keep the existing top-down Player visual and movement contract.
+- Own the side-view Player conversion and preserve documented collision, reset, score, and signal
+  contracts. Do not replace the Player scene wholesale with an imported controller.
 
 Pitch segment: hook and core mechanic. Demo responsibility: explain controls and the satisfying player
 decision.
@@ -26,13 +27,14 @@ Primary areas:
 - `scenes/world/`
 - `scripts/actors/enemies/`
 - `scripts/world/`
-- levels, obstacles, collectibles, interactions, encounter pacing
+- levels, terrain, obstacles, pickups, projectiles, interactions, encounter pacing
 
 Current asset-pass responsibility:
 
-- Place one approved backdrop and up to three static props in `Level_01.tscn`.
-- Keep decorations collision-free and behind all readable gameplay objects.
-- Do not change layout, spawn positions, routes, or phase logic for the art.
+- Build the side-view Boss 67 Level 1 route, including sand blocks, pickup placement, projectile
+  blockers, water-era ceiling blocks when needed, and readable `12 x 8` chunks.
+- Keep required jumps within Polina's approved movement contract.
+- Do not change score rules, signals, or Player behavior for layout convenience without contract review.
 
 Pitch segment: theme connection and content progression. Demo responsibility: guide the intended route
 and point out the strongest theme moment.
@@ -53,6 +55,7 @@ Current asset-pass responsibility:
 
 - Select and import only files actually used by Level 1.
 - Preserve nearest-neighbor import settings and verify build/export health.
+- Own cutscene shell, HUD readability, water overlay, audio feedback, restart flow, and attribution.
 - Record source, author, and license; block assets whose repository distribution rights are unclear.
 
 Pitch segment: polish, technical reliability, and close. Demo responsibility: launch the build, recover

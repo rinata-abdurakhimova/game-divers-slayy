@@ -1,42 +1,45 @@
 # Architecture Decisions
 
+## 2026-06-13: Boss 67 platformer score-fight reset
+
+- Decision: replace the top-down Guardian 10 arithmetic-room plan with a side-view platformer boss
+  fight against Boss 67.
+- Runtime: placeholder cutscene, safe sand tutorial, Boss 67 appears, player changes score through
+  pickups/projectiles, water events introduce rule variants and movement complications.
+- Win condition: score becomes exactly `67.00`.
+- Failure condition: score becomes `0.00`.
+- Reason: match the board concept and make `67` the central playable goal instead of a later boss.
+- Affected owners: Polina, Alina, Rinata.
+- Rollback: restore the previous `4 + 6` / `14 - 4` Level 1 contract before any platformer code
+  depends on the new names.
+
+## 2026-06-13: Platformer controller reference
+
+- Decision: use the Noasey `Ultimate 2D Platformer Controller` as a reference only, adapting a small
+  movement subset into the existing Player.
+- Allowed: horizontal movement, gravity, falling, one jump, short hop, coyote time, jump buffering,
+  floor/platform collision.
+- Cut: dash, roll, crouch, run modifier, wall jump, wall slide, wall latch, permanent double jump,
+  ground pound, corner correction.
+- Reason: keep movement responsive without importing a large controller or changing ownership.
+- Affected owners: Polina, Alina, Rinata.
+- Rollback: keep the current Player until the isolated platformer movement test passes.
+
+## 2026-06-13: Platformer visual asset policy
+
+- Decision: platformer packs may provide visual assets only. They do not provide reusable game logic.
+- Reason: movement, jumping, score, water, projectiles, restart, and boss behavior must remain owned by
+  the team and covered by our contracts.
+- Affected owners: all.
+- Rollback: use placeholders if asset import delays the playable path.
+
 ## 2026-06-13: Minimal third-party visual pass
 
-- Decision: use at most one o_lobster background and three static props without changing gameplay,
-  scene contracts, collisions, or the top-down format.
-- Reason: replace placeholders with a coherent pixel-art layer while protecting the finished Level 1
-  loop and avoiding a full art-pack integration.
-- Ownership: Rinata selects/imports/credits assets; Alina places world decoration; Polina has no
-  required work.
-- License: credit o_lobster under CC BY 4.0. Defer CraftPix source files until repository
-  redistribution rights are confirmed.
-- Fallback: remove optional decoration nodes and keep the current `SandVisual` and `WaterVisual`
-  polygons.
-- Scope cap: no full ZIP import, platformer hero, enemies, traps, HUD replacement, TileMap conversion,
-  parallax, animated weather, or new collisions.
-
-## 2026-06-13: Level 1 Easy vertical-slice contract
-
-- Decision: replace the earlier color-survival prototype plan with one authored arithmetic room.
-- Runtime: land addition `4 + 6 = 10`, triggered tide transition, then water subtraction
-  `14 - 4 = 10`.
-- Structure: `Main` composes Level 1 and signal-driven UI; `GameState` owns equation state;
-  `Level01Controller` owns world sequencing.
-- Reference principle: use Celeste-like simple controls, hand-authored challenges, clear feedback, and
-  fast recovery, without copying its platforming mechanics.
-- Affected owners: Polina, Alina, Rinata.
-- Rollback: restore the previous architecture and contract before any gameplay files depend on these
-  names.
-
-Use this compact template for decisions that affect multiple owners:
-
-```text
-Date:
-Decision:
-Reason:
-Affected owners:
-Rollback:
-```
+- Decision: keep prior o_lobster visual attribution, but treat the earlier top-down decoration pass as
+  superseded by the platformer reset.
+- Reason: the imported art can still inform presentation, but the gameplay contract changed.
+- Affected owners: Rinata and Alina.
+- Rollback: remove optional art and use placeholder blocks/backgrounds.
 
 ## 2026-06-09: Three Coding Owners
 
@@ -49,3 +52,13 @@ presentation.
 Affected owners: All.
 
 Rollback: Update `OWNERSHIP.md` and the integration contract when names, skills, or availability change.
+
+Use this compact template for future decisions:
+
+```text
+Date:
+Decision:
+Reason:
+Affected owners:
+Rollback:
+```
