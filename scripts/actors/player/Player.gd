@@ -5,11 +5,27 @@ signal movement_started
 signal movement_stopped
 signal reset_completed
 
+@export_group("Platformer Movement")
 @export var move_speed: float = GameRules.PLAYER_SPEED
-@export var acceleration: float = 2200.0
-@export var friction: float = 2600.0
-@export var use_acceleration: bool = true
+@export var ground_acceleration: float = 2400.0
+@export var air_acceleration: float = 1500.0
+@export var ground_friction: float = 3200.0
+@export var air_friction: float = 900.0
+@export var gravity: float = 1450.0
+@export var max_fall_speed: float = 900.0
+@export var jump_velocity: float = -475.0
+@export_range(0.05, 1.0, 0.01) var short_hop_multiplier: float = 0.45
+@export_range(0.0, 0.3, 0.01) var coyote_time_seconds: float = 0.1
+@export_range(0.0, 0.3, 0.01) var jump_buffer_seconds: float = 0.12
+
+@export_group("Input")
+@export var move_left_action: StringName = &"move_left"
+@export var move_right_action: StringName = &"move_right"
+@export var jump_action: StringName = &"jump"
+@export var fallback_jump_action: StringName = &"action"
 @export var respect_game_state_input: bool = true
+
+@export_group("Visuals")
 @export var land_visual_path: NodePath = ^"LandVisual"
 @export var water_visual_path: NodePath = ^"WaterVisual"
 
@@ -20,6 +36,8 @@ var current_phase: GameRules.Phase = GameRules.Phase.LAND
 var _land_visual: CanvasItem = null
 var _water_visual: CanvasItem = null
 var _was_moving: bool = false
+var _coyote_timer: float = 0.0
+var _jump_buffer_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -31,8 +49,15 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	var input_direction: Vector2 = _read_move_input()
-	_update_velocity(input_direction, delta)
+	if not _can_accept_input():
+		_stop_for_disabled_input()
+		return
+
+	_update_jump_timers(delta)
+	_update_horizontal_velocity(_read_horizontal_input(), delta)
+	_apply_gravity(delta)
+	_try_buffered_jump()
+	_apply_short_hop()
 	move_and_slide()
 	_emit_movement_state()
 
@@ -40,8 +65,7 @@ func _physics_process(delta: float) -> void:
 func set_input_enabled(enabled: bool) -> void:
 	input_enabled = enabled
 	if not input_enabled:
-		velocity = Vector2.ZERO
-		_emit_movement_state()
+		_stop_for_disabled_input()
 
 
 func apply_phase(phase: GameRules.Phase) -> void:
@@ -57,14 +81,14 @@ func reset_player(new_spawn_position: Variant = null) -> void:
 	velocity = Vector2.ZERO
 	input_enabled = true
 	_was_moving = false
+	_coyote_timer = 0.0
+	_jump_buffer_timer = 0.0
 	_apply_phase_visuals(current_phase)
 	reset_completed.emit()
 
 
-func _read_move_input() -> Vector2:
-	if not _can_accept_input():
-		return Vector2.ZERO
-	return Input.get_vector("move_left", "move_right", "move_up", "move_down")
+func _read_horizontal_input() -> float:
+	return _get_action_strength(move_right_action) - _get_action_strength(move_left_action)
 
 
 func _can_accept_input() -> bool:
@@ -83,14 +107,75 @@ func _can_accept_input() -> bool:
 	return true
 
 
-func _update_velocity(input_direction: Vector2, delta: float) -> void:
-	var target_velocity: Vector2 = input_direction * move_speed
-	if not use_acceleration:
-		velocity = target_velocity
+func _update_jump_timers(delta: float) -> void:
+	if is_on_floor():
+		_coyote_timer = coyote_time_seconds
+	else:
+		_coyote_timer = maxf(_coyote_timer - delta, 0.0)
+
+	if _is_jump_just_pressed():
+		_jump_buffer_timer = jump_buffer_seconds
+	else:
+		_jump_buffer_timer = maxf(_jump_buffer_timer - delta, 0.0)
+
+
+func _update_horizontal_velocity(horizontal_input: float, delta: float) -> void:
+	var target_x: float = horizontal_input * move_speed
+	var has_input: bool = not is_zero_approx(horizontal_input)
+	var rate: float = ground_acceleration if is_on_floor() else air_acceleration
+	if not has_input:
+		rate = ground_friction if is_on_floor() else air_friction
+	velocity.x = move_toward(velocity.x, target_x, rate * delta)
+
+
+func _apply_gravity(delta: float) -> void:
+	if is_on_floor() and velocity.y > 0.0:
+		velocity.y = 0.0
+		return
+	velocity.y = minf(velocity.y + gravity * delta, max_fall_speed)
+
+
+func _try_buffered_jump() -> void:
+	if _jump_buffer_timer <= 0.0 or _coyote_timer <= 0.0:
 		return
 
-	var rate: float = acceleration if input_direction.length_squared() > 0.0 else friction
-	velocity = velocity.move_toward(target_velocity, rate * delta)
+	velocity.y = jump_velocity
+	_jump_buffer_timer = 0.0
+	_coyote_timer = 0.0
+
+
+func _apply_short_hop() -> void:
+	if _is_jump_just_released() and velocity.y < 0.0:
+		velocity.y *= short_hop_multiplier
+
+
+func _stop_for_disabled_input() -> void:
+	velocity = Vector2.ZERO
+	_coyote_timer = 0.0
+	_jump_buffer_timer = 0.0
+	_emit_movement_state()
+
+
+func _get_action_strength(action: StringName) -> float:
+	if not InputMap.has_action(action):
+		return 0.0
+	return Input.get_action_strength(action)
+
+
+func _is_jump_just_pressed() -> bool:
+	if InputMap.has_action(jump_action):
+		return Input.is_action_just_pressed(jump_action)
+	if InputMap.has_action(fallback_jump_action):
+		return Input.is_action_just_pressed(fallback_jump_action)
+	return false
+
+
+func _is_jump_just_released() -> bool:
+	if InputMap.has_action(jump_action):
+		return Input.is_action_just_released(jump_action)
+	if InputMap.has_action(fallback_jump_action):
+		return Input.is_action_just_released(fallback_jump_action)
+	return false
 
 
 func _emit_movement_state() -> void:
@@ -110,11 +195,20 @@ func _connect_game_events() -> void:
 	if game_events == null:
 		return
 	if not game_events.has_signal(&"phase_changed"):
+		_connect_optional_signal(game_events, &"water_started", Callable(self, "_on_water_started"))
+		_connect_optional_signal(game_events, &"water_finished", Callable(self, "_on_water_finished"))
 		return
 
-	var phase_callable: Callable = Callable(self, "_on_phase_changed")
-	if not game_events.is_connected(&"phase_changed", phase_callable):
-		game_events.connect(&"phase_changed", phase_callable)
+	_connect_optional_signal(game_events, &"phase_changed", Callable(self, "_on_phase_changed"))
+	_connect_optional_signal(game_events, &"water_started", Callable(self, "_on_water_started"))
+	_connect_optional_signal(game_events, &"water_finished", Callable(self, "_on_water_finished"))
+
+
+func _connect_optional_signal(source: Node, signal_name: StringName, target: Callable) -> void:
+	if not source.has_signal(signal_name):
+		return
+	if not source.is_connected(signal_name, target):
+		source.connect(signal_name, target)
 
 
 func _apply_phase_visuals(phase: GameRules.Phase) -> void:
@@ -127,3 +221,13 @@ func _apply_phase_visuals(phase: GameRules.Phase) -> void:
 
 func _on_phase_changed(phase: GameRules.Phase) -> void:
 	apply_phase(phase)
+
+
+func _on_water_started(_variant: Variant = null, _complication: Variant = null, _seconds: float = 0.0) -> void:
+	current_phase = GameRules.Phase.WATER
+	_apply_phase_visuals(current_phase)
+
+
+func _on_water_finished() -> void:
+	current_phase = GameRules.Phase.LAND
+	_apply_phase_visuals(current_phase)
