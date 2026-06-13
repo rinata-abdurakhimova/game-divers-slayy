@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/Level01Controller.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2"]
@@ -8,6 +8,10 @@
 [ext_resource type="PackedScene" path="res://scenes/world/interactions/ResetShell.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/world/interactions/CoralGate.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/world/Level_01_Water.tscn" id="8"]
+[ext_resource type="Texture2D" uid="uid://bg5rammn5rv25" path="res://assets/third_party/o_lobster/level_01_backdrop.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://csd3r2r12wv7n" path="res://assets/third_party/o_lobster/level_01_prop_01.png" id="10"]
+[ext_resource type="Texture2D" uid="uid://dvfxtn4fy2jio" path="res://assets/third_party/o_lobster/level_01_prop_02.png" id="11"]
+[ext_resource type="Texture2D" uid="uid://b0hfgqut4m4th" path="res://assets/third_party/o_lobster/level_01_prop_03.png" id="12"]
 
 [sub_resource type="RectangleShape2D" id="RectShape2D_wall_top"]
 size = Vector2(1152, 20)
@@ -29,6 +33,32 @@ size = Vector2(20, 648)
 color = Color(0.91, 0.76, 0.46, 1)
 polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 648, 0, 648)
 
+[node name="Decoration" type="Node2D" parent="Background"]
+mouse_filter = 2
+
+[node name="BackdropSprite" type="Sprite2D" parent="Background/Decoration"]
+texture = ExtResource("9")
+position = Vector2(576, 324)
+scale = Vector2(4, 4)
+mouse_filter = 2
+
+[node name="Prop01" type="Sprite2D" parent="Background/Decoration"]
+texture = ExtResource("10")
+position = Vector2(60, 60)
+scale = Vector2(4, 4)
+mouse_filter = 2
+
+[node name="Prop02" type="Sprite2D" parent="Background/Decoration"]
+texture = ExtResource("11")
+position = Vector2(1090, 60)
+scale = Vector2(4, 4)
+mouse_filter = 2
+
+[node name="Prop03" type="Sprite2D" parent="Background/Decoration"]
+texture = ExtResource("12")
+position = Vector2(576, 580)
+scale = Vector2(4, 4)
+mouse_filter = 2
 
 [node name="Navigation" type="Node2D" parent="."]
 

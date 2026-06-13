@@ -41,7 +41,7 @@ func _on_equation_submitted(correct: bool) -> void:
 			if gs != null and gs.has_method(&"begin_tide_transition"):
 				gs.begin_tide_transition()
 			GameEvents.tide_started.emit()
-			await get_tree().create_timer(0.5).timeout
+			await get_tree().create_timer(GameRules.TIDE_TRANSITION_SECONDS).timeout
 			_swap_to_water_scene()
 
 
