@@ -42,6 +42,8 @@ func _on_equation_submitted(correct: bool) -> void:
 	var current_phase: int = gs.get("phase")
 	match current_phase:
 		GameRules.Phase.LAND:
+			_open_gate()
+			await get_tree().create_timer(0.3).timeout
 			_start_tide_transition()
 
 
@@ -52,6 +54,12 @@ func _on_operands_cleared() -> void:
 	var current_phase: int = gs.get("phase")
 	if GameRules.is_submission_phase(current_phase):
 		_spawn_operands_for_phase(current_phase)
+
+
+func _open_gate() -> void:
+	var coral_gate: Node = get_node_or_null(coral_gate_path)
+	if coral_gate != null and coral_gate.has_method(&"open"):
+		coral_gate.open()
 
 
 func _start_tide_transition() -> void:
@@ -71,10 +79,6 @@ func _start_tide_transition() -> void:
 	GameEvents.tide_started.emit()
 
 	await get_tree().create_timer(GameRules.TIDE_TRANSITION_SECONDS).timeout
-
-	var coral_gate: Node = get_node_or_null(coral_gate_path)
-	if coral_gate != null and coral_gate.has_method(&"open"):
-		coral_gate.open()
 
 	_spawn_operands_for_phase(GameRules.Phase.WATER)
 
