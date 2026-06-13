@@ -1,9 +1,6 @@
 class_name Level01Controller
 extends Node
 
-signal tide_started
-signal tide_finished
-
 @export var operand_scene: PackedScene
 @export var player_path: NodePath
 @export var land_operand_spawns_path: NodePath
@@ -74,7 +71,7 @@ func _start_tide_transition() -> void:
 	if water != null:
 		water.visible = true
 
-	emit_signal(&"tide_started")
+	GameEvents.tide_started.emit()
 
 	await get_tree().create_timer(GameRules.TIDE_TRANSITION_SECONDS).timeout
 
@@ -87,7 +84,7 @@ func _start_tide_transition() -> void:
 	if gs != null and gs.has_method(&"enter_water_phase"):
 		gs.enter_water_phase()
 
-	emit_signal(&"tide_finished")
+	GameEvents.tide_finished.emit()
 	_tide_in_progress = false
 
 

@@ -1,0 +1,76 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/RuleChangeOverlay.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_card"]
+bg_color = Color(0.188, 0.141, 0.239, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.906, 0.553, 0.824, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+content_margin_left = 36.0
+content_margin_top = 28.0
+content_margin_right = 36.0
+content_margin_bottom = 28.0
+
+[node name="RuleChangeOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.071, 0.047, 0.102, 0.7)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(400, 180)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_card")
+
+[node name="Content" type="VBoxContainer" parent="Center/Card"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.58, 0.82, 1)
+theme_override_font_sizes/font_size = 28
+text = "RULES CHANGED"
+horizontal_alignment = 1
+
+[node name="Rule" type="Label" parent="Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
+theme_override_font_sizes/font_size = 24
+text = "ADDITION → SUBTRACTION"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.867, 0.984, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "First number minus second number"
+horizontal_alignment = 1

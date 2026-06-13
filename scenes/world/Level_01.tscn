@@ -101,7 +101,7 @@ position = Vector2(576, 540)
 position = Vector2(640, 324)
 
 [node name="Boundaries" type="StaticBody2D" parent="."]
-collision_layer = 4
+collision_layer = 8
 
 [node name="WallTop" type="CollisionShape2D" parent="Boundaries"]
 position = Vector2(576, 10)
