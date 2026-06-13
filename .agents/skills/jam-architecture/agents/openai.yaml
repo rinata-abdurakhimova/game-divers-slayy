@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jam Architecture"
+  short_description: "Design integration-first Godot feature boundaries"
+  default_prompt: "Use $jam-architecture to define the scene tree, ownership, signals, and tests for this feature."

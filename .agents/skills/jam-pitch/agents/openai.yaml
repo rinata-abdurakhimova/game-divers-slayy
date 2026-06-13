@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jam Pitch"
+  short_description: "Prepare a shared three-person game pitch"
+  default_prompt: "Use $jam-pitch to prepare our shared three-person pitch and reliable demo route."

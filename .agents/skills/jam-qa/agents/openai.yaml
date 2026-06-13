@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jam QA"
+  short_description: "Protect the playable build and triage failures"
+  default_prompt: "Use $jam-qa to test the current build, triage failures, and propose the safest fixes."

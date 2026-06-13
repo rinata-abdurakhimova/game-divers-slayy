@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jam Implement"
+  short_description: "Build scoped Godot 4 features with contracts"
+  default_prompt: "Use $jam-implement to implement this Godot feature within the repository contracts."

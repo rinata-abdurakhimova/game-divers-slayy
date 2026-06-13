@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jam Brainstorm"
+  short_description: "Turn a theme into three shippable concepts"
+  default_prompt: "Use $jam-brainstorm to turn the jam theme into three scoped concepts and recommend one."

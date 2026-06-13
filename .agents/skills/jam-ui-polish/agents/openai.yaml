@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jam UI and Polish"
+  short_description: "Create readable signal-driven UI and feedback"
+  default_prompt: "Use $jam-ui-polish to design and implement this UI or game-feel improvement."
