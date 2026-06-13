@@ -1,13 +1,11 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=8 format=3]
 
-[ext_resource type="Script" path="res://scripts/world/Level01Controller.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/world/Level01WaterController.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/actors/enemies/Guardian10.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/actors/numbers/Operand.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/world/interactions/EquationAltar.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/world/interactions/ResetShell.tscn" id="6"]
-[ext_resource type="PackedScene" path="res://scenes/world/interactions/CoralGate.tscn" id="7"]
-[ext_resource type="PackedScene" path="res://scenes/world/Level_01_Water.tscn" id="8"]
 
 [sub_resource type="RectangleShape2D" id="RectShape2D_wall_top"]
 size = Vector2(1152, 20)
@@ -21,44 +19,34 @@ size = Vector2(20, 648)
 [sub_resource type="RectangleShape2D" id="RectShape2D_wall_right"]
 size = Vector2(20, 648)
 
-[node name="Level01" type="Node2D"]
+[node name="Level01Water" type="Node2D"]
 
 [node name="Background" type="Node2D" parent="."]
 
-[node name="SandVisual" type="Polygon2D" parent="Background"]
-color = Color(0.91, 0.76, 0.46, 1)
+[node name="WaterVisual" type="Polygon2D" parent="Background"]
+color = Color(0.95, 0.28, 0.72, 0.4)
 polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 648, 0, 648)
-
 
 [node name="Navigation" type="Node2D" parent="."]
 
-[node name="PlayerSpawn" type="Marker2D" parent="Navigation"]
-position = Vector2(150, 324)
+[node name="WaterOperandSpawns" type="Node2D" parent="Navigation"]
 
-[node name="LandOperandSpawns" type="Node2D" parent="Navigation"]
-position = Vector2(0, 0)
+[node name="Spawn_14" type="Marker2D" parent="Navigation/WaterOperandSpawns"]
+position = Vector2(720, 260)
 
-[node name="Spawn_4" type="Marker2D" parent="Navigation/LandOperandSpawns"]
-position = Vector2(320, 200)
+[node name="Spawn_4" type="Marker2D" parent="Navigation/WaterOperandSpawns"]
+position = Vector2(790, 445)
 
-[node name="Spawn_6" type="Marker2D" parent="Navigation/LandOperandSpawns"]
-position = Vector2(320, 448)
+[node name="Spawn_8" type="Marker2D" parent="Navigation/WaterOperandSpawns"]
+position = Vector2(830, 330)
 
-[node name="Spawn_2" type="Marker2D" parent="Navigation/LandOperandSpawns"]
-position = Vector2(430, 310)
-
-[node name="Spawn_7" type="Marker2D" parent="Navigation/LandOperandSpawns"]
-position = Vector2(400, 405)
-
-
-[node name="LandAltarSpawn" type="Marker2D" parent="Navigation"]
-position = Vector2(490, 324)
-
+[node name="Spawn_3" type="Marker2D" parent="Navigation/WaterOperandSpawns"]
+position = Vector2(760, 360)
 
 [node name="Actors" type="Node2D" parent="."]
 
 [node name="Player" parent="Actors" instance=ExtResource("2")]
-position = Vector2(150, 324)
+position = Vector2(700, 324)
 
 [node name="Guardian10" parent="Actors" instance=ExtResource("3")]
 position = Vector2(1020, 324)
@@ -67,16 +55,12 @@ position = Vector2(1020, 324)
 
 [node name="Interactions" type="Node2D" parent="."]
 
-[node name="LandAltar" parent="Interactions" instance=ExtResource("5")]
-position = Vector2(490, 324)
-phase = 0
-
+[node name="WaterAltar" parent="Interactions" instance=ExtResource("5")]
+position = Vector2(880, 324)
+phase = 2
 
 [node name="ResetShell" parent="Interactions" instance=ExtResource("6")]
-position = Vector2(576, 540)
-
-[node name="CoralGate" parent="Interactions" instance=ExtResource("7")]
-position = Vector2(640, 324)
+position = Vector2(700, 540)
 
 [node name="Boundaries" type="StaticBody2D" parent="."]
 collision_layer = 8
@@ -97,12 +81,8 @@ shape = SubResource("RectShape2D_wall_left")
 position = Vector2(1142, 324)
 shape = SubResource("RectShape2D_wall_right")
 
-[node name="LevelController" type="Node" parent="."]
+[node name="WaterController" type="Node" parent="."]
 script = ExtResource("1")
 operand_scene = ExtResource("4")
-player_path = NodePath("../Actors/Player")
-land_operand_spawns_path = NodePath("../Navigation/LandOperandSpawns")
+water_spawns_path = NodePath("../Navigation/WaterOperandSpawns")
 active_operands_path = NodePath("../Actors/ActiveOperands")
-coral_gate_path = NodePath("../Interactions/CoralGate")
-water_scene = ExtResource("8")
-container_path = NodePath("../..")

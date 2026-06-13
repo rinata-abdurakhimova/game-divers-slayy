@@ -19,7 +19,11 @@ func _ready() -> void:
 	_shield_bar_2 = get_node_or_null(shield_bar_2_path) as CanvasItem
 	_body_visual = get_node_or_null(body_visual_path) as CanvasItem
 	_connect_signals()
-	_update_visual(GameRules.LEVEL_01_STARTING_SHIELDS)
+	var gs: Node = get_node_or_null(^"/root/GameState")
+	var shields: int = GameRules.LEVEL_01_STARTING_SHIELDS
+	if gs != null:
+		shields = gs.get(&"shield_segments")
+	_update_visual(shields)
 
 
 func _connect_signals() -> void:

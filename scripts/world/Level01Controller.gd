@@ -2,16 +2,11 @@ class_name Level01Controller
 extends Node
 
 @export var operand_scene: PackedScene
-@export var player_path: NodePath
 @export var land_operand_spawns_path: NodePath
-@export var water_operand_spawns_path: NodePath
 @export var active_operands_path: NodePath
-@export var land_altar_path: NodePath
-@export var water_altar_path: NodePath
 @export var coral_gate_path: NodePath
-@export var guardian_path: NodePath
-@export var sand_visual_path: NodePath
-@export var water_visual_path: NodePath
+@export var water_scene: PackedScene
+@export var container_path: NodePath
 
 var _tide_in_progress: bool = false
 
@@ -43,8 +38,11 @@ func _on_equation_submitted(correct: bool) -> void:
 	match current_phase:
 		GameRules.Phase.LAND:
 			_open_gate()
-			await get_tree().create_timer(0.3).timeout
-			_start_tide_transition()
+			if gs != null and gs.has_method(&"begin_tide_transition"):
+				gs.begin_tide_transition()
+			GameEvents.tide_started.emit()
+			await get_tree().create_timer(0.5).timeout
+			_swap_to_water_scene()
 
 
 func _on_operands_cleared() -> void:
@@ -62,49 +60,28 @@ func _open_gate() -> void:
 		coral_gate.open()
 
 
-func _start_tide_transition() -> void:
-	_tide_in_progress = true
+func _swap_to_water_scene() -> void:
+	if water_scene == null:
+		return
 
-	var gs: Node = get_node_or_null(^"/root/GameState")
-	if gs != null and gs.has_method(&"begin_tide_transition"):
-		gs.begin_tide_transition()
+	var container: Node = get_node(container_path)
+	if container == null:
+		return
 
-	var sand: CanvasItem = get_node_or_null(sand_visual_path) as CanvasItem
-	var water: CanvasItem = get_node_or_null(water_visual_path) as CanvasItem
-	if sand != null:
-		sand.visible = false
-	if water != null:
-		water.visible = true
+	var water: Node = water_scene.instantiate()
+	container.add_child(water)
 
-	GameEvents.tide_started.emit()
-
-	await get_tree().create_timer(GameRules.TIDE_TRANSITION_SECONDS).timeout
-
-	_spawn_operands_for_phase(GameRules.Phase.WATER)
-
-	if gs != null and gs.has_method(&"enter_water_phase"):
-		gs.enter_water_phase()
-
-	GameEvents.tide_finished.emit()
-	_tide_in_progress = false
+	var level_node: Node = get_parent()
+	container.remove_child(level_node)
+	level_node.queue_free()
 
 
 func _spawn_operands_for_phase(phase: GameRules.Phase) -> void:
 	_clear_active_operands()
 
-	var spawns_node: Node2D = null
-	var correct: Array[int] = []
-	var distractors: Array[int] = []
-
-	match phase:
-		GameRules.Phase.WATER:
-			spawns_node = get_node_or_null(water_operand_spawns_path) as Node2D
-			correct = GameRules.WATER_CORRECT_OPERANDS
-			distractors = GameRules.WATER_DISTRACTORS
-		_:
-			spawns_node = get_node_or_null(land_operand_spawns_path) as Node2D
-			correct = GameRules.LAND_CORRECT_OPERANDS
-			distractors = GameRules.LAND_DISTRACTORS
+	var spawns_node: Node2D = get_node_or_null(land_operand_spawns_path) as Node2D
+	var correct: Array[int] = GameRules.LAND_CORRECT_OPERANDS
+	var distractors: Array[int] = GameRules.LAND_DISTRACTORS
 
 	if spawns_node == null or operand_scene == null:
 		return
