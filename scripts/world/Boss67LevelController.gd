@@ -3,52 +3,45 @@ extends Node
 
 const WaterRuleServiceScript = preload("res://scripts/gameplay/WaterRuleService.gd")
 
-# Map is 53 unique columns (x 1..53), column 54 == column 1 (seamless wrap).
+# Map is 53 unique columns. Column 54 wraps to column 1.
 const MAP_COLUMNS: int = 53
 const BLOCK_SIZE: float = 48.0
 const MAP_WIDTH_PX: float = MAP_COLUMNS * BLOCK_SIZE  # 2544 px
 
-# Authored block coordinates from the design board.
-# Format: [col_x, height_y] where col_x is 1..53 and height_y is 1..8 (1 = one block above floor).
+# ── Authored block data ────────────────────────────────────────────────────────
+# Each entry: [col_x (1..53), height_y (1..8 above floor)]
+# y=1 means one block sitting directly on the floor.
+# Pixel Y = viewport_height - floor_thickness - height * BLOCK_SIZE
+# Viewport height = 648, floor top ≈ 600 px → block pixel_y = 600 - height * BLOCK_SIZE
 const AUTHORED_BLOCKS: Array = [
-	[2, 1],
-	[5, 2],
-	[9, 2],
+	[2, 1], [5, 2], [9, 2],
 	[11, 1], [11, 4],
-	[13, 3],
-	[14, 2],
-	[15, 2],
-	[16, 5],
-	[17, 1],
-	[18, 4],
+	[13, 3], [14, 2], [15, 2], [16, 5], [17, 1], [18, 4],
 	[20, 3], [20, 4],
-	[22, 1],
-	[23, 1], [23, 2],
+	[22, 1], [23, 1], [23, 2],
 	[26, 2], [26, 3],
-	[28, 3], [28, 5],
-	[29, 3],
+	[28, 3], [28, 5], [29, 3],
 	[32, 1],
-	[37, 1],
-	[38, 2],
-	[39, 3],
-	[40, 1],
-	[46, 3], [46, 5],
-	[47, 3],
-	[48, 1], [48, 4],
-	[50, 3],
-	[52, 3],
-	[53, 2],
+	[37, 1], [38, 2], [39, 3], [40, 1],
+	[46, 3], [46, 5], [47, 3], [48, 1], [48, 4],
+	[50, 3], [52, 3], [53, 2],
 ]
 
-@export_group("Node Paths")
+# Floor Y pixel (top of the sand floor visible in the scene).
+const FLOOR_TOP_Y: float = 312.0
+
+@export_group("Node Paths — existing scene nodes")
 @export var player_path: NodePath
 @export var boss_path: NodePath
 @export var camera_path: NodePath
-@export var safe_zone_root_path: NodePath   # Node2D/TileMap containing the safe zone visuals+collision
+@export var safe_wall_path: NodePath         # SafeWall — will be queue_free'd after tutorial
 @export var safe_trigger_path: NodePath
-@export var terrain_root_path: NodePath     # Node2D that holds authored blocks
+@export var water_trigger_path: NodePath
 @export var pickup_root_path: NodePath
 @export var projectile_root_path: NodePath
+@export var pickup_spawns_path: NodePath
+@export var terrain_visual_path: NodePath    # TerrainVisual node — we add block visuals here
+@export var terrain_path: NodePath           # Terrain StaticBody2D — we add block collisions here
 
 @export_group("Tuning")
 @export var purple_distance: int = GameRules.FIRST_PURPLE_DISTANCE_BLOCKS
@@ -66,16 +59,17 @@ const AUTHORED_BLOCKS: Array = [
 @export_group("Scenes")
 @export var score_pickup_scene: PackedScene
 @export var boss_projectile_scene: PackedScene
-@export var block_scene: PackedScene   # StaticBody2D that is a single terrain block
 
 # ── Runtime refs ──────────────────────────────────────────────────────────────
 var _player: CharacterBody2D
 var _boss: Node2D
 var _camera: Camera2D
-var _safe_zone_root: Node
-var _terrain_root: Node2D
+var _safe_wall: Node
 var _pickup_root: Node2D
 var _projectile_root: Node2D
+var _pickup_spawns: Node2D
+var _terrain_visual: Node2D
+var _terrain: StaticBody2D
 
 # ── State ─────────────────────────────────────────────────────────────────────
 var _tutorial_done: bool = false
@@ -92,58 +86,66 @@ var _projectile_timer: Timer
 
 
 func _ready() -> void:
-	_player = get_node_or_null(player_path) as CharacterBody2D
-	_boss   = get_node_or_null(boss_path)   as Node2D
-	_camera = get_node_or_null(camera_path) as Camera2D
-	_safe_zone_root  = get_node_or_null(safe_zone_root_path)
-	_terrain_root    = get_node_or_null(terrain_root_path) as Node2D
-	_pickup_root     = get_node_or_null(pickup_root_path)  as Node2D
+	_player          = get_node_or_null(player_path) as CharacterBody2D
+	_boss            = get_node_or_null(boss_path) as Node2D
+	_camera          = get_node_or_null(camera_path) as Camera2D
+	_safe_wall       = get_node_or_null(safe_wall_path)
+	_pickup_root     = get_node_or_null(pickup_root_path) as Node2D
 	_projectile_root = get_node_or_null(projectile_root_path) as Node2D
+	_pickup_spawns   = get_node_or_null(pickup_spawns_path) as Node2D
+	_terrain_visual  = get_node_or_null(terrain_visual_path) as Node2D
+	_terrain         = get_node_or_null(terrain_path) as StaticBody2D
 
-	# Build authored level geometry.
+	# Build the authored level geometry on top of existing floor.
 	_build_authored_blocks()
 
-	# Hide boss until tutorial finishes.
+	# Boss hidden until tutorial ends.
 	if _boss != null:
 		_boss.hide()
-		_boss.set_process(false)
-		_boss.set_physics_process(false)
+
+	# SafeWall hidden at start (becomes active after tutorial).
+	if _safe_wall != null:
+		_safe_wall.hide()
+		_set_children_collision(_safe_wall, false)
 
 	_connect_signals()
 	_create_timers()
 
 
-# ── Build level ───────────────────────────────────────────────────────────────
+# ── Build level geometry ──────────────────────────────────────────────────────
 
 func _build_authored_blocks() -> void:
-	if _terrain_root == null or block_scene == null:
-		push_warning("Boss67LevelController: terrain_root or block_scene not set — skipping block build.")
-		return
-
-	# Remove any existing children first (clean slate).
-	for child in _terrain_root.get_children():
-		child.queue_free()
-
 	for entry in AUTHORED_BLOCKS:
-		var col: int = entry[0]   # 1..53
-		var height: int = entry[1] # 1..8 (number of blocks above floor)
+		var col: int    = entry[0]   # 1..53
+		var height: int = entry[1]   # 1..8 blocks above floor
 
-		var block: Node2D = block_scene.instantiate() as Node2D
-		if block == null:
-			continue
+		# World X: column 1 starts at x=0, each column is BLOCK_SIZE wide.
+		var world_x: float = (col - 1) * BLOCK_SIZE + BLOCK_SIZE * 0.5
+		# World Y: floor top minus height * block size, centred in block.
+		var world_y: float = FLOOR_TOP_Y - (height - 0.5) * BLOCK_SIZE
 
-		# Convert grid coords to world position.
-		# X: columns are 1-indexed; multiply by BLOCK_SIZE to get pixel position.
-		# Y: Godot Y grows downward. Floor is at row 0 (bottom of visible area).
-		#    Visible area is 8 rows tall → total px height = 8 * BLOCK_SIZE = 384.
-		#    Floor top = 7 * BLOCK_SIZE from top of view = 336 px.
-		#    height=1 means directly on the floor → y = floor_top - BLOCK_SIZE/2... 
-		#    but we use top-left origin so: pixel_y = (8 - height) * BLOCK_SIZE
-		var pixel_x: float = (col - 1) * BLOCK_SIZE + BLOCK_SIZE * 0.5
-		var pixel_y: float = (8 - height) * BLOCK_SIZE - BLOCK_SIZE * 0.5
+		var pos := Vector2(world_x, world_y)
 
-		block.position = Vector2(pixel_x, pixel_y)
-		_terrain_root.add_child(block)
+		# ── Collision ──────────────────────────────────────────────────────────
+		if _terrain != null:
+			var shape_node := CollisionShape2D.new()
+			var rect := RectangleShape2D.new()
+			rect.size = Vector2(BLOCK_SIZE, BLOCK_SIZE)
+			shape_node.shape = rect
+			shape_node.position = pos
+			_terrain.add_child(shape_node)
+
+		# ── Visual ─────────────────────────────────────────────────────────────
+		if _terrain_visual != null:
+			var poly := Polygon2D.new()
+			var h: float = BLOCK_SIZE * 0.5
+			poly.polygon = PackedVector2Array([
+				Vector2(-h, -h), Vector2(h, -h),
+				Vector2(h, h),   Vector2(-h, h),
+			])
+			poly.color = Color(0.70, 0.50, 0.25, 1.0)   # sand-coloured block
+			poly.position = pos
+			_terrain_visual.add_child(poly)
 
 
 # ── Signals ───────────────────────────────────────────────────────────────────
@@ -180,10 +182,18 @@ func _create_timers() -> void:
 func _process(delta: float) -> void:
 	_update_water_cooldown(delta)
 
-	if _player == null or not _tutorial_done:
+	if _player == null:
 		return
 
-	# ── Screen wrap: both edges ────────────────────────────────────────────────
+	# ── Camera follows player, centred on the play area ──────────────────────
+	if _camera != null:
+		_camera.global_position.x = _player.global_position.x
+		_camera.global_position.y = 324.0   # fixed vertical centre of 648 px viewport
+
+	if not _tutorial_done:
+		return
+
+	# ── Screen wrap — both edges ───────────────────────────────────────────────
 	var px: float = _player.global_position.x
 	if px < 0.0:
 		_player.global_position.x += MAP_WIDTH_PX
@@ -205,19 +215,13 @@ func _process(delta: float) -> void:
 	if gs.has_method(&"set_distance_blocks"):
 		gs.set_distance_blocks(cumulative)
 
-	# Purple projectiles at 18 blocks.
 	if cumulative >= purple_distance and not _purple_unlocked:
 		_purple_unlocked = true
 		if gs.has_method(&"set_boss_phase"):
 			gs.set_boss_phase(GameRules.BossPhase.LAND_PURPLE)
 
-	# First water at 28 blocks.
 	if cumulative >= first_water_distance and not _first_water_started:
 		_trigger_water(&"distance_28")
-
-	# Camera follows player horizontally.
-	if _camera != null:
-		_camera.global_position.x = _player.global_position.x
 
 
 # ── Tutorial trigger ──────────────────────────────────────────────────────────
@@ -227,15 +231,18 @@ func _on_safe_trigger(_body: Node) -> void:
 		return
 	_tutorial_done = true
 
-	# Completely remove the safe zone from the scene tree.
-	if _safe_zone_root != null:
-		_safe_zone_root.queue_free()
+	# Remove safe wall entirely.
+	if _safe_wall != null:
+		_safe_wall.queue_free()
+		_safe_wall = null
 
-	# Reveal and activate Boss 67.
+	# Show Boss 67.
 	if _boss != null:
 		_boss.show()
-		_boss.set_process(true)
-		_boss.set_physics_process(true)
+
+	# Position boss to the right of camera.
+	if _boss != null and _camera != null:
+		_boss.global_position = _camera.global_position + Vector2(300.0, -200.0)
 
 	var gs: Node = get_node_or_null(^"/root/GameState")
 	if gs != null:
@@ -263,23 +270,21 @@ func _trigger_water(_reason: StringName) -> void:
 
 	_first_water_started = true
 
-	# Pick a random water variant.
+	# Random variant.
 	var variants: Array[GameRules.WaterVariant] = WaterRuleServiceScript.water_variants()
-	var chosen_variant: GameRules.WaterVariant = variants[randi() % variants.size()]
+	var chosen: GameRules.WaterVariant = variants[randi() % variants.size()]
 
-	# Pick a random complication (or NONE with equal probability).
+	# Random complication (0=none, 1=reversed, 2=inverted).
 	var complication: GameRules.WaterComplication = _pick_complication()
 
 	if gs.has_method(&"set_boss_phase"):
 		gs.set_boss_phase(GameRules.BossPhase.WATER)
 
-	gs.begin_water_event(chosen_variant, complication)
+	gs.begin_water_event(chosen, complication)
 
 
 func _pick_complication() -> GameRules.WaterComplication:
-	# 33% chance each: NONE / REVERSED_CONTROLS / INVERTED_GRAVITY
-	var roll: int = randi() % 3
-	match roll:
+	match randi() % 3:
 		0:
 			return GameRules.WaterComplication.NONE
 		1:
@@ -296,12 +301,12 @@ func _on_water_finished() -> void:
 	var gs: Node = get_node_or_null(^"/root/GameState")
 	if gs == null or not gs.has_method(&"set_boss_phase"):
 		return
-	var next_phase: GameRules.BossPhase = (
+	var next: GameRules.BossPhase = (
 		GameRules.BossPhase.LAND_PURPLE
 		if _last_blocks >= purple_distance
 		else GameRules.BossPhase.LAND_WHITE
 	)
-	gs.set_boss_phase(next_phase)
+	gs.set_boss_phase(next)
 
 
 func _on_score_operation_applied(
@@ -315,10 +320,10 @@ func _on_score_operation_applied(
 		return
 	if source != &"score_pickup" or operation != GameRules.SCORE_OPERATION_ADD:
 		return
-	var pickup_units: int = value_cents / 100
-	if pickup_units <= 0:
+	var units: int = value_cents / 100
+	if units <= 0:
 		return
-	if pickup_units % 6 == 0 or pickup_units % 7 == 0:
+	if units % 6 == 0 or units % 7 == 0:
 		_trigger_water(&"score_divisible")
 
 
@@ -336,14 +341,11 @@ func _on_restart_requested() -> void:
 	_local_blocks         = 0
 	_purple_unlocked      = false
 
-	# Boss hidden again until tutorial repeats.
 	if _boss != null:
 		_boss.hide()
-		_boss.set_process(false)
-		_boss.set_physics_process(false)
 
 
-# ── Spawn helpers ─────────────────────────────────────────────────────────────
+# ── Spawn ─────────────────────────────────────────────────────────────────────
 
 func _spawn_pickup() -> void:
 	if _pickup_root == null or score_pickup_scene == null:
@@ -358,25 +360,23 @@ func _spawn_pickup() -> void:
 		_start_pickup_timer()
 		return
 
-	var operations: Array[Dictionary] = _pickup_operations()
-	var op_data: Dictionary = operations[randi() % operations.size()]
-	pickup.set(&"operation",   op_data["operation"])
-	pickup.set(&"value_cents", op_data["value_cents"])
-
-	# Spawn at a random column, either on a block top or 2 units above floor.
+	var ops: Array[Dictionary] = _pickup_operations()
+	var op: Dictionary = ops[randi() % ops.size()]
+	pickup.set(&"operation",   op["operation"])
+	pickup.set(&"value_cents", op["value_cents"])
 	pickup.global_position = _random_pickup_position()
 	_pickup_root.add_child(pickup)
 	_start_pickup_timer()
 
 
 func _random_pickup_position() -> Vector2:
-	# Pick a column relative to the player's current screen center.
-	var player_x: float = _player.global_position.x if _player != null else 0.0
-	var half_screen: float = 6.0 * BLOCK_SIZE   # 6 columns each side
-	var x: float = player_x - half_screen + randf() * (12.0 * BLOCK_SIZE)
-	# Y: either directly on floor (row 7 in 0-indexed) or 2 blocks above floor
-	var on_floor: bool = randf() > 0.5
-	var y: float = (7.0 * BLOCK_SIZE) if on_floor else (5.0 * BLOCK_SIZE)
+	var player_x: float = _player.global_position.x if _player != null else 300.0
+	# Scatter within the visible screen width (12 blocks = 576 px).
+	var x: float = player_x - 288.0 + randf() * 576.0
+	# Either on floor or 2 blocks above floor.
+	var y: float = FLOOR_TOP_Y - BLOCK_SIZE * 0.5  # on floor surface
+	if randf() > 0.5:
+		y = FLOOR_TOP_Y - BLOCK_SIZE * 2.5          # 2 blocks up
 	return Vector2(x, y)
 
 
@@ -391,14 +391,13 @@ func _spawn_projectile() -> void:
 		return
 
 	var use_purple: bool = _purple_unlocked and randf() < purple_chance
-	var operations: Array[Dictionary] = _boss_operations()
-	var op_data: Dictionary = operations[randi() % operations.size()]
+	var ops: Array[Dictionary] = _boss_operations()
+	var op: Dictionary = ops[randi() % ops.size()]
 
-	proj.set(&"operation",   op_data["operation"])
-	proj.set(&"value_cents", op_data["value_cents"])
+	proj.set(&"operation",   op["operation"])
+	proj.set(&"value_cents", op["value_cents"])
 	proj.set(&"is_purple",   use_purple)
 
-	# Spawn from the boss position.
 	var spawn_pos: Vector2 = _boss.global_position
 	if _boss.has_method(&"get_spawn_positions"):
 		var positions: Array[Vector2] = _boss.call(&"get_spawn_positions")
@@ -422,9 +421,9 @@ func _start_pickup_timer() -> void:
 
 
 func _start_projectile_timer() -> void:
-	var interval_min: float = purple_interval_min if _purple_unlocked else projectile_interval_min
-	var interval_max: float = purple_interval_max if _purple_unlocked else projectile_interval_max
-	_projectile_timer.start(randf_range(interval_min, interval_max))
+	var imin: float = purple_interval_min if _purple_unlocked else projectile_interval_min
+	var imax: float = purple_interval_max if _purple_unlocked else projectile_interval_max
+	_projectile_timer.start(randf_range(imin, imax))
 
 
 # ── Operations ────────────────────────────────────────────────────────────────
@@ -453,6 +452,15 @@ func _update_water_cooldown(delta: float) -> void:
 	if _water_cooldown_left <= 0.0:
 		return
 	_water_cooldown_left = maxf(0.0, _water_cooldown_left - delta)
+
+
+func _set_children_collision(node: Node, enabled: bool) -> void:
+	if node == null:
+		return
+	for child in node.get_children():
+		var shape: CollisionShape2D = child as CollisionShape2D
+		if shape != null:
+			shape.set_deferred(&"disabled", not enabled)
 
 
 func _cleanup(node: Node) -> void:
