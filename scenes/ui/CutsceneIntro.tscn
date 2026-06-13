@@ -1,0 +1,95 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/CutsceneIntro.gd" id="1_intro"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_card"]
+bg_color = Color(0.188, 0.141, 0.239, 0.97)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.58, 0.82, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+content_margin_left = 40.0
+content_margin_top = 30.0
+content_margin_right = 40.0
+content_margin_bottom = 30.0
+
+[node name="CutsceneIntro" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+process_mode = 3
+script = ExtResource("1_intro")
+
+[node name="Sky" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.58, 0.79, 0.94, 1)
+
+[node name="Sand" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -170.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0.91, 0.69, 0.38, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(650, 390)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_card")
+
+[node name="Content" type="VBoxContainer" parent="Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="Title" type="Label" parent="Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.58, 0.82, 1)
+theme_override_font_sizes/font_size = 42
+text = "SLAY DIVER: RISE OF 67"
+horizontal_alignment = 1
+
+[node name="Story" type="Label" parent="Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
+theme_override_font_sizes/font_size = 21
+text = "Numbers took control of the peaceful shore.\nBoss 67 is waiting beyond the tide.\n\nChange your score. Reach exactly 67."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Controls" type="Label" parent="Center/Card/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.87, 0.98, 1, 1)
+theme_override_font_sizes/font_size = 17
+text = "MOVE  A/D OR ARROWS    JUMP  SPACE    ACTION  ENTER/E"
+horizontal_alignment = 1
+
+[node name="StartButton" type="Button" parent="Center/Card/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "START THE CHASE"

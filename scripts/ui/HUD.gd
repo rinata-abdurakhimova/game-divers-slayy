@@ -1,109 +1,182 @@
 extends Control
 
-@onready var target_label: Label = %TargetLabel
-@onready var equation_label: Label = %EquationLabel
-@onready var rule_label: Label = %RuleLabel
-@onready var hint_label: Label = %HintLabel
-@onready var phase_stage: Control = %PhaseStage
-@onready var phase_background: ColorRect = %PhaseBackground
-@onready var phase_highlight: ColorRect = %PhaseHighlight
-@onready var stage_label: Label = %StageLabel
-@onready var shield_one: PanelContainer = %ShieldOne
-@onready var shield_two: PanelContainer = %ShieldTwo
-@onready var shield_one_label: Label = %ShieldOneLabel
+const MAX_RECENT_OPERATIONS: int = 4
 
-var _feedback_tween: Tween
+@onready var score_label: Label = %ScoreLabel
+@onready var target_label: Label = %TargetLabel
+@onready var phase_label: Label = %PhaseLabel
+@onready var operations_label: Label = %OperationsLabel
+@onready var water_panel: Control = %WaterPanel
+@onready var water_timer_label: Label = %WaterTimerLabel
+@onready var water_rule_label: Label = %WaterRuleLabel
+@onready var powerup_panel: Control = %PowerupPanel
+@onready var powerup_label: Label = %PowerupLabel
+@onready var state_label: Label = %StateLabel
+@onready var pause_panel: Control = %PausePanel
+
+var _recent_operations: Array[String] = []
+var _powerup_seconds: Dictionary[StringName, float] = {}
 
 
 func _ready() -> void:
-	GameEvents.equation_changed.connect(_on_equation_changed)
-	GameEvents.phase_changed.connect(_on_phase_changed)
-	GameEvents.shield_changed.connect(_on_shield_changed)
-	GameEvents.equation_submitted.connect(_on_equation_submitted)
-
-	_on_equation_changed(GameState.get_equation_snapshot())
-	_on_phase_changed(GameState.phase)
-	_on_shield_changed(GameState.shield_segments)
-
-
-func _on_equation_changed(snapshot: Dictionary) -> void:
-	var snapshot_target: int = int(snapshot.get("target", GameRules.LEVEL_01_TARGET))
-	var snapshot_operation: GameRules.Operation = snapshot.get(
-		"operation",
-		GameRules.LAND_OPERATION
-	)
-	var snapshot_operands: Array = snapshot.get("operands", [])
-
-	target_label.text = "TARGET %d" % snapshot_target
-	equation_label.text = "%s %s %s = %d" % [
-		_operand_text(snapshot_operands, 0),
-		_operation_text(snapshot_operation),
-		_operand_text(snapshot_operands, 1),
-		snapshot_target,
-	]
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	GameEvents.run_started.connect(_on_run_started)
+	GameEvents.score_changed.connect(_on_score_changed)
+	GameEvents.score_operation_applied.connect(_on_score_operation_applied)
+	GameEvents.distance_changed.connect(_on_distance_changed)
+	GameEvents.boss_phase_changed.connect(_on_boss_phase_changed)
+	GameEvents.water_started.connect(_on_water_started)
+	GameEvents.water_timer_changed.connect(_on_water_timer_changed)
+	GameEvents.water_finished.connect(_on_water_finished)
+	GameEvents.powerup_started.connect(_on_powerup_started)
+	GameEvents.powerup_finished.connect(_on_powerup_finished)
+	GameEvents.game_over.connect(_on_game_over)
+	_apply_snapshot(GameState.get_run_snapshot())
 
 
-func _on_phase_changed(new_phase: GameRules.Phase) -> void:
+func _process(delta: float) -> void:
+	if _powerup_seconds.is_empty() or get_tree().paused:
+		return
+	for kind: StringName in _powerup_seconds:
+		_powerup_seconds[kind] = maxf(0.0, _powerup_seconds[kind] - delta)
+	_refresh_powerup_text()
+
+
+func set_paused(paused: bool) -> void:
+	pause_panel.visible = paused
+
+
+func _on_run_started() -> void:
+	_recent_operations.clear()
+	_powerup_seconds.clear()
+	operations_label.text = "RECENT\n--"
+	state_label.text = "REACH EXACTLY 67"
+	pause_panel.hide()
+	_apply_snapshot(GameState.get_run_snapshot())
+
+
+func _on_score_changed(_score_cents: int, _display: String) -> void:
+	score_label.text = "SCORE  %s" % _format_score_ui(_score_cents)
+
+
+func _on_score_operation_applied(
+	operation: StringName,
+	value_cents: int,
+	source: StringName
+) -> void:
+	var source_text: String = str(source).replace("_", " ").to_upper()
+	_recent_operations.push_front("%s  %s" % [
+		_operation_label_ui(operation, value_cents),
+		source_text,
+	])
+	if _recent_operations.size() > MAX_RECENT_OPERATIONS:
+		_recent_operations.resize(MAX_RECENT_OPERATIONS)
+	operations_label.text = "RECENT\n%s" % "\n".join(_recent_operations)
+
+
+func _on_distance_changed(blocks: int) -> void:
+	phase_label.text = "LAND  |  %d BLOCKS" % blocks
+
+
+func _on_boss_phase_changed(new_phase: GameRules.BossPhase) -> void:
 	match new_phase:
-		GameRules.Phase.LAND:
-			phase_stage.show()
-			_set_stage_colors(Color("#F3C6A5"), Color("#FFD9B8"))
-			stage_label.text = "SAND PHASE"
-			rule_label.text = "COMBINE"
-			hint_label.text = "Reach exactly 67"
-		GameRules.Phase.TRANSITION:
-			phase_stage.show()
-			_set_stage_colors(Color("#D98BC8"), Color("#FFDCF6"))
-			stage_label.text = "TIDE RISING"
-			rule_label.text = "CHANGING..."
-			hint_label.text = "Water changes the score rule"
-		GameRules.Phase.WATER:
-			phase_stage.show()
-			_set_stage_colors(Color("#E78DD2"), Color("#FFDCF6"))
-			stage_label.text = "PINK WATER PHASE"
-			rule_label.text = "SPLIT"
-			hint_label.text = "Read the active water rule"
-		GameRules.Phase.COMPLETE:
-			phase_stage.hide()
-			rule_label.text = "COMPLETE"
-			hint_label.text = "Success"
+		GameRules.BossPhase.HIDDEN:
+			state_label.text = "BOSS 67 IS AHEAD"
+		GameRules.BossPhase.LAND_WHITE:
+			state_label.text = "DODGE WHITE NUMBERS"
+		GameRules.BossPhase.LAND_PURPLE:
+			state_label.text = "PURPLE NUMBERS JOINED"
+		GameRules.BossPhase.WATER:
+			state_label.text = "WATER RULE ACTIVE"
+		GameRules.BossPhase.DEFEATED:
+			state_label.text = "EXACTLY 67"
 
 
-func _on_shield_changed(remaining: int) -> void:
-	if remaining >= GameRules.LEVEL_01_STARTING_SHIELDS:
-		shield_one.show()
-		shield_one_label.text = "SHIELD 1"
-		shield_one.modulate = Color.WHITE
-		shield_two.hide()
-	elif remaining == 1:
-		shield_one.show()
-		shield_one_label.text = "SHIELD 1 CLEARED"
-		shield_one.modulate = Color(1.0, 1.0, 1.0, 0.62)
-		shield_two.show()
-	else:
-		shield_one.hide()
-		shield_two.hide()
+func _on_water_started(
+	variant: GameRules.WaterVariant,
+	complication: GameRules.WaterComplication,
+	seconds: float
+) -> void:
+	water_panel.show()
+	phase_label.text = "PINK WATER"
+	water_rule_label.text = _water_rule_text(variant, complication)
+	_on_water_timer_changed(seconds)
 
 
-func _set_stage_colors(background_color: Color, highlight_color: Color) -> void:
-	phase_background.color = background_color
-	phase_highlight.color = highlight_color
+func _on_water_timer_changed(seconds_left: float) -> void:
+	water_timer_label.text = "WATER  %.1fs" % seconds_left
 
 
-func _on_equation_submitted(correct: bool) -> void:
-	if _feedback_tween != null and _feedback_tween.is_valid():
-		_feedback_tween.kill()
-
-	equation_label.modulate = Color("#8FE3C1") if correct else Color("#FF8D86")
-	_feedback_tween = create_tween()
-	_feedback_tween.tween_property(equation_label, "modulate", Color.WHITE, 0.25)
+func _on_water_finished() -> void:
+	water_panel.hide()
+	phase_label.text = "LAND  |  %d BLOCKS" % GameState.distance_blocks
 
 
-func _operand_text(snapshot_operands: Array, index: int) -> String:
-	if index >= snapshot_operands.size():
-		return "_"
-	return str(snapshot_operands[index])
+func _on_powerup_started(kind: StringName, seconds: float) -> void:
+	_powerup_seconds[kind] = seconds
+	_refresh_powerup_text()
 
 
-func _operation_text(snapshot_operation: GameRules.Operation) -> String:
-	return "+" if snapshot_operation == GameRules.Operation.ADD else "-"
+func _on_powerup_finished(kind: StringName) -> void:
+	_powerup_seconds.erase(kind)
+	_refresh_powerup_text()
+
+
+func _on_game_over(won: bool, _reason: StringName, _score_cents: int) -> void:
+	state_label.text = "SUCCESS: EXACT 67" if won else "FAILED: SCORE IS 0"
+
+
+func _apply_snapshot(snapshot: Dictionary) -> void:
+	score_label.text = "SCORE  %s" % _format_score_ui(
+		int(snapshot.get("score_cents", GameRules.BOSS_67_START_SCORE_CENTS))
+	)
+	target_label.text = "TARGET  %s" % snapshot.get("target_display", "67")
+	_on_distance_changed(int(snapshot.get("distance_blocks", 0)))
+	var snapshot_water: GameRules.WaterVariant = snapshot.get(
+		"water_variant",
+		GameRules.WaterVariant.NONE
+	)
+	water_panel.visible = snapshot_water != GameRules.WaterVariant.NONE
+	powerup_panel.hide()
+
+
+func _refresh_powerup_text() -> void:
+	if _powerup_seconds.is_empty():
+		powerup_panel.hide()
+		return
+	var lines: Array[String] = []
+	for kind: StringName in _powerup_seconds:
+		lines.append("%s  %.1fs" % [str(kind).replace("_", " ").to_upper(), _powerup_seconds[kind]])
+	powerup_label.text = "\n".join(lines)
+	powerup_panel.show()
+
+
+func _water_rule_text(
+	variant: GameRules.WaterVariant,
+	complication: GameRules.WaterComplication
+) -> String:
+	var rule_text: String = "A: BOSS MULTIPLIES" if variant == GameRules.WaterVariant.WATER_A \
+		else "B: FLOOR MULTIPLIES" if variant == GameRules.WaterVariant.WATER_B \
+		else "C: BOSS SUBTRACTS"
+	if complication == GameRules.WaterComplication.REVERSED_CONTROLS:
+		rule_text += "  |  CONTROLS REVERSED"
+	elif complication == GameRules.WaterComplication.INVERTED_GRAVITY:
+		rule_text += "  |  GRAVITY INVERTED"
+	return rule_text
+
+
+func _operation_label_ui(operation: StringName, value_cents: int) -> String:
+	var prefix: String = "?"
+	if operation == GameRules.SCORE_OPERATION_ADD:
+		prefix = "+"
+	elif operation == GameRules.SCORE_OPERATION_SUBTRACT:
+		prefix = "-"
+	elif operation == GameRules.SCORE_OPERATION_MULTIPLY:
+		prefix = "x"
+	return "%s%s" % [prefix, _format_score_ui(value_cents)]
+
+
+func _format_score_ui(value_cents: int) -> String:
+	var sign_prefix: String = "-" if value_cents < 0 else ""
+	var absolute_value: int = absi(value_cents)
+	return "%s%d.%02d" % [sign_prefix, int(absolute_value / 100), absolute_value % 100]

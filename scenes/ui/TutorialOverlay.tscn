@@ -1,17 +1,17 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/TutorialOverlay.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/TutorialOverlay.gd" id="1_tutorial"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_banner"]
-bg_color = Color(0.188, 0.141, 0.239, 0.88)
+bg_color = Color(0.188, 0.141, 0.239, 0.9)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 content_margin_left = 22.0
-content_margin_top = 14.0
+content_margin_top = 12.0
 content_margin_right = 22.0
-content_margin_bottom = 14.0
+content_margin_bottom = 12.0
 
 [node name="TutorialOverlay" type="Control"]
 layout_mode = 3
@@ -21,62 +21,57 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("1")
+script = ExtResource("1_tutorial")
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="Hints" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -430.0
-offset_top = 96.0
-offset_right = -24.0
-offset_bottom = 150.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = 120.0
+offset_right = 260.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
 
-[node name="ArrowHint" type="PanelContainer" parent="VBox"]
+[node name="MovementHint" type="PanelContainer" parent="Hints"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_banner")
 
-[node name="Label" type="Label" parent="VBox/ArrowHint"]
+[node name="Label" type="Label" parent="Hints/MovementHint"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
+theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
 theme_override_font_sizes/font_size = 18
-text = "MOVE: LEFT / RIGHT   JUMP: SPACE"
+text = "MOVE: A/D OR ARROWS     JUMP: SPACE"
 horizontal_alignment = 1
 
-[node name="CollectionHint" type="PanelContainer" parent="VBox"]
+[node name="ScoreHint" type="PanelContainer" parent="Hints"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_banner")
 
-[node name="Label" type="Label" parent="VBox/CollectionHint"]
+[node name="Label" type="Label" parent="Hints/ScoreHint"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
-theme_override_font_sizes/font_size = 20
-text = "Collect score values to reach 67"
+theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
+theme_override_font_sizes/font_size = 18
+text = "COLLECT OPERATIONS. REACH EXACTLY 67."
+horizontal_alignment = 1
 
-[node name="SubmissionHint" type="PanelContainer" parent="VBox"]
+[node name="ActionHint" type="PanelContainer" parent="Hints"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_banner")
 
-[node name="Label" type="Label" parent="VBox/SubmissionHint"]
+[node name="Label" type="Label" parent="Hints/ActionHint"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.867, 0.984, 1, 1)
-theme_override_font_sizes/font_size = 20
-text = "Score changes on contact"
-
-[node name="RuleChangeBanner" type="PanelContainer" parent="VBox"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBox_banner")
-
-[node name="Label" type="Label" parent="VBox/RuleChangeBanner"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.58, 0.82, 1)
-theme_override_font_sizes/font_size = 22
-text = "WATER RULE CHANGED"
+theme_override_colors/font_color = Color(0.87, 0.98, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "ENTER / E: INTERACT OR CLOSE RULE CARDS"
+horizontal_alignment = 1

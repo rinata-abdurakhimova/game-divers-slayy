@@ -1,0 +1,54 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="1_player"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape_floor"]
+size = Vector2(1152, 96)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape_block"]
+size = Vector2(128, 48)
+
+[node name="Boss67FallbackLevel" type="Node2D"]
+
+[node name="Sky" type="Polygon2D" parent="."]
+z_index = -20
+color = Color(0.63, 0.82, 0.96, 1)
+polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 648, 0, 648)
+
+[node name="Horizon" type="Polygon2D" parent="."]
+z_index = -10
+color = Color(0.91, 0.64, 0.82, 1)
+polygon = PackedVector2Array(0, 420, 1152, 350, 1152, 648, 0, 648)
+
+[node name="Floor" type="StaticBody2D" parent="."]
+position = Vector2(576, 610)
+collision_layer = 2
+collision_mask = 0
+
+[node name="Sand" type="Polygon2D" parent="Floor"]
+color = Color(0.91, 0.69, 0.38, 1)
+polygon = PackedVector2Array(-576, -48, 576, -48, 576, 48, -576, 48)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = SubResource("RectangleShape_floor")
+
+[node name="JumpBlock" type="StaticBody2D" parent="."]
+position = Vector2(470, 520)
+collision_layer = 2
+collision_mask = 0
+
+[node name="Stone" type="Polygon2D" parent="JumpBlock"]
+color = Color(0.35, 0.28, 0.42, 1)
+polygon = PackedVector2Array(-64, -24, 64, -24, 64, 24, -64, 24)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="JumpBlock"]
+shape = SubResource("RectangleShape_block")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(150, 535)
+
+[node name="PlaceholderLabel" type="Label" parent="."]
+position = Vector2(740, 455)
+theme_override_colors/font_color = Color(0.19, 0.14, 0.24, 0.8)
+theme_override_font_sizes/font_size = 18
+text = "ALINA'S BOSS 67 ROUTE LOADS HERE"

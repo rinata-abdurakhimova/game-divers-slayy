@@ -8,7 +8,7 @@ border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.906, 0.553, 0.824, 1)
+border_color = Color(1, 0.58, 0.82, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
@@ -35,7 +35,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.071, 0.047, 0.102, 0.76)
+color = Color(0.071, 0.047, 0.102, 0.78)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -46,40 +46,41 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Card" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(470, 300)
+custom_minimum_size = Vector2(500, 310)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_card")
 
 [node name="Content" type="VBoxContainer" parent="Center/Card"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 18
 alignment = 1
 
-[node name="Title" type="Label" parent="Center/Card/Content"]
+[node name="TitleLabel" type="Label" parent="Center/Card/Content"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.58, 0.82, 1)
-theme_override_font_sizes/font_size = 30
-text = "GUARDIAN 10 DEFEATED"
+theme_override_font_sizes/font_size = 31
+text = "BOSS 67 DEFEATED"
 horizontal_alignment = 1
 
-[node name="Summary" type="Label" parent="Center/Card/Content"]
+[node name="SummaryLabel" type="Label" parent="Center/Card/Content"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
-theme_override_font_sizes/font_size = 22
-text = "4 + 6 = 10\n14 - 4 = 10"
+theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
+theme_override_font_sizes/font_size = 21
+text = "EXACT SCORE: 67\nTHE SHORE IS FREE"
 horizontal_alignment = 1
 
 [node name="RestartButton" type="Button" parent="Center/Card/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "RESTART"
+text = "PLAY AGAIN"
 
-[node name="NextLevel" type="Label" parent="Center/Card/Content"]
+[node name="RestartHint" type="Label" parent="Center/Card/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.68, 0.76, 1)
-theme_override_font_sizes/font_size = 16
-text = "NEXT LEVEL: COMING SOON"
+theme_override_font_sizes/font_size = 15
+text = "PRESS R TO RESTART"
 horizontal_alignment = 1
-

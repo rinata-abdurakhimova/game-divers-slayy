@@ -1,57 +1,57 @@
 extends Control
 
-@onready var arrow_hint: Control = %ArrowHint
-@onready var collection_hint: Control = %CollectionHint
-@onready var submission_hint: Control = %SubmissionHint
-@onready var rule_change_banner: Control = %RuleChangeBanner
+@onready var movement_hint: Control = %MovementHint
+@onready var score_hint: Control = %ScoreHint
+@onready var action_hint: Control = %ActionHint
 
 var _movement_seen: bool = false
-var _water_hint_seen: bool = false
+var _score_change_seen: bool = false
 
 
 func _ready() -> void:
-	collection_hint.hide()
-	submission_hint.hide()
-	rule_change_banner.hide()
-
-	GameEvents.equation_changed.connect(_on_equation_changed)
-	GameEvents.phase_changed.connect(_on_phase_changed)
-	_on_equation_changed(GameState.get_equation_snapshot())
+	GameEvents.run_started.connect(_on_run_started)
+	GameEvents.score_operation_applied.connect(_on_score_operation_applied)
+	GameEvents.water_started.connect(_on_water_started)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _movement_seen:
+	if not visible or _movement_seen:
 		return
 	if event.is_action_pressed(&"move_left") or event.is_action_pressed(&"move_right") \
-		or event.is_action_pressed(&"move_up") or event.is_action_pressed(&"move_down"):
+		or event.is_action_pressed(&"jump"):
 		_movement_seen = true
-		arrow_hint.hide()
-		collection_hint.hide()
-		get_viewport().set_input_as_handled()
+		movement_hint.hide()
+		score_hint.show()
 
 
-func _on_equation_changed(snapshot: Dictionary) -> void:
-	var operands: Array = snapshot.get("operands", [])
-	var current_phase: GameRules.Phase = snapshot.get("phase", GameRules.Phase.LAND)
-
-	if operands.size() == GameRules.MAX_OPERAND_SLOTS:
-		submission_hint.show()
-		collection_hint.hide()
-	elif _movement_seen and current_phase == GameRules.Phase.LAND:
-		submission_hint.hide()
-		collection_hint.hide()
+func _on_run_started() -> void:
+	_movement_seen = false
+	_score_change_seen = false
+	movement_hint.show()
+	score_hint.hide()
+	action_hint.hide()
 
 
-func _on_phase_changed(new_phase: GameRules.Phase) -> void:
-	match new_phase:
-		GameRules.Phase.TRANSITION:
-			collection_hint.hide()
-			submission_hint.hide()
-		GameRules.Phase.WATER:
-			if not _water_hint_seen:
-				_water_hint_seen = true
-				rule_change_banner.show()
-			collection_hint.hide()
-			submission_hint.hide()
-		GameRules.Phase.COMPLETE:
-			hide()
+func _on_score_operation_applied(
+	_operation: StringName,
+	_value_cents: int,
+	_source: StringName
+) -> void:
+	if _score_change_seen:
+		return
+	_score_change_seen = true
+	score_hint.hide()
+	action_hint.show()
+	var tween: Tween = create_tween()
+	tween.tween_interval(3.0)
+	tween.tween_callback(action_hint.hide)
+
+
+func _on_water_started(
+	_variant: GameRules.WaterVariant,
+	_complication: GameRules.WaterComplication,
+	_seconds: float
+) -> void:
+	movement_hint.hide()
+	score_hint.hide()
+	action_hint.hide()

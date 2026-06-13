@@ -28,4 +28,10 @@ Any newly imported platformer assets must be added here with final project filen
 - License: MIT
 
 Use is limited to reference/adaptation of a small movement subset described in
-`docs/PLATFORMER_CONTROLLER.md`. Do not import the whole controller unchanged.
+`docs/PLATFORMER_CONTROLLER.md`. The project uses left/right movement, jump, gravity, platform
+collision, coyote time, jump buffering, and variable jump height concepts. Dash, roll, wall movement,
+and the original controller package are not included.
+
+Copyright (c) Noasey. Permission is granted under the MIT License to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the software, subject to inclusion of the
+copyright and permission notice. The software is provided without warranty.
