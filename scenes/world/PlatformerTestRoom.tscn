@@ -1,0 +1,94 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="1_player"]
+
+[sub_resource type="RectangleShape2D" id="Rect_floor"]
+size = Vector2(1152, 48)
+
+[sub_resource type="RectangleShape2D" id="Rect_jump"]
+size = Vector2(48, 48)
+
+[sub_resource type="RectangleShape2D" id="Rect_wall_left"]
+size = Vector2(20, 648)
+
+[sub_resource type="RectangleShape2D" id="Rect_wall_right"]
+size = Vector2(20, 648)
+
+[sub_resource type="RectangleShape2D" id="Rect_ceiling"]
+size = Vector2(1152, 20)
+
+[node name="PlatformerTestRoom" type="Node2D"]
+
+[node name="Background" type="Node2D" parent="."]
+
+[node name="Sky" type="Polygon2D" parent="Background"]
+color = Color(0.19, 0.15, 0.31, 1)
+polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 600, 0, 600)
+
+[node name="SandFill" type="Polygon2D" parent="Background"]
+color = Color(0.85, 0.65, 0.38, 1)
+polygon = PackedVector2Array(0, 600, 1152, 600, 1152, 648, 0, 648)
+
+[node name="Terrain" type="StaticBody2D" parent="."]
+collision_layer = 2
+
+[node name="Ground" type="CollisionShape2D" parent="Terrain"]
+position = Vector2(576, 624)
+shape = SubResource("Rect_floor")
+
+[node name="JumpBlock" type="CollisionShape2D" parent="Terrain"]
+position = Vector2(336, 576)
+shape = SubResource("Rect_jump")
+
+[node name="HighPlatform" type="CollisionShape2D" parent="Terrain"]
+position = Vector2(750, 528)
+shape = SubResource("Rect_jump")
+
+[node name="WallCollision" type="CollisionShape2D" parent="Terrain"]
+position = Vector2(1050, 540)
+shape = SubResource("Rect_jump")
+
+[node name="TerrainVisual" type="Node2D" parent="."]
+
+[node name="GroundVisual" type="Polygon2D" parent="TerrainVisual"]
+color = Color(0.8, 0.6, 0.32, 1)
+polygon = PackedVector2Array(0, 588, 1152, 588, 1152, 648, 0, 648)
+
+[node name="JumpBlockVisual" type="Polygon2D" parent="TerrainVisual"]
+position = Vector2(336, 576)
+color = Color(0.7, 0.5, 0.25, 1)
+polygon = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
+
+[node name="HighPlatformVisual" type="Polygon2D" parent="TerrainVisual"]
+position = Vector2(750, 528)
+color = Color(0.7, 0.5, 0.25, 1)
+polygon = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
+
+[node name="WallVisual" type="Polygon2D" parent="TerrainVisual"]
+position = Vector2(1050, 516)
+color = Color(0.4, 0.25, 0.15, 1)
+polygon = PackedVector2Array(-24, -48, 24, -48, 24, 48, -24, 48)
+
+[node name="Boundaries" type="StaticBody2D" parent="."]
+
+[node name="WallLeft" type="CollisionShape2D" parent="Boundaries"]
+position = Vector2(10, 324)
+shape = SubResource("Rect_wall_left")
+
+[node name="WallRight" type="CollisionShape2D" parent="Boundaries"]
+position = Vector2(1142, 324)
+shape = SubResource("Rect_wall_right")
+
+[node name="Ceiling" type="CollisionShape2D" parent="Boundaries"]
+position = Vector2(576, 10)
+shape = SubResource("Rect_ceiling")
+
+[node name="Navigation" type="Node2D" parent="."]
+
+[node name="PlayerSpawn" type="Marker2D" parent="Navigation"]
+position = Vector2(100, 585)
+
+[node name="Actors" type="Node2D" parent="."]
+
+[node name="Player" parent="Actors" instance=ExtResource("1_player")]
+position = Vector2(100, 585)
