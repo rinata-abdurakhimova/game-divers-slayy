@@ -1,0 +1,141 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+bg_color = Color(0.188, 0.141, 0.239, 0.92)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_equation"]
+bg_color = Color(0.337, 0.235, 0.361, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.851, 0.365, 0.624, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hint"]
+bg_color = Color(0.188, 0.141, 0.239, 0.82)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hud")
+
+[node name="SafeMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopRow" type="HBoxContainer" parent="SafeMargin"]
+layout_mode = 2
+alignment = 1
+
+[node name="TargetPanel" type="PanelContainer" parent="SafeMargin/TopRow"]
+custom_minimum_size = Vector2(170, 54)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="TargetLabel" type="Label" parent="SafeMargin/TopRow/TargetPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
+theme_override_font_sizes/font_size = 24
+text = "TARGET 10"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LeftSpacer" type="Control" parent="SafeMargin/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EquationPanel" type="PanelContainer" parent="SafeMargin/TopRow"]
+custom_minimum_size = Vector2(360, 62)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_equation")
+
+[node name="EquationLabel" type="Label" parent="SafeMargin/TopRow/EquationPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
+theme_override_font_sizes/font_size = 30
+text = "_ + _ = 10"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightSpacer" type="Control" parent="SafeMargin/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RulePanel" type="PanelContainer" parent="SafeMargin/TopRow"]
+custom_minimum_size = Vector2(210, 54)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="RuleColumn" type="VBoxContainer" parent="SafeMargin/TopRow/RulePanel"]
+layout_mode = 2
+
+[node name="RuleLabel" type="Label" parent="SafeMargin/TopRow/RulePanel/RuleColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.58, 0.82, 1)
+theme_override_font_sizes/font_size = 21
+text = "COMBINE"
+horizontal_alignment = 1
+
+[node name="ShieldLabel" type="Label" parent="SafeMargin/TopRow/RulePanel/RuleColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.867, 0.984, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "SHIELDS ◆◆"
+horizontal_alignment = 1
+
+[node name="HintPanel" type="PanelContainer" parent="SafeMargin"]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_styles/panel = SubResource("StyleBox_hint")
+
+[node name="HintLabel" type="Label" parent="SafeMargin/HintPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.953, 0.91, 1)
+theme_override_font_sizes/font_size = 20
+text = "Find two numbers that make 10"
+horizontal_alignment = 1
+

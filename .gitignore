@@ -1,0 +1,8 @@
+# Godot editor cache and imported resources.
+.godot/
+.godot_user/
+.godot_qa/
+
+# Local crash and log output.
+crash_logs/
+logs/

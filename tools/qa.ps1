@@ -1,5 +1,6 @@
 param(
-    [switch]$RequireGodot
+    [switch]$RequireGodot,
+    [string]$GodotPath = $env:GODOT_EXE
 )
 
 $ErrorActionPreference = "Stop"
@@ -90,15 +91,27 @@ try {
     }
 
     if (Test-Path "project.godot" -PathType Leaf) {
-        $godot = Get-Command godot4, godot -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($null -eq $godot) {
+        $godotExecutable = $null
+        if (-not [string]::IsNullOrWhiteSpace($GodotPath) -and (Test-Path -LiteralPath $GodotPath -PathType Leaf)) {
+            $godotExecutable = (Resolve-Path -LiteralPath $GodotPath).Path
+        } else {
+            $godot = Get-Command godot4, godot -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($null -ne $godot) {
+                $godotExecutable = $godot.Source
+            }
+        }
+
+        if ($null -eq $godotExecutable) {
             if ($RequireGodot) {
                 Add-Failure "Godot is required but was not found on PATH"
             } else {
                 Add-Warning "Godot not found; skipped headless boot"
             }
         } else {
-            & $godot.Source --headless --path $repoRoot --editor --quit-after 1
+            $qaLogDirectory = Join-Path $repoRoot ".godot_qa"
+            New-Item -ItemType Directory -Path $qaLogDirectory -Force | Out-Null
+            $qaLogPath = Join-Path $qaLogDirectory "headless-boot.log"
+            & $godotExecutable --headless --log-file $qaLogPath --path $repoRoot --quit-after 3
             if ($LASTEXITCODE -ne 0) {
                 Add-Failure "Godot headless boot failed with exit code $LASTEXITCODE"
             } else {
