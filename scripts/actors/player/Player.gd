@@ -18,6 +18,10 @@ signal reset_completed
 @export_range(0.0, 0.3, 0.01) var coyote_time_seconds: float = 0.1
 @export_range(0.0, 0.3, 0.01) var jump_buffer_seconds: float = 0.12
 
+@export_group("Water Feel")
+@export var water_friction_multiplier: float = 0.35    # slippery sliding in water
+@export var water_acceleration_multiplier: float = 0.6
+
 @export_group("Input")
 @export var move_left_action: StringName = &"move_left"
 @export var move_right_action: StringName = &"move_right"
@@ -32,6 +36,12 @@ signal reset_completed
 var input_enabled: bool = true
 var spawn_position: Vector2 = Vector2.ZERO
 var current_phase: GameRules.Phase = GameRules.Phase.LAND
+
+# Complication state
+var _controls_reversed: bool = false
+var _gravity_inverted: bool = false
+var _has_double_jump: bool = false
+var _double_jump_used: bool = false
 
 var _land_visual: CanvasItem = null
 var _water_visual: CanvasItem = null
@@ -62,6 +72,8 @@ func _physics_process(delta: float) -> void:
 	_emit_movement_state()
 
 
+# ── Public API ────────────────────────────────────────────────────────────────
+
 func set_input_enabled(enabled: bool) -> void:
 	input_enabled = enabled
 	if not input_enabled:
@@ -83,12 +95,24 @@ func reset_player(new_spawn_position: Variant = null) -> void:
 	_was_moving = false
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
+	_controls_reversed = false
+	_gravity_inverted = false
+	_has_double_jump = false
+	_double_jump_used = false
 	_apply_phase_visuals(current_phase)
 	reset_completed.emit()
 
 
+func grant_double_jump() -> void:
+	_has_double_jump = true
+	_double_jump_used = false
+
+
+# ── Input ─────────────────────────────────────────────────────────────────────
+
 func _read_horizontal_input() -> float:
-	return _get_action_strength(move_right_action) - _get_action_strength(move_left_action)
+	var raw: float = _get_action_strength(move_right_action) - _get_action_strength(move_left_action)
+	return -raw if _controls_reversed else raw
 
 
 func _can_accept_input() -> bool:
@@ -101,53 +125,112 @@ func _can_accept_input() -> bool:
 	if game_state == null:
 		return true
 
-	var game_state_input: Variant = game_state.get("input_enabled")
-	if game_state_input is bool:
-		return game_state_input
+	var gs_input: Variant = game_state.get("input_enabled")
+	if gs_input is bool:
+		return gs_input
 	return true
 
 
 func _update_jump_timers(delta: float) -> void:
-	if is_on_floor():
+	var on_ground: bool = _is_on_ground()
+	if on_ground:
 		_coyote_timer = coyote_time_seconds
+		_double_jump_used = false   # reset double-jump on land
 	else:
 		_coyote_timer = maxf(_coyote_timer - delta, 0.0)
 
-	if _is_jump_just_pressed():
+	var jump_pressed: bool = _controls_reversed and _is_down_just_pressed()
+	jump_pressed = jump_pressed or (not _controls_reversed and _is_jump_just_pressed())
+
+	if jump_pressed:
 		_jump_buffer_timer = jump_buffer_seconds
 	else:
 		_jump_buffer_timer = maxf(_jump_buffer_timer - delta, 0.0)
 
 
 func _update_horizontal_velocity(horizontal_input: float, delta: float) -> void:
+	var in_water: bool = current_phase == GameRules.Phase.WATER
+	var accel_mult: float = water_acceleration_multiplier if in_water else 1.0
+	var friction_mult: float = water_friction_multiplier if in_water else 1.0
+
 	var target_x: float = horizontal_input * move_speed
 	var has_input: bool = not is_zero_approx(horizontal_input)
-	var rate: float = ground_acceleration if is_on_floor() else air_acceleration
-	if not has_input:
-		rate = ground_friction if is_on_floor() else air_friction
+	var rate: float
+
+	if has_input:
+		rate = (ground_acceleration if _is_on_ground() else air_acceleration) * accel_mult
+	else:
+		rate = (ground_friction if _is_on_ground() else air_friction) * friction_mult
+
 	velocity.x = move_toward(velocity.x, target_x, rate * delta)
 
 
 func _apply_gravity(delta: float) -> void:
-	if is_on_floor() and velocity.y > 0.0:
-		velocity.y = 0.0
-		return
-	velocity.y = minf(velocity.y + gravity * delta, max_fall_speed)
+	var effective_gravity: float = -gravity if _gravity_inverted else gravity
+	var max_speed: float = max_fall_speed
+
+	if _gravity_inverted:
+		# Inverted: player falls UP. Clamp to negative (upward) direction.
+		if _is_on_ground() and velocity.y < 0.0:
+			velocity.y = 0.0
+			return
+		velocity.y = maxf(velocity.y + effective_gravity * delta, -max_speed)
+	else:
+		if _is_on_ground() and velocity.y > 0.0:
+			velocity.y = 0.0
+			return
+		velocity.y = minf(velocity.y + effective_gravity * delta, max_speed)
 
 
 func _try_buffered_jump() -> void:
-	if _jump_buffer_timer <= 0.0 or _coyote_timer <= 0.0:
+	if _jump_buffer_timer <= 0.0:
 		return
 
-	velocity.y = jump_velocity
-	_jump_buffer_timer = 0.0
-	_coyote_timer = 0.0
+	if _coyote_timer > 0.0:
+		# Normal jump / inverted ceiling jump.
+		velocity.y = -jump_velocity if _gravity_inverted else jump_velocity
+		_jump_buffer_timer = 0.0
+		_coyote_timer = 0.0
+	elif _has_double_jump and not _double_jump_used:
+		# Double-jump power-up mid-air.
+		velocity.y = -jump_velocity if _gravity_inverted else jump_velocity
+		_double_jump_used = true
+		_jump_buffer_timer = 0.0
 
 
 func _apply_short_hop() -> void:
-	if _is_jump_just_released() and velocity.y < 0.0:
+	var released: bool = _is_jump_just_released()
+	if not released:
+		return
+	if _gravity_inverted and velocity.y > 0.0:
+		velocity.y *= short_hop_multiplier
+	elif not _gravity_inverted and velocity.y < 0.0:
 		velocity.y *= short_hop_multiplier
 
+
+func _is_on_ground() -> bool:
+	# In inverted gravity mode, "ground" is the ceiling.
+	return is_on_ceiling() if _gravity_inverted else is_on_floor()
+
+
+# ── Complication helpers ──────────────────────────────────────────────────────
+
+func _apply_complication(complication: GameRules.WaterComplication) -> void:
+	_controls_reversed = (complication == GameRules.WaterComplication.REVERSED_CONTROLS)
+	_gravity_inverted  = (complication == GameRules.WaterComplication.INVERTED_GRAVITY)
+	if _gravity_inverted:
+		up_direction = Vector2.DOWN
+	else:
+		up_direction = Vector2.UP
+
+
+func _clear_complication() -> void:
+	_controls_reversed = false
+	_gravity_inverted  = false
+	up_direction = Vector2.UP
+
+
+# ── Internal helpers ──────────────────────────────────────────────────────────
 
 func _stop_for_disabled_input() -> void:
 	velocity = Vector2.ZERO
@@ -178,11 +261,15 @@ func _is_jump_just_released() -> bool:
 	return false
 
 
+func _is_down_just_pressed() -> bool:
+	# Used only for reversed controls where down acts as jump.
+	return Input.is_action_just_pressed(&"ui_down")
+
+
 func _emit_movement_state() -> void:
 	var is_moving: bool = velocity.length_squared() > 1.0
 	if is_moving == _was_moving:
 		return
-
 	_was_moving = is_moving
 	if is_moving:
 		movement_started.emit()
@@ -190,18 +277,16 @@ func _emit_movement_state() -> void:
 		movement_stopped.emit()
 
 
-func _connect_game_events() -> void:
-	var game_events: Node = get_node_or_null(^"/root/GameEvents")
-	if game_events == null:
-		return
-	if not game_events.has_signal(&"phase_changed"):
-		_connect_optional_signal(game_events, &"water_started", Callable(self, "_on_water_started"))
-		_connect_optional_signal(game_events, &"water_finished", Callable(self, "_on_water_finished"))
-		return
+# ── GameEvents wiring ─────────────────────────────────────────────────────────
 
-	_connect_optional_signal(game_events, &"phase_changed", Callable(self, "_on_phase_changed"))
-	_connect_optional_signal(game_events, &"water_started", Callable(self, "_on_water_started"))
-	_connect_optional_signal(game_events, &"water_finished", Callable(self, "_on_water_finished"))
+func _connect_game_events() -> void:
+	var ge: Node = get_node_or_null(^"/root/GameEvents")
+	if ge == null:
+		return
+	_connect_optional_signal(ge, &"water_started",  Callable(self, "_on_water_started"))
+	_connect_optional_signal(ge, &"water_finished", Callable(self, "_on_water_finished"))
+	_connect_optional_signal(ge, &"powerup_started", Callable(self, "_on_powerup_started"))
+	_connect_optional_signal(ge, &"powerup_finished", Callable(self, "_on_powerup_finished"))
 
 
 func _connect_optional_signal(source: Node, signal_name: StringName, target: Callable) -> void:
@@ -219,15 +304,29 @@ func _apply_phase_visuals(phase: GameRules.Phase) -> void:
 		_water_visual.visible = in_water
 
 
-func _on_phase_changed(phase: GameRules.Phase) -> void:
-	apply_phase(phase)
-
-
-func _on_water_started(_variant: Variant = null, _complication: Variant = null, _seconds: float = 0.0) -> void:
+func _on_water_started(
+	_variant: Variant = null,
+	complication: Variant = null,
+	_seconds: float = 0.0
+) -> void:
 	current_phase = GameRules.Phase.WATER
 	_apply_phase_visuals(current_phase)
+	if complication is GameRules.WaterComplication:
+		_apply_complication(complication)
 
 
 func _on_water_finished() -> void:
 	current_phase = GameRules.Phase.LAND
 	_apply_phase_visuals(current_phase)
+	_clear_complication()
+
+
+func _on_powerup_started(kind: StringName, _seconds: float) -> void:
+	if kind == GameRules.POWERUP_DOUBLE_JUMP:
+		grant_double_jump()
+
+
+func _on_powerup_finished(kind: StringName) -> void:
+	if kind == GameRules.POWERUP_DOUBLE_JUMP:
+		_has_double_jump = false
+		_double_jump_used = false

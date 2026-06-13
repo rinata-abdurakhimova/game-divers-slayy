@@ -58,8 +58,7 @@ only art, not movement or game logic.
   the player can read upcoming pickups, projectiles, sand floor, and water changes.
 - The long route loops only at the authored right edge: when the player reaches the end of the route,
   wrap or reposition the route back to its beginning cleanly instead of hard-stopping the run.
-- Walking left must never wrap the player to another chunk. During the boss run, clamp the player at
-  the left edge of the active route or block retreat with the safe-start closure.
+- Walking left wraps the player to the right side of the screen, and walking right wraps to the left side (screen wrap).
 - Looping must preserve current score, boss phase, water cooldowns, active power-ups, and projectile
   cleanup. Do not restart the whole run unless the player has won, failed, or explicitly pressed
   restart.

@@ -201,8 +201,7 @@ route comes from the board reference and must be authored as readable 12-column 
 passes the right edge, they wrap back to the left. Cumulative distance never resets and drives
 permanent boss-phase milestones.
 
-Only the right edge loops. Walking left must not wrap the player into another chunk. After the safe
-start closes, the player is clamped or blocked at the left edge of the boss route.
+Both left and right edges loop (screen wrap). Walking off the left edge spawns the player on the right edge, and vice versa.
 
 | Distance | Event |
 | --- | --- |

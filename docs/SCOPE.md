@@ -44,7 +44,7 @@ survive water twists -> hit exact 67 -> win or hit 0 -> play again
   camera window at a time.
 - One block is one gameplay unit.
 - Player is one gameplay unit.
-- Teach walking and one-block jumping before the boss starts.
+- Teach walking and one-block jumping. When moving off-screen to the left, the player appears on the right (screen wrap).
 - Platform stacks may be up to `5` blocks high, but required movement must remain readable.
 - The route loops only at the right edge. Walking left after the boss starts must clamp or block the
   player, not move them into another route chunk.
@@ -55,7 +55,7 @@ survive water twists -> hit exact 67 -> win or hit 0 -> play again
 1. Placeholder cutscene.
 2. Safe sand-and-sky start.
 3. Player learns to walk and jump onto one block.
-4. Safe start closes after the first taught jump. The closure should not look like an extra foreground
+4. The empty space of the safe start disappears after the first taught jump. The closure should not look like an extra foreground
    stone block in the middle of the route.
 5. Boss 67 appears.
 6. Score chase begins.
@@ -123,8 +123,7 @@ The HUD must show which side is dangerous or helpful in the current water event.
 
 Only one may be active in a water event.
 
-- Reversed controls: horizontal controls swap. Vertical controls swap only if vertical swim input is
-  added later.
+- Reversed controls: left is right, up is down.
 - Inverted gravity: blocks are on the ceiling and gravity pulls upward.
 
 The first water event should be understandable. Do not combine complications.
