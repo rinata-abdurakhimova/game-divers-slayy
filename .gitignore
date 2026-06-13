@@ -1,0 +1,28 @@
+# Godot 4 editor cache and imported assets
+.godot/
+
+# Scene remap files (created during merge conflicts)
+*.tscn.remap
+
+# Translation auto-generated files
+*.translation
+
+# Export presets (personal paths/configs)
+export_presets.cfg
+
+# macOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+desktop.ini
+
+# Editor/IDE folders
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
