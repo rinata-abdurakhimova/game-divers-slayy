@@ -2,6 +2,8 @@ class_name Boss67LevelController
 extends Node
 
 const WaterRuleServiceScript = preload("res://scripts/gameplay/WaterRuleService.gd")
+const LOOP_WIDTH_BLOCKS: int = 52
+const LOOP_WIDTH_PX: float = 52.0 * 48.0
 
 @export_group("Node Paths")
 @export var player_path: NodePath
@@ -43,6 +45,11 @@ var _last_blocks: int = -1
 var _pickup_timer: Timer
 var _projectile_timer: Timer
 
+var _total_blocks: int = 0
+var _local_blocks: int = 0
+var _purple_unlocked: bool = false
+var _last_water_score_units: int = -1
+
 
 func _ready() -> void:
 	_player = get_node_or_null(player_path) as Node2D
@@ -66,15 +73,14 @@ func _connect_signals() -> void:
 	if trigger != null:
 		trigger.body_entered.connect(_on_safe_trigger)
 
-	var water: Area2D = get_node_or_null(water_trigger_path) as Area2D
-	if water != null:
-		water.body_entered.connect(_on_water_trigger)
-
 	var ge: Node = get_node_or_null(^"/root/GameEvents")
-	if ge != null and ge.has_signal(&"restart_requested"):
-		ge.restart_requested.connect(_on_restart_requested)
-	if ge != null and ge.has_signal(&"water_finished"):
-		ge.water_finished.connect(_on_water_finished)
+	if ge != null:
+		if ge.has_signal(&"restart_requested"):
+			ge.restart_requested.connect(_on_restart_requested)
+		if ge.has_signal(&"water_finished"):
+			ge.water_finished.connect(_on_water_finished)
+		if ge.has_signal(&"score_changed"):
+			ge.score_changed.connect(_on_score_changed)
 
 
 func _create_timers() -> void:
@@ -97,20 +103,30 @@ func _process(delta: float) -> void:
 	if _player == null or not _tutorial_done:
 		return
 
-	var blocks: int = maxi(0, int((_player.global_position.x - tutorial_end_x) / block_size))
-	if blocks == _last_blocks:
+	if _player.global_position.x >= tutorial_end_x + LOOP_WIDTH_PX:
+		_wrap_player()
+
+	_local_blocks = maxi(0, int((_player.global_position.x - tutorial_end_x) / block_size))
+	var cumulative: int = _total_blocks + _local_blocks
+	if cumulative == _last_blocks:
 		return
-	_last_blocks = blocks
+	_last_blocks = cumulative
 
 	var gs: Node = get_node_or_null(^"/root/GameState")
 	if gs == null:
 		return
 	if gs.has_method(&"set_distance_blocks"):
-		gs.set_distance_blocks(blocks)
-	if blocks >= purple_distance and gs.has_method(&"set_boss_phase"):
+		gs.set_distance_blocks(cumulative)
+	if cumulative >= purple_distance and not _purple_unlocked and gs.has_method(&"set_boss_phase"):
+		_purple_unlocked = true
 		gs.set_boss_phase(GameRules.BossPhase.LAND_PURPLE)
-	if blocks >= 28 and not _water_triggered:
-		_trigger_water()
+
+
+func _wrap_player() -> void:
+	if _player == null:
+		return
+	_player.global_position.x -= LOOP_WIDTH_PX
+	_total_blocks += LOOP_WIDTH_BLOCKS
 
 
 func _on_safe_trigger(_body: Node) -> void:
@@ -124,6 +140,8 @@ func _on_safe_trigger(_body: Node) -> void:
 
 	var gs: Node = get_node_or_null(^"/root/GameState")
 	if gs != null:
+		_total_blocks = 0
+		_local_blocks = 0
 		_last_blocks = 0
 		if gs.has_method(&"set_distance_blocks"):
 			gs.set_distance_blocks(0)
@@ -133,16 +151,7 @@ func _on_safe_trigger(_body: Node) -> void:
 	_start_timers()
 
 
-func _on_water_trigger(_body: Node) -> void:
-	if _water_triggered:
-		return
-	_trigger_water()
-
-
 func _trigger_water() -> void:
-	if _water_triggered:
-		return
-	_water_triggered = true
 	var gs: Node = get_node_or_null(^"/root/GameState")
 	if gs != null and gs.has_method(&"begin_water_event"):
 		if gs.has_method(&"set_boss_phase"):
@@ -150,12 +159,28 @@ func _trigger_water() -> void:
 		gs.begin_water_event(GameRules.WaterVariant.WATER_A, GameRules.WaterComplication.NONE)
 
 
+func _on_score_changed(score_cents: int, _display: String) -> void:
+	if not _tutorial_done:
+		return
+	var score_units: int = score_cents / 100
+	if score_units <= 0:
+		return
+	if score_units == _last_water_score_units:
+		return
+	if score_units % 6 == 0 or score_units % 7 == 0:
+		_last_water_score_units = score_units
+		_trigger_water()
+
+
 func _on_water_finished() -> void:
 	var gs: Node = get_node_or_null(^"/root/GameState")
 	if gs == null or not gs.has_method(&"set_boss_phase"):
 		return
-	var next_phase: GameRules.BossPhase = GameRules.BossPhase.LAND_PURPLE \
-		if _last_blocks >= purple_distance else GameRules.BossPhase.LAND_WHITE
+	var next_phase: GameRules.BossPhase = (
+		GameRules.BossPhase.LAND_PURPLE
+		if _last_blocks >= purple_distance
+		else GameRules.BossPhase.LAND_WHITE
+	)
 	gs.set_boss_phase(next_phase)
 
 
@@ -165,6 +190,10 @@ func _on_restart_requested() -> void:
 	_tutorial_done = false
 	_water_triggered = false
 	_last_blocks = -1
+	_total_blocks = 0
+	_local_blocks = 0
+	_purple_unlocked = false
+	_last_water_score_units = -1
 
 	if _safe_wall != null:
 		_safe_wall.hide()

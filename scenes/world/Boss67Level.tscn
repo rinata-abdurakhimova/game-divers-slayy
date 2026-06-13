@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/Boss67LevelController.gd" id="1_ctrl"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
@@ -24,8 +24,11 @@ size = Vector2(96, 48)
 [sub_resource type="RectangleShape2D" id="Rect_wall"]
 size = Vector2(48, 144)
 
+[sub_resource type="RectangleShape2D" id="Rect_loop"]
+size = Vector2(528, 48)
+
 [sub_resource type="RectangleShape2D" id="Rect_boundary"]
-size = Vector2(2600, 20)
+size = Vector2(3200, 20)
 
 [sub_resource type="RectangleShape2D" id="Rect_trigger_safe"]
 size = Vector2(48, 96)
@@ -39,11 +42,11 @@ size = Vector2(48, 600)
 
 [node name="Sky" type="Polygon2D" parent="Background"]
 color = Color(0.19, 0.15, 0.31, 1)
-polygon = PackedVector2Array(-200, -100, 2700, -100, 2700, 420, -200, 420)
+polygon = PackedVector2Array(-200, -100, 3300, -100, 3300, 420, -200, 420)
 
 [node name="SandFill" type="Polygon2D" parent="Background"]
 color = Color(0.85, 0.65, 0.38, 1)
-polygon = PackedVector2Array(-200, 420, 2700, 420, 2700, 750, -200, 750)
+polygon = PackedVector2Array(-200, 420, 3300, 420, 3300, 750, -200, 750)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_enabled = true
@@ -64,6 +67,10 @@ shape = SubResource("Rect_post")
 position = Vector2(2016, 624)
 shape = SubResource("Rect_extra")
 
+[node name="LoopFloor" type="CollisionShape2D" parent="Terrain"]
+position = Vector2(2784, 624)
+shape = SubResource("Rect_loop")
+
 [node name="JumpBlock" type="CollisionShape2D" parent="Terrain"]
 position = Vector2(384, 576)
 shape = SubResource("Rect_plat48")
@@ -80,7 +87,7 @@ shape = SubResource("Rect_plat96")
 
 [node name="FloorBlock" type="Polygon2D" parent="TerrainVisual"]
 color = Color(0.8, 0.6, 0.32, 1)
-polygon = PackedVector2Array(0, 588, 2600, 588, 2600, 648, 0, 648)
+polygon = PackedVector2Array(0, 588, 3100, 588, 3100, 648, 0, 648)
 
 [node name="JumpBlockVisual" type="Polygon2D" parent="TerrainVisual"]
 position = Vector2(384, 576)
@@ -96,6 +103,10 @@ polygon = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 position = Vector2(1050, 528)
 color = Color(0.7, 0.5, 0.25, 1)
 polygon = PackedVector2Array(-48, -24, 48, -24, 48, 24, -48, 24)
+
+[node name="LoopFloorVisual" type="Polygon2D" parent="TerrainVisual"]
+color = Color(0.8, 0.6, 0.32, 1)
+polygon = PackedVector2Array(2520, 588, 3048, 588, 3048, 648, 2520, 648)
 
 [node name="SafeWall" type="StaticBody2D" parent="."]
 collision_layer = 2
@@ -113,7 +124,7 @@ polygon = PackedVector2Array(-24, -72, 24, -72, 24, 72, -24, 72)
 collision_layer = 32
 
 [node name="FloorBoundary" type="CollisionShape2D" parent="Boundaries"]
-position = Vector2(1300, 638)
+position = Vector2(1500, 638)
 shape = SubResource("Rect_boundary")
 
 [node name="Navigation" type="Node2D" parent="."]

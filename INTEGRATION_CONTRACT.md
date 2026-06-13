@@ -195,16 +195,21 @@ All operations round to the nearest cent after application.
 
 ## Distance Contract
 
-Progress is measured in horizontal blocks from the boss-run start, after the safe tutorial closes.
+Progress is measured in horizontal blocks from the boss-run start, after the safe tutorial closes.  
+The post-tutorial terrain is a 52-block loop (2496 px). When the player passes the right edge, they
+wrap back to the left — the camera smoothing makes the transition seamless. Cumulative distance
+(`_total_blocks`) never resets and drives permanent boss-phase milestones.
 
 | Distance | Event |
 | --- | --- |
 | `0` | Boss 67 appears. |
 | `18` | Purple projectiles become available. |
-| `28` | First water event starts. |
 
-After the first water event, collecting a land pickup divisible by `6` or `7` can trigger the next
-water event after cooldown.
+## Water Contract
+
+Water events are triggered by **score**, not distance.  
+After every score change, if `score_cents / 100` is divisible by `6` or `7`, a water event begins
+(`WATER_A`, lasts 10 s). Water can re-trigger on each new divisor milestone.
 
 ## Power-Up Contract
 
@@ -247,7 +252,7 @@ The new slice is integrated only when:
 - land pickups change score;
 - white projectiles are blocked by terrain;
 - purple projectiles start after `18` blocks and pass through blocks;
-- first water starts after `28` blocks and lasts `10` seconds;
+- water starts when `score_cents / 100` is divisible by `6` or `7` and lasts `10` seconds;
 - one water variant applies correctly;
 - score can become negative;
 - score `0.00` fails;

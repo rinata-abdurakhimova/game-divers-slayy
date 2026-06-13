@@ -90,15 +90,15 @@ func _run() -> void:
 	assert(purple.global_position.x < 384.0)
 	purple.queue_free()
 
-	# Distance milestones switch the boss and start water.
+	# Distance milestone switches the boss to LAND_PURPLE.
 	player.global_position = Vector2(576 + 18 * 48, 520)
 	controller.call(&"_process", 0.0)
 	assert(game_state.get("distance_blocks") >= 18)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.LAND_PURPLE)
 
-	player.global_position = Vector2(576 + 28 * 48, 520)
-	controller.call(&"_process", 0.0)
-	assert(game_state.get("distance_blocks") >= 28)
+	# Score milestone (divisible by 6) triggers water event.
+	# Starting score is 100 cents; add 500 → 600 cents → score_units=6, divisible by 6.
+	game_state.call(&"apply_score_operation", GameRules.SCORE_OPERATION_ADD, 500, &"test")
 	assert(game_state.get("phase") == GameRules.RunPhase.WATER)
 	assert(game_state.get("water_seconds_left") > 9.9)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.WATER)
