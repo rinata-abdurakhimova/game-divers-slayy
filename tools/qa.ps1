@@ -111,11 +111,25 @@ try {
             $qaLogDirectory = Join-Path $repoRoot ".godot_qa"
             New-Item -ItemType Directory -Path $qaLogDirectory -Force | Out-Null
             $qaLogPath = Join-Path $qaLogDirectory "headless-boot.log"
+            Remove-Item -LiteralPath $qaLogPath -Force -ErrorAction SilentlyContinue
             & $godotExecutable --headless --log-file $qaLogPath --path $repoRoot --quit-after 3
             if ($LASTEXITCODE -ne 0) {
                 Add-Failure "Godot headless boot failed with exit code $LASTEXITCODE"
             } else {
-                Add-Pass "Godot headless boot"
+                $runtimeErrors = @()
+                if (Test-Path -LiteralPath $qaLogPath -PathType Leaf) {
+                    $runtimeErrors = @(
+                        Get-Content -LiteralPath $qaLogPath |
+                            Select-String -Pattern "SCRIPT ERROR:|Parse Error:|Failed to load script"
+                    )
+                }
+                if ($runtimeErrors.Count -gt 0) {
+                    foreach ($runtimeError in $runtimeErrors) {
+                        Add-Failure "Godot runtime error: $($runtimeError.Line.Trim())"
+                    }
+                } else {
+                    Add-Pass "Godot headless boot"
+                }
             }
         }
     } else {

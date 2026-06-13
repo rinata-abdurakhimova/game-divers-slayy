@@ -54,7 +54,12 @@ func _on_phase_changed(new_phase: GameRules.Phase) -> void:
 
 
 func _on_shield_changed(remaining: int) -> void:
-	shield_label.text = "SHIELDS %s" % "◆".repeat(maxi(0, remaining))
+	var filled: int = clampi(remaining, 0, GameRules.LEVEL_01_STARTING_SHIELDS)
+	var empty: int = GameRules.LEVEL_01_STARTING_SHIELDS - filled
+	shield_label.text = "SHIELDS %s%s" % [
+		"[X]".repeat(filled),
+		"[ ]".repeat(empty),
+	]
 
 
 func _on_equation_submitted(correct: bool) -> void:
