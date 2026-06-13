@@ -1,6 +1,8 @@
 class_name WaterRuleService
 extends RefCounted
 
+const ScoreServiceScript = preload("res://scripts/gameplay/ScoreService.gd")
+
 
 static func should_start_first_water(distance_blocks: int) -> bool:
 	return distance_blocks >= GameRules.FIRST_WATER_DISTANCE_BLOCKS
@@ -111,5 +113,5 @@ static func _operation(operation: StringName, value_cents: int) -> Dictionary:
 	return {
 		"operation": operation,
 		"value_cents": value_cents,
-		"label": ScoreService.operation_label(operation, value_cents),
+		"label": ScoreServiceScript.operation_label(operation, value_cents),
 	}

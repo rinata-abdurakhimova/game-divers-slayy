@@ -10,53 +10,33 @@ func _run() -> void:
 
 	var game_state: Node = root.get_node(^"GameState")
 	var game_events: Node = root.get_node(^"GameEvents")
-	var intro: Control = current_scene.get_node(^"UI/CutsceneIntro") as Control
-	var level_container: Node = current_scene.get_node(^"LevelContainer")
-	var hud: Control = current_scene.get_node(^"UI/HUD") as Control
+	_assert_intro_state(game_state)
+	await _start_gameplay()
+	_assert_playing_state(game_state)
 
-	assert(intro.visible)
-	assert(level_container.get_child_count() == 0)
-	assert(not hud.visible)
-
-	intro.call(&"finish_intro")
+	# Restart from ordinary land gameplay.
+	game_events.emit_signal(&"restart_requested")
+	await scene_changed
 	await process_frame
-	assert(not intro.visible)
-	assert(level_container.get_child_count() == 1)
-	assert(hud.visible)
-	assert(game_state.get("score_cents") == GameRules.BOSS_67_START_SCORE_CENTS)
+	_assert_intro_state(game_state)
+	await _start_gameplay()
 
+	# Restart while the water timer is active.
 	game_state.call(
 		&"begin_water_event",
 		GameRules.WaterVariant.WATER_A,
 		GameRules.WaterComplication.NONE
 	)
 	await process_frame
-	var water_overlay: Control = current_scene.get_node(^"UI/WaterRuleOverlay") as Control
-	assert(water_overlay.visible)
-
-	game_state.call(
-		&"apply_score_operation",
-		GameRules.SCORE_OPERATION_ADD,
-		6600,
-		&"test_pickup"
-	)
-	await process_frame
-	var result_screen: Control = current_scene.get_node(^"UI/ResultScreen") as Control
-	assert(result_screen.visible)
-	assert(game_state.get("phase") == GameRules.RunPhase.COMPLETE)
-
+	assert(game_state.get("phase") == GameRules.RunPhase.WATER)
+	assert((current_scene.get_node(^"UI/WaterRuleOverlay") as Control).visible)
 	game_events.emit_signal(&"restart_requested")
 	await scene_changed
 	await process_frame
-	assert(game_state.get("score_cents") == GameRules.BOSS_67_START_SCORE_CENTS)
-	assert(game_state.get("water_variant") == GameRules.WaterVariant.NONE)
-	assert((game_state.get("active_powerups") as Dictionary).is_empty())
-	assert(game_state.get("input_enabled"))
-	assert(not game_state.get("outcome_locked"))
+	_assert_intro_state(game_state)
+	await _start_gameplay()
 
-	intro = current_scene.get_node(^"UI/CutsceneIntro") as Control
-	intro.call(&"finish_intro")
-	await process_frame
+	# Restart after failure at exact zero.
 	game_state.call(
 		&"apply_score_operation",
 		GameRules.SCORE_OPERATION_MULTIPLY,
@@ -64,15 +44,28 @@ func _run() -> void:
 		&"test_projectile"
 	)
 	await process_frame
-	result_screen = current_scene.get_node(^"UI/ResultScreen") as Control
-	assert(result_screen.visible)
 	assert(game_state.get("phase") == GameRules.RunPhase.FAILED)
-
+	assert((current_scene.get_node(^"UI/ResultScreen") as Control).visible)
 	game_events.emit_signal(&"restart_requested")
 	await scene_changed
 	await process_frame
-	assert(game_state.get("score_cents") == GameRules.BOSS_67_START_SCORE_CENTS)
-	assert(current_scene.get_node(^"UI/CutsceneIntro").visible)
+	_assert_intro_state(game_state)
+	await _start_gameplay()
+
+	# Restart after victory at exact 67.
+	game_state.call(
+		&"apply_score_operation",
+		GameRules.SCORE_OPERATION_ADD,
+		6600,
+		&"test_pickup"
+	)
+	await process_frame
+	assert(game_state.get("phase") == GameRules.RunPhase.COMPLETE)
+	assert((current_scene.get_node(^"UI/ResultScreen") as Control).visible)
+	game_events.emit_signal(&"restart_requested")
+	await scene_changed
+	await process_frame
+	_assert_intro_state(game_state)
 
 	if current_scene != null:
 		current_scene.queue_free()
@@ -85,3 +78,29 @@ func _load_main() -> void:
 	assert(change_error == OK)
 	await scene_changed
 	await process_frame
+
+
+func _start_gameplay() -> void:
+	var intro: Control = current_scene.get_node(^"UI/CutsceneIntro") as Control
+	intro.call(&"finish_intro")
+	await process_frame
+	assert(not intro.visible)
+	assert(current_scene.get_node(^"LevelContainer").get_child_count() == 1)
+	assert((current_scene.get_node(^"UI/HUD") as Control).visible)
+
+
+func _assert_intro_state(game_state: Node) -> void:
+	assert((current_scene.get_node(^"UI/CutsceneIntro") as Control).visible)
+	assert(current_scene.get_node(^"LevelContainer").get_child_count() == 0)
+	assert(not (current_scene.get_node(^"UI/HUD") as Control).visible)
+	assert(game_state.get("score_cents") == GameRules.BOSS_67_START_SCORE_CENTS)
+	assert(game_state.get("water_variant") == GameRules.WaterVariant.NONE)
+	assert((game_state.get("active_powerups") as Dictionary).is_empty())
+	assert(game_state.get("input_enabled"))
+	assert(not game_state.get("outcome_locked"))
+
+
+func _assert_playing_state(game_state: Node) -> void:
+	assert(game_state.get("score_cents") == GameRules.BOSS_67_START_SCORE_CENTS)
+	assert(game_state.get("phase") == GameRules.RunPhase.SAFE_START)
+	assert(game_state.get("input_enabled"))
