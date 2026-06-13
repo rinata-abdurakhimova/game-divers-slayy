@@ -127,6 +127,8 @@ assets/audio/sfx_level_win.wav
 ```
 
 Placeholders may replace any asset while preserving its path or updating all consumers in one change.
+UI panels and placeholders should use Godot `Control`, `Label`, `ColorRect`, and `StyleBoxFlat`
+resources rather than adding image dependencies. Visual implementation must follow `docs/UI_STYLE.md`.
 
 ## Reset Contract
 

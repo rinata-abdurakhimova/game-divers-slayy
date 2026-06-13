@@ -28,6 +28,11 @@ Use the following Celeste principles, not its platforming mechanics:
 Our Level 1 is one compact top-down room rather than a platformer. Movement uses arrows only. Arithmetic
 choices replace precision jumps.
 
+The provided visual screenshots are mood references only. The binding simplification rules, HUD tree,
+palette, tide presentation, responsive layout, and asset budget are defined in `docs/UI_STYLE.md`.
+Nobody should reproduce the screenshots' dense backgrounds, lighting, parallax, weather, or large
+tile-set requirements for Level 1.
+
 ## Ownership
 
 | Role | Member | Owns for Level 1 |
