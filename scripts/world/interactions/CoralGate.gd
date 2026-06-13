@@ -9,7 +9,8 @@ func open() -> void:
 		return
 	is_open = true
 	$CollisionShape2D.set_deferred(&"disabled", true)
-	$Visual.color = Color(0.3, 0.8, 0.5, 0.3)
+	var tween: Tween = create_tween()
+	tween.tween_property($Visual, "color", Color(0.3, 0.8, 0.5, 0.0), 0.3)
 
 
 func close() -> void:
