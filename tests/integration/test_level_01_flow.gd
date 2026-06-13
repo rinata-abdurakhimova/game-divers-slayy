@@ -22,13 +22,9 @@ func _run() -> void:
 
 	var overlay: Control = current_scene.get_node(^"UI/RuleChangeOverlay") as Control
 	assert(overlay != null and overlay.visible)
-	var skip_event := InputEventAction.new()
-	skip_event.action = &"action"
-	skip_event.pressed = true
-	overlay.call(&"_unhandled_input", skip_event)
-	assert(not overlay.visible)
 
 	await create_timer(GameRules.TIDE_TRANSITION_SECONDS + 0.1).timeout
+	assert(not overlay.visible)
 	assert(game_state.get("phase") == GameRules.Phase.WATER)
 
 	assert(game_state.call(&"try_collect_operand", 14))

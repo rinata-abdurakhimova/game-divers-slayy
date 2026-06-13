@@ -50,12 +50,13 @@ func submit_equation() -> bool:
 		return false
 	if operands.size() != GameRules.MAX_OPERAND_SLOTS:
 		GameEvents.equation_submitted.emit(false)
+		clear_operands()
 		return false
 
 	var correct: bool = EquationService.is_valid_submission(operands, operation, target)
-	GameEvents.equation_submitted.emit(correct)
 
 	if not correct:
+		GameEvents.equation_submitted.emit(false)
 		clear_operands()
 		return false
 
@@ -63,6 +64,7 @@ func submit_equation() -> bool:
 	GameEvents.shield_changed.emit(shield_segments)
 	operands.clear()
 	_emit_equation_changed()
+	GameEvents.equation_submitted.emit(true)
 
 	if phase == GameRules.Phase.WATER:
 		complete_level()
