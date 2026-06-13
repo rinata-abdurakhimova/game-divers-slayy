@@ -33,6 +33,40 @@ palette, tide presentation, responsive layout, and asset budget are defined in `
 Nobody should reproduce the screenshots' dense backgrounds, lighting, parallax, weather, or large
 tile-set requirements for Level 1.
 
+## Limited Third-Party Asset Pass
+
+Goal: improve the placeholder presentation without changing the top-down game plan, scene structure,
+collisions, controls, arithmetic, or tide sequence.
+
+For the first pass, use only a small environmental subset from the o_lobster
+`PLATFORMER/METROIDVANIA ASSET PACK`:
+
+- one static background or backdrop image;
+- at most three static decorative props;
+- optional recoloring or cropping for the existing pink, sand, and plum palette.
+
+Do not import the full ZIP. Do not use its hero, enemies, attacks, traps, HUD, GIF files, platform
+tiles, or collision shapes. The side-view art must never turn Level 1 into a platformer or require a
+TileMap rewrite.
+
+The CraftPix cloud pack is deferred for this pass. Its clouds are optional decoration rather than a
+gameplay dependency, and its license restricts redistribution of source art. Do not commit its PNG
+files to the repository until Rinata confirms that the repository and release method comply with the
+license.
+
+Approved runtime structure remains:
+
+```text
+Level01/Background
+|- SandVisual
+|- WaterVisual
+`- Decoration (optional Node2D owned by Alina)
+```
+
+`SandVisual` and `WaterVisual` keep their current names and phase behavior. Decorative sprites use
+`z_index` and `mouse_filter`/collision-free nodes only. If imported art is missing or unreadable, the
+existing polygon placeholders remain the fallback and the game must still boot.
+
 ## Ownership
 
 | Role | Member | Owns for Level 1 |
@@ -289,6 +323,8 @@ Tasks:
 6. Implement `EquationService` as pure typed functions for addition and subtraction validation.
 7. Ensure collection order matters only for subtraction.
 8. Provide safe behavior for missing visuals or collision nodes so placeholder tests still run.
+9. Keep the current Player placeholder for this asset pass. No platformer hero sprites or movement
+   animation changes are required.
 
 Polina emits no UI text and loads no audio.
 
@@ -343,6 +379,12 @@ Tasks:
 9. During transition, disable interactions, close the dry route, animate water, open the coral route,
    swap operand sets, then enter `WATER`.
 10. Guardian10 reacts to `shield_changed`; it does not validate arithmetic.
+11. Add the approved background and no more than three decorative sprites under
+    `Level01/Background/Decoration`.
+12. Preserve every gameplay position, collision shape, NodePath, and the existing `SandVisual` and
+    `WaterVisual` visibility contract.
+13. Decorations must stay behind the player, operands, altars, and Guardian and must not reduce number
+    readability.
 
 Collision layers:
 
@@ -420,6 +462,11 @@ Tasks:
 10. ResultScreen shows Level 1 complete and offers restart. Next Level remains disabled or labelled
     `Coming next` until Level 2 exists.
 11. Restart must replace the current Level 1 instance and call `reset_level_01()` before resuming.
+12. Select and import only the approved PNG files, keep nearest-neighbor filtering, and add their
+    attribution and source link to `THIRD_PARTY_NOTICES.md`.
+13. Reject unused ZIP contents and verify that no `.gif`, `.DS_Store`, `__MACOSX`, or duplicate
+    sprites enter the repository.
+14. Confirm license compatibility before any CraftPix file is committed.
 
 HUD must consume signals and snapshots. It must not search for Player, Guardian10, operands, or altars.
 
@@ -469,7 +516,9 @@ No node or signal connection from the old level may survive restart.
 5. Integrate the land equation end to end.
 6. Add tide transition and water equation.
 7. Add Guardian feedback, tutorial, audio, result, and restart.
-8. Run QA and freeze Level 1 before Level 2 work begins.
+8. Rinata imports the approved asset subset and records attribution.
+9. Alina places the background and up to three decorations without changing gameplay nodes.
+10. Run QA and freeze Level 1 before Level 2 work begins.
 
 Parallel work is allowed after steps 1 and 2 publish the shared contracts.
 
@@ -496,9 +545,14 @@ Parallel work is allowed after steps 1 and 2 publish the shared contracts.
 - No warnings are caused by stale signal connections after three restarts.
 - Every shared name matches `INTEGRATION_CONTRACT.md`.
 - Another teammate can replace placeholder art without editing gameplay scripts.
+- The game still boots and remains playable if the optional decoration nodes are removed.
+- Only approved third-party files are committed and their attribution is recorded.
 
 ## Scope Warning
 
 Do not add health, oxygen, timers, moving currents, random equations, Level 2, Hard mode, combat,
 dialogue systems, save data, or Boss 67 during this slice. The only polish priorities are readability,
 responsive movement, the tide moment, equation feedback, and reliable restart.
+
+The asset pass must not add parallax, animated weather, a new TileMap, platforming, new enemies, new
+collisions, or a complete art-pack import. Stop after one background and three decorations.

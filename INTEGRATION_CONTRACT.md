@@ -130,6 +130,29 @@ Placeholders may replace any asset while preserving its path or updating all con
 UI panels and placeholders should use Godot `Control`, `Label`, `ColorRect`, and `StyleBoxFlat`
 resources rather than adding image dependencies. Visual implementation must follow `docs/UI_STYLE.md`.
 
+### Third-Party Asset Subset
+
+Only these optional asset roles are approved for the current pass:
+
+```text
+assets/third_party/o_lobster/level_01_backdrop.png
+assets/third_party/o_lobster/level_01_prop_01.png
+assets/third_party/o_lobster/level_01_prop_02.png
+assets/third_party/o_lobster/level_01_prop_03.png
+THIRD_PARTY_NOTICES.md
+```
+
+The prop files are optional; unused slots should not be created. Rinata owns selection, import
+settings, filenames, attribution, and license review. Alina owns placement inside
+`Level_01.tscn`.
+
+No gameplay code may depend on these files. Missing optional art falls back to the existing
+`SandVisual` and `WaterVisual` polygons. No new signal, autoload, input action, collision layer,
+TileMap, or node-path contract is introduced.
+
+The o_lobster source is CC BY 4.0 and must be credited. CraftPix files are not approved for repository
+commit until their source-file redistribution terms are confirmed for this project.
+
 ## Reset Contract
 
 - Wrong Easy-mode submission clears operands and restores active operands without reloading the level.

@@ -11,6 +11,10 @@ Primary areas:
 - `scripts/gameplay/`
 - core mechanic, rules, health, score, timer, win/lose calculation
 
+Current asset-pass responsibility:
+
+- No required changes. Keep the existing top-down Player visual and movement contract.
+
 Pitch segment: hook and core mechanic. Demo responsibility: explain controls and the satisfying player
 decision.
 
@@ -23,6 +27,12 @@ Primary areas:
 - `scripts/actors/enemies/`
 - `scripts/world/`
 - levels, obstacles, collectibles, interactions, encounter pacing
+
+Current asset-pass responsibility:
+
+- Place one approved backdrop and up to three static props in `Level_01.tscn`.
+- Keep decorations collision-free and behind all readable gameplay objects.
+- Do not change layout, spawn positions, routes, or phase logic for the art.
 
 Pitch segment: theme connection and content progression. Demo responsibility: guide the intended route
 and point out the strongest theme moment.
@@ -37,6 +47,13 @@ Primary areas:
 - `scripts/ui/`
 - `assets/audio/`, `assets/fonts/`
 - `project.godot`, `export_presets.cfg`
+- `assets/third_party/`, `THIRD_PARTY_NOTICES.md`
+
+Current asset-pass responsibility:
+
+- Select and import only files actually used by Level 1.
+- Preserve nearest-neighbor import settings and verify build/export health.
+- Record source, author, and license; block assets whose repository distribution rights are unclear.
 
 Pitch segment: polish, technical reliability, and close. Demo responsibility: launch the build, recover
 from failure, and run the fallback route.
