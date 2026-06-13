@@ -13,6 +13,8 @@ signal tide_finished
 @export var water_altar_path: NodePath
 @export var coral_gate_path: NodePath
 @export var guardian_path: NodePath
+@export var sand_visual_path: NodePath
+@export var water_visual_path: NodePath
 
 var _tide_in_progress: bool = false
 
@@ -64,6 +66,13 @@ func _start_tide_transition() -> void:
 	var gs: Node = get_node_or_null(^"/root/GameState")
 	if gs != null and gs.has_method(&"begin_tide_transition"):
 		gs.begin_tide_transition()
+
+	var sand: CanvasItem = get_node_or_null(sand_visual_path) as CanvasItem
+	var water: CanvasItem = get_node_or_null(water_visual_path) as CanvasItem
+	if sand != null:
+		sand.visible = false
+	if water != null:
+		water.visible = true
 
 	emit_signal(&"tide_started")
 

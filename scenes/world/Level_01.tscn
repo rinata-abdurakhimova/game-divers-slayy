@@ -77,6 +77,7 @@ position = Vector2(860, 324)
 [node name="Actors" type="Node2D" parent="."]
 
 [node name="Player" parent="Actors" instance=ExtResource("2")]
+position = Vector2(150, 324)
 
 [node name="Guardian10" parent="Actors" instance=ExtResource("3")]
 position = Vector2(1020, 324)
@@ -129,3 +130,5 @@ land_altar_path = NodePath("Interactions/LandAltar")
 water_altar_path = NodePath("Interactions/WaterAltar")
 coral_gate_path = NodePath("Interactions/CoralGate")
 guardian_path = NodePath("Actors/Guardian10")
+sand_visual_path = NodePath("Background/SandVisual")
+water_visual_path = NodePath("Background/WaterVisual")
