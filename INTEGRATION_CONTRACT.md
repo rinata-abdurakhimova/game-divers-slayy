@@ -1,93 +1,148 @@
 # Integration Contract
 
-This is the source of truth for parallel work. Update it before merging a breaking contract change.
-Names below are reserved; `Planned` means the implementation may not exist yet.
+This contract is locked for the Level 1 Easy vertical slice. Update it before changing a shared name,
+payload, input, collision layer, autoload, or scene responsibility.
 
 ## Core Scenes
 
-| Scene | Status | Owner | Responsibility |
-| --- | --- | --- | --- |
-| `scenes/main/Main.tscn` | Planned | Rinata | Composition root and run lifecycle |
-| `scenes/world/Level_01.tscn` | Planned | Alina | First complete playable level |
-| `scenes/actors/Player.tscn` | Planned | Polina | Player and core mechanic entry point |
-| `scenes/ui/HUD.tscn` | Planned | Rinata | Run-state presentation |
-| `scenes/ui/GameOverScreen.tscn` | Planned | Rinata | Outcome and restart flow |
+| Scene | Owner | Responsibility |
+| --- | --- | --- |
+| `scenes/main/Main.tscn` | Rinata | composition root and run lifecycle |
+| `scenes/world/Level_01.tscn` | Alina | authored Level 1 arena and phase presentation |
+| `scenes/actors/Player.tscn` | Polina | player movement and phase visual response |
+| `scenes/actors/numbers/Operand.tscn` | Alina | collectible integer operand |
+| `scenes/actors/enemies/Guardian10.tscn` | Alina | shield and defeat presentation |
+| `scenes/world/interactions/EquationAltar.tscn` | Alina | equation submission trigger |
+| `scenes/world/interactions/ResetShell.tscn` | Alina | clear current operands |
+| `scenes/ui/HUD.tscn` | Rinata | target, operation, operands, rule, shield display |
+| `scenes/ui/TutorialOverlay.tscn` | Rinata | Level 1 onboarding |
+| `scenes/ui/RuleChangeOverlay.tscn` | Rinata | tide rule-change presentation |
+| `scenes/ui/ResultScreen.tscn` | Rinata | completion and restart |
 
 ## Autoloads
 
 | Name | Path | Owner | Contract |
 | --- | --- | --- | --- |
-| `GameEvents` | `scripts/autoload/GameEvents.gd` | Rinata | Cross-owner signal hub only |
-| `GameState` | `scripts/autoload/GameState.gd` | Rinata | Resettable run state and score/health/time values |
-| `AudioBus` | `scripts/autoload/AudioBus.gd` | Rinata | Named music and SFX requests |
-| `SceneLoader` | `scripts/autoload/SceneLoader.gd` | Rinata | Safe start, retry, and menu transitions |
+| `GameEvents` | `scripts/autoload/GameEvents.gd` | Rinata | global signals only |
+| `GameState` | `scripts/autoload/GameState.gd` | Rinata with Polina review | resettable Level 1 state and equation API |
+| `AudioBus` | `scripts/autoload/AudioBus.gd` | Rinata | stable sound-ID playback |
+| `SceneLoader` | `scripts/autoload/SceneLoader.gd` | Rinata | start and fresh restart |
 
-Do not add another autoload without agreement from all three members.
+No additional autoload is allowed for Level 1.
 
-## Core Signals
+## Shared Code
 
-Declare global signals in `GameEvents.gd`. Emitters may expose equivalent local signals for isolated
-scene testing.
+| Type | Path | Owner | Contract |
+| --- | --- | --- | --- |
+| `GameRules` | `scripts/gameplay/GameRules.gd` | Polina | enums, constants, Level 1 operands, sound IDs |
+| `EquationService` | `scripts/gameplay/EquationService.gd` | Polina | pure addition/subtraction validation |
+| `Level01Controller` | `scripts/world/Level01Controller.gd` | Alina | LAND to TRANSITION to WATER to COMPLETE sequence |
+
+## Signals
 
 | Signal | Payload | Producer | Consumers |
 | --- | --- | --- | --- |
-| `run_started` | none | `Main` / `SceneLoader` | HUD, audio, level |
-| `player_hit` | `amount: int` | Player or damage system | HUD feedback, audio |
-| `health_changed` | `current: int, maximum: int` | `GameState` | HUD |
-| `score_changed` | `value: int` | `GameState` | HUD |
-| `timer_changed` | `seconds_left: float` | timer/rules system | HUD |
-| `player_died` | none | Player or rules system | Main, audio, HUD |
-| `level_completed` | none | level goal/rules system | Main, audio, HUD |
-| `game_over` | `won: bool, reason: StringName` | Main/rules system | outcome UI, audio |
-| `restart_requested` | none | outcome UI/input | `SceneLoader` |
+| `run_started` | `level_id: StringName` | Main | level, HUD, tutorial, audio |
+| `phase_changed` | `phase: GameRules.Phase` | GameState | LevelController, HUD, Player |
+| `operand_collected` | `value: int, slot: int` | GameState | HUD, world feedback, audio |
+| `operands_cleared` | none | GameState | HUD, LevelController |
+| `equation_submitted` | `correct: bool` | GameState | LevelController, HUD, audio |
+| `equation_changed` | `snapshot: Dictionary` | GameState | HUD |
+| `shield_changed` | `remaining: int` | GameState | Guardian10, HUD, audio |
+| `tide_started` | none | LevelController | world visuals, overlay, audio |
+| `tide_finished` | none | LevelController | HUD, tutorial, Player |
+| `level_completed` | `level_id: StringName` | GameState | Main, HUD, audio |
+| `restart_requested` | none | ResultScreen/input | SceneLoader |
 
-Signal payload changes are breaking changes. Update producers and consumers in the same integration
-branch or keep a compatibility adapter until all owners migrate.
+The repository QA script also reserves these template names for later levels:
+
+| Reserved signal | Level 1 Easy rule |
+| --- | --- |
+| `player_died` | declare only if required by the QA skeleton; do not emit |
+| `health_changed` | declare only if required by the QA skeleton; no health system |
+| `score_changed` | declare only if required by the QA skeleton; no score system |
+| `game_over` | declare only if required by the QA skeleton; completion uses `level_completed` |
+
+Reserved signals must not create unused gameplay systems in Level 1.
+
+## GameState Methods
+
+```gdscript
+func reset_level_01() -> void
+func try_collect_operand(value: int) -> bool
+func clear_operands() -> void
+func submit_equation() -> bool
+func begin_tide_transition() -> void
+func enter_water_phase() -> void
+func complete_level() -> void
+func get_equation_snapshot() -> Dictionary
+```
+
+No world or UI script may write GameState fields directly.
 
 ## Input Actions
 
-Reserve these action names and adjust only after the concept is locked:
+| Action | Default keys | Purpose |
+| --- | --- | --- |
+| `move_left` | Left, A | move left |
+| `move_right` | Right, D | move right |
+| `move_up` | Up, W | move up |
+| `move_down` | Down, S | move down |
+| `action` | Space, Enter | reserved altar fallback |
+| `restart` | R | restart after completion |
+| `pause` | Escape | pause |
 
-| Action | Purpose |
+## Collision Layers
+
+| Layer | Purpose |
 | --- | --- |
-| `move_left`, `move_right`, `move_up`, `move_down` | Directional movement |
-| `action` | Primary game mechanic |
-| `pause` | Pause or resume |
-| `restart` | Fast retry after an outcome |
+| `1` | player body |
+| `2` | operands |
+| `3` | altars and ResetShell |
+| `4` | solid world and CoralGate |
 
-## Expected Assets
+## Level 1 Authored Data
 
-Placeholders are allowed. Keep these stable names until the art/audio pass deliberately replaces the
-contract.
+| Phase | Operation | Correct operands | Distractors | Target |
+| --- | --- | --- | --- | --- |
+| Land | addition | `4`, `6` | `2`, `7` | `10` |
+| Water | subtraction in collection order | `14`, `4` | `8`, `3` | `10` |
 
-- `assets/sprites/player_idle.png`
-- `assets/sprites/player_move.png`
-- `assets/sprites/enemy_basic.png`
-- `assets/sprites/collectible_core.png`
-- `assets/audio/sfx_collect.wav`
-- `assets/audio/sfx_hit.wav`
-- `assets/audio/sfx_win.wav`
-- `assets/audio/sfx_lose.wav`
-
-## Feature Contract Template
-
-Add a row or short section before parallel implementation:
+## Stable Assets
 
 ```text
-Feature:
-Owner:
-Owned scenes/scripts:
-Inputs:
-Emits:
-Consumes:
-Assets:
-Reset behavior:
-Isolation test:
-Main-scene test:
-Fallback/cut:
+assets/sprites/player_idle.png
+assets/sprites/player_water.png
+assets/sprites/operand.png
+assets/sprites/guardian_10.png
+assets/sprites/guardian_10_hurt.png
+assets/sprites/guardian_10_defeated.png
+assets/sprites/level_01_sand.png
+assets/sprites/level_01_water.png
+assets/audio/sfx_operand_collect.wav
+assets/audio/sfx_equation_wrong.wav
+assets/audio/sfx_shield_break.wav
+assets/audio/sfx_tide.wav
+assets/audio/sfx_level_win.wav
 ```
 
-## Contract Change Rule
+Placeholders may replace any asset while preserving its path or updating all consumers in one change.
 
-The proposing owner updates this file. Every affected owner acknowledges the change before merge.
-Rinata verifies the composition root and restart path after integration.
+## Reset Contract
+
+- Wrong Easy-mode submission clears operands and restores active operands without reloading the level.
+- Full restart removes the old Level 1 instance, resets GameState, creates a fresh instance, resets UI,
+  emits `run_started`, and enables input.
+- Transition can happen only once per run.
+- Old nodes and signal connections must not survive a full restart.
+
+## Integration Gate
+
+Level 1 is integrated only when:
+
+- `4 + 6 = 10` triggers the tide;
+- `14 - 4 = 10` defeats Guardian10;
+- wrong answers recover immediately;
+- result-screen restart returns to untouched dry state;
+- `tools/qa.cmd` passes;
+- the twelve-step manual test in `ARCHITECTURE.md` passes.
