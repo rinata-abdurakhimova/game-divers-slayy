@@ -24,9 +24,6 @@ SceneLoader="*res://scripts/autoload/SceneLoader.gd"
 
 [display]
 
-window/size/viewport_width=1152
-window/size/viewport_height=648
-window/size/mode=0
 window/size/window_width_override=1152
 window/size/window_height_override=648
 window/stretch/mode="canvas_items"
