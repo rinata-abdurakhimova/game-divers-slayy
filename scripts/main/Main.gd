@@ -133,8 +133,9 @@ func _on_boss_defeat_done() -> void:
 	cutscene_outro.show()
 
 
-# Outro slides done → restart
+# Outro slides done → show the victory result screen (PLAY AGAIN)
 func _on_outro_completed() -> void:
 	Engine.time_scale = 1.0
 	get_tree().paused  = false
-	GameEvents.restart_requested.emit()
+	cutscene_outro.hide()
+	result_screen.show_result()
