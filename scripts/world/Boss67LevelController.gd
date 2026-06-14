@@ -605,8 +605,6 @@ func _is_pickup_position_clear(position: Vector2) -> bool:
 
 	var block_size := Vector2(BLOCK_SIZE, BLOCK_SIZE)
 	for block: Vector2i in AUTHORED_BLOCKS:
-		if block.x < FIGHT_START_COLUMN:
-			continue
 		for column_offset: int in [-MAP_COLUMNS, 0, MAP_COLUMNS]:
 			var block_center: Vector2 = _block_position(block.x + column_offset, block.y)
 			var block_rect := Rect2(block_center - block_size * 0.5, block_size)
