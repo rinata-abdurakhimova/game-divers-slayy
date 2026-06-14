@@ -66,6 +66,7 @@ theme_override_styles/panel = SubResource("StyleBox_panel")
 
 [node name="WaterColumn" type="VBoxContainer" parent="TopMargin/TopRow/LeftColumn/WaterPanel"]
 layout_mode = 2
+theme_override_constants/separation = 3
 
 [node name="WaterTimerLabel" type="Label" parent="TopMargin/TopRow/LeftColumn/WaterPanel/WaterColumn"]
 unique_name_in_owner = true
@@ -80,6 +81,15 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
 theme_override_font_sizes/font_size = 13
 text = "A: BOSS MULTIPLIES"
+autowrap_mode = 2
+
+[node name="WaterComplicationLabel" type="Label" parent="TopMargin/TopRow/LeftColumn/WaterPanel/WaterColumn"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+text = "↔  LEFT / RIGHT REVERSED"
 autowrap_mode = 2
 
 [node name="CenterColumn" type="VBoxContainer" parent="TopMargin/TopRow"]
@@ -135,12 +145,24 @@ visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_panel")
 
-[node name="PowerupLabel" type="Label" parent="TopMargin/TopRow/RightColumn/PowerupPanel"]
+[node name="PowerupColumn" type="VBoxContainer" parent="TopMargin/TopRow/RightColumn/PowerupPanel"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="SlowPowerupLabel" type="Label" parent="TopMargin/TopRow/RightColumn/PowerupPanel/PowerupColumn"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.56, 0.89, 0.76, 1)
+theme_override_colors/font_color = Color(1, 0.86, 0.32, 1)
 theme_override_font_sizes/font_size = 15
-text = "SLOW  5.0s"
+text = "★  SLOW BOSS  5.0s"
+horizontal_alignment = 2
+
+[node name="JumpPowerupLabel" type="Label" parent="TopMargin/TopRow/RightColumn/PowerupPanel/PowerupColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 1, 0.55, 1)
+theme_override_font_sizes/font_size = 15
+text = "↑↑  DOUBLE JUMP  5.0s"
 horizontal_alignment = 2
 
 [node name="StatePanel" type="PanelContainer" parent="."]

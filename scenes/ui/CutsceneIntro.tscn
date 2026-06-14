@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/CutsceneIntro.gd" id="1_intro"]
+[ext_resource type="Script" path="res://scripts/ui/RuntimeBackdrop.gd" id="2_backdrop"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_card"]
 bg_color = Color(0.188, 0.141, 0.239, 0.97)
@@ -28,14 +29,39 @@ grow_vertical = 2
 process_mode = 3
 script = ExtResource("1_intro")
 
-[node name="Sky" type="ColorRect" parent="."]
+[node name="SkyBase" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.58, 0.79, 0.94, 1)
+mouse_filter = 2
+color = Color(0.19, 0.11, 0.3, 1)
+
+[node name="Sky" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+self_modulate = Color(1, 0.76, 0.94, 1)
+script = ExtResource("2_backdrop")
+source_path = "res://images/background.png"
+
+[node name="PinkSkyWash" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.95, 0.35, 0.72, 0.22)
 
 [node name="Sand" type="ColorRect" parent="."]
 layout_mode = 1
@@ -45,7 +71,7 @@ anchor_bottom = 1.0
 offset_top = -170.0
 grow_horizontal = 2
 grow_vertical = 0
-color = Color(0.91, 0.69, 0.38, 1)
+color = Color(0.91, 0.67, 0.35, 0.94)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1

@@ -41,7 +41,7 @@ func _on_water_started(
 	complication: GameRules.WaterComplication,
 	_seconds: float
 ) -> void:
-	rule_title.text = "PINK TIDE: RULES CHANGED"
+	rule_title.text = "BLUE FLOOD: RULES CHANGED"
 	rule_body.text = _rule_description(variant, complication)
 	rule_card.show()
 	show()
@@ -59,7 +59,6 @@ func _close_card() -> void:
 	rule_card.hide()
 	_hide_seconds_left = 0.0
 	set_process(false)
-	hide()
 
 
 func _rule_description(

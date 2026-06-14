@@ -9,17 +9,17 @@ const MAX_RECENT_OPERATIONS: int = 4
 @onready var water_panel: Control = %WaterPanel
 @onready var water_timer_label: Label = %WaterTimerLabel
 @onready var water_rule_label: Label = %WaterRuleLabel
+@onready var water_complication_label: Label = %WaterComplicationLabel
 @onready var powerup_panel: Control = %PowerupPanel
-@onready var powerup_label: Label = %PowerupLabel
+@onready var slow_powerup_label: Label = %SlowPowerupLabel
+@onready var jump_powerup_label: Label = %JumpPowerupLabel
 @onready var state_label: Label = %StateLabel
 @onready var pause_panel: Control = %PausePanel
 
-# The parent PanelContainer for Score and Target labels
 @onready var score_panel: Control = %ScoreLabel.get_parent().get_parent()
 
 var _recent_operations: Array[String] = []
 var _powerup_seconds: Dictionary[StringName, float] = {}
-var _score_visibility_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -39,12 +39,6 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not get_tree().paused:
-		if _score_visibility_timer > 0.0:
-			_score_visibility_timer -= delta
-			if _score_visibility_timer <= 0.0:
-				score_panel.hide()
-
 	if _powerup_seconds.is_empty() or get_tree().paused:
 		return
 	for kind: StringName in _powerup_seconds:
@@ -59,17 +53,17 @@ func set_paused(paused: bool) -> void:
 func _on_run_started() -> void:
 	_recent_operations.clear()
 	_powerup_seconds.clear()
-	_score_visibility_timer = 0.0
-	score_panel.hide()
+	score_panel.show()
 	operations_label.text = "RECENT\n--"
 	state_label.text = "REACH EXACTLY 67"
 	pause_panel.hide()
+	water_panel.hide()
+	powerup_panel.hide()
 	_apply_snapshot(GameState.get_run_snapshot())
 
 
 func _on_score_changed(_score_cents: int, _display: String) -> void:
 	score_label.text = "SCORE  %s" % _format_score_ui(_score_cents)
-	_score_visibility_timer = 3.0
 	score_panel.show()
 
 
@@ -101,7 +95,6 @@ func _on_boss_phase_changed(new_phase: GameRules.BossPhase) -> void:
 			state_label.text = "BOSS 67 IS AHEAD"
 		GameRules.BossPhase.LAND_WHITE:
 			state_label.text = "WHITE NUMBERS HIT BLOCKS"
-			_score_visibility_timer = 4.0
 			score_panel.show()
 		GameRules.BossPhase.LAND_PURPLE:
 			state_label.text = "PURPLE NUMBERS PASS THROUGH BLOCKS"
@@ -119,6 +112,7 @@ func _on_water_started(
 	water_panel.show()
 	phase_label.text = "WATER  |  %d BLOCKS" % GameState.distance_blocks
 	water_rule_label.text = _water_rule_text(variant, complication)
+	_set_water_complication(complication)
 	_on_water_timer_changed(seconds)
 
 
@@ -128,6 +122,7 @@ func _on_water_timer_changed(seconds_left: float) -> void:
 
 func _on_water_finished() -> void:
 	water_panel.hide()
+	water_complication_label.hide()
 	phase_label.text = "LAND  |  %d BLOCKS" % GameState.distance_blocks
 
 
@@ -156,17 +151,37 @@ func _apply_snapshot(snapshot: Dictionary) -> void:
 		GameRules.WaterVariant.NONE
 	)
 	water_panel.visible = snapshot_water != GameRules.WaterVariant.NONE
-	powerup_panel.hide()
+	if snapshot_water != GameRules.WaterVariant.NONE:
+		water_rule_label.text = _water_rule_text(
+			snapshot_water,
+			snapshot.get("water_complication", GameRules.WaterComplication.NONE)
+		)
+		_set_water_complication(
+			snapshot.get("water_complication", GameRules.WaterComplication.NONE)
+		)
+		_on_water_timer_changed(float(snapshot.get("water_seconds_left", 0.0)))
+	else:
+		water_complication_label.hide()
+
+	_powerup_seconds.clear()
+	var snapshot_powerups: Dictionary = snapshot.get("active_powerups", {})
+	for kind: Variant in snapshot_powerups:
+		_powerup_seconds[StringName(kind)] = float(snapshot_powerups[kind])
+	_refresh_powerup_text()
+	score_panel.show()
 
 
 func _refresh_powerup_text() -> void:
 	if _powerup_seconds.is_empty():
 		powerup_panel.hide()
 		return
-	var lines: Array[String] = []
-	for kind: StringName in _powerup_seconds:
-		lines.append("%s  %.1fs" % [str(kind).replace("_", " ").to_upper(), _powerup_seconds[kind]])
-	powerup_label.text = "\n".join(lines)
+
+	var slow_seconds: float = float(_powerup_seconds.get(GameRules.POWERUP_SLOW, 0.0))
+	var jump_seconds: float = float(_powerup_seconds.get(GameRules.POWERUP_DOUBLE_JUMP, 0.0))
+	slow_powerup_label.visible = slow_seconds > 0.0
+	jump_powerup_label.visible = jump_seconds > 0.0
+	slow_powerup_label.text = "★  SLOW BOSS  %.1fs" % slow_seconds
+	jump_powerup_label.text = "↑↑  DOUBLE JUMP  %.1fs" % jump_seconds
 	powerup_panel.show()
 
 
@@ -178,10 +193,18 @@ func _water_rule_text(
 		else "B: FLOOR MULTIPLIES" if variant == GameRules.WaterVariant.WATER_B \
 		else "C: BOSS SUBTRACTS"
 	if complication == GameRules.WaterComplication.REVERSED_CONTROLS:
-		rule_text += "  |  CONTROLS REVERSED"
+		rule_text += "  |  REVERSED"
 	elif complication == GameRules.WaterComplication.INVERTED_GRAVITY:
 		rule_text += "  |  GRAVITY INVERTED"
 	return rule_text
+
+
+func _set_water_complication(complication: GameRules.WaterComplication) -> void:
+	if complication == GameRules.WaterComplication.REVERSED_CONTROLS:
+		water_complication_label.text = "↔  LEFT / RIGHT REVERSED"
+		water_complication_label.show()
+	else:
+		water_complication_label.hide()
 
 
 func _operation_label_ui(operation: StringName, value_cents: int) -> String:

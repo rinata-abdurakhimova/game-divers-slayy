@@ -7,7 +7,7 @@
 - License: Creative Commons Attribution 4.0 International
 - License text: https://creativecommons.org/licenses/by/4.0/
 
-Previously selected visual files:
+Level 1 files present in the repository:
 
 ```text
 assets/third_party/o_lobster/level_01_backdrop.png
@@ -15,6 +15,13 @@ assets/third_party/o_lobster/level_01_prop_01.png
 assets/third_party/o_lobster/level_01_prop_02.png
 assets/third_party/o_lobster/level_01_prop_03.png
 ```
+
+Current usage:
+
+- These files remain credited because they are present in the repository and used by the archived
+  `Level_01.tscn` prototype.
+- The final Boss 67 UI uses the project-owned `images/background.png` and
+  `images/background-sea-mode.png`; they are not third-party assets.
 
 The new platformer concept may reuse the pack only as visual source art. The pack does not provide
 movement, score, water, projectiles, boss behavior, or restart logic.
