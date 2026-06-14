@@ -161,6 +161,7 @@ Power-ups are rare and spawn on high points.
 - Score `67.00` wins.
 - Restart without relaunch.
 - HUD with score, target, phase, water rule, water timer, and active power-up.
+- VirtualGamepad shows automatically on touch-capable devices.
 - `tools/qa.cmd` passes.
 
 ## Should Ship
@@ -171,6 +172,7 @@ Power-ups are rare and spawn on high points.
 - Rare green double-jump power-up.
 - Basic Boss 67 animations and readable projectile colors.
 - Cutscene art pass.
+- Virtual mobile gamepad (joystick + jump/action/pause buttons).
 
 ## Could Ship
 

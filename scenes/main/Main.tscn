@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/ResultScreen.tscn" id="5_result"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CutsceneIntro.tscn" id="6_intro"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CutsceneOutro.tscn" id="7_outro"]
+[ext_resource type="PackedScene" path="res://scenes/ui/VirtualGamepad.tscn" id="8_gamepad"]
 
 [node name="Main" type="Node" unique_id=1068110414]
 script = ExtResource("1_main")
@@ -34,3 +35,6 @@ unique_name_in_owner = true
 [node name="CutsceneOutro" parent="UI" instance=ExtResource("7_outro")]
 unique_name_in_owner = true
 visible = false
+
+[node name="VirtualGamepad" parent="UI" instance=ExtResource("8_gamepad")]
+unique_name_in_owner = true
