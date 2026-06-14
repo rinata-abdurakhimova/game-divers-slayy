@@ -669,7 +669,7 @@ func _set_runtime_nodes_enabled(nodes: Array[Node], enabled: bool) -> void:
 			continue
 		var shape: CollisionShape2D = node as CollisionShape2D
 		if shape != null:
-			shape.disabled = not enabled
+			shape.set_deferred(&"disabled", not enabled)
 			continue
 		var canvas_item: CanvasItem = node as CanvasItem
 		if canvas_item != null:
@@ -680,5 +680,5 @@ func _set_node_tree_collision_enabled(node: Node, enabled: bool) -> void:
 	for child: Node in node.get_children():
 		var shape: CollisionShape2D = child as CollisionShape2D
 		if shape != null:
-			shape.disabled = not enabled
+			shape.set_deferred(&"disabled", not enabled)
 		_set_node_tree_collision_enabled(child, enabled)

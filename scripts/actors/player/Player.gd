@@ -29,6 +29,14 @@ signal reset_completed
 @export var fallback_jump_action: StringName = &"action"
 @export var respect_game_state_input: bool = true
 
+@export_group("Auto Jump")
+@export var auto_jump_enabled: bool = true
+@export var auto_jump_gaps: bool = false
+@export_range(0.05, 0.5, 0.01) var auto_jump_cooldown_seconds: float = 0.18
+@export var wall_detector_path: NodePath = ^"WallDetector"
+@export var high_clearance_detector_path: NodePath = ^"HighClearanceDetector"
+@export var gap_detector_path: NodePath = ^"GapDetector"
+
 @export_group("Visuals")
 @export var land_visual_path: NodePath = ^"LandVisual"
 @export var water_visual_path: NodePath = ^"WaterVisual"
@@ -44,15 +52,22 @@ var _double_jump_used: bool = false
 
 var _land_visual: CanvasItem = null
 var _water_visual: CanvasItem = null
+var _wall_detector: RayCast2D = null
+var _high_clearance_detector: RayCast2D = null
+var _gap_detector: RayCast2D = null
 var _was_moving: bool = false
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
+var _auto_jump_cooldown_left: float = 0.0
 
 
 func _ready() -> void:
 	spawn_position = global_position
 	_land_visual = get_node_or_null(land_visual_path) as CanvasItem
 	_water_visual = get_node_or_null(water_visual_path) as CanvasItem
+	_wall_detector = get_node_or_null(wall_detector_path) as RayCast2D
+	_high_clearance_detector = get_node_or_null(high_clearance_detector_path) as RayCast2D
+	_gap_detector = get_node_or_null(gap_detector_path) as RayCast2D
 	_connect_game_events()
 	_apply_phase_visuals(current_phase)
 
@@ -62,8 +77,10 @@ func _physics_process(delta: float) -> void:
 		_stop_for_disabled_input()
 		return
 
+	var horizontal_input: float = _read_horizontal_input()
 	_update_jump_timers(delta)
-	_update_horizontal_velocity(_read_horizontal_input(), delta)
+	_handle_auto_jump(horizontal_input, delta)
+	_update_horizontal_velocity(horizontal_input, delta)
 	_apply_gravity(delta)
 	_try_buffered_jump()
 	_apply_short_hop()
@@ -92,6 +109,7 @@ func reset_player(new_spawn_position: Variant = null) -> void:
 	_was_moving = false
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
+	_auto_jump_cooldown_left = 0.0
 	_controls_reversed = false
 	_gravity_inverted = false
 	_has_double_jump = false
@@ -104,6 +122,53 @@ func reset_player(new_spawn_position: Variant = null) -> void:
 func grant_double_jump() -> void:
 	_has_double_jump = true
 	_double_jump_used = false
+
+
+func _handle_auto_jump(horizontal_input: float, delta: float) -> void:
+	_auto_jump_cooldown_left = maxf(0.0, _auto_jump_cooldown_left - delta)
+	if not auto_jump_enabled or _auto_jump_cooldown_left > 0.0:
+		return
+	if not _is_on_ground() or is_zero_approx(horizontal_input):
+		return
+	if _wall_detector == null or _high_clearance_detector == null:
+		return
+
+	var direction: float = signf(horizontal_input)
+	_face_detector(_wall_detector, direction)
+	_face_detector(_high_clearance_detector, direction)
+	_face_gap_detector(direction)
+
+	_wall_detector.force_raycast_update()
+	_high_clearance_detector.force_raycast_update()
+	if _gap_detector != null:
+		_gap_detector.force_raycast_update()
+
+	var one_block_wall_ahead: bool = (
+		_wall_detector.is_colliding()
+		and not _high_clearance_detector.is_colliding()
+	)
+	var gap_ahead: bool = (
+		auto_jump_gaps
+		and _gap_detector != null
+		and not _gap_detector.is_colliding()
+	)
+	if not one_block_wall_ahead and not gap_ahead:
+		return
+
+	velocity.y = -jump_velocity if _gravity_inverted else jump_velocity
+	_jump_buffer_timer = 0.0
+	_coyote_timer = 0.0
+	_auto_jump_cooldown_left = auto_jump_cooldown_seconds
+
+
+func _face_detector(detector: RayCast2D, direction: float) -> void:
+	detector.target_position.x = absf(detector.target_position.x) * direction
+
+
+func _face_gap_detector(direction: float) -> void:
+	if _gap_detector == null:
+		return
+	_gap_detector.position.x = absf(_gap_detector.position.x) * direction
 
 
 func _read_horizontal_input() -> float:
