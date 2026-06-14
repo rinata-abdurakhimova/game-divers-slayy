@@ -1,5 +1,7 @@
 extends Control
 
+signal intro_finished
+
 @onready var start_button: Button = %StartButton
 
 var _finished: bool = false
@@ -22,4 +24,5 @@ func finish_intro() -> void:
 		return
 	_finished = true
 	hide()
+	intro_finished.emit()
 	GameEvents.cutscene_finished.emit()

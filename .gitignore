@@ -4,8 +4,9 @@
 # Translation auto-generated files
 *.translation
 
-# Export presets (personal paths/configs)
-export_presets.cfg
+# Generated release output
+build/*
+!build/.gdignore
 
 # macOS system files
 .DS_Store

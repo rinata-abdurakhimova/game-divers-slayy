@@ -19,6 +19,7 @@ content_margin_right = 28.0
 content_margin_bottom = 22.0
 
 [node name="WaterRuleOverlay" type="Control"]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

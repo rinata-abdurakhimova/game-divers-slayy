@@ -13,6 +13,7 @@ config_version=5
 config/name="Slay Diver: Rise of 67"
 run/main_scene="res://scenes/main/Main.tscn"
 config/features=PackedStringArray("4.6")
+config/icon="res://images/slay-diver.svg"
 
 [autoload]
 
@@ -23,9 +24,11 @@ SceneLoader="*res://scripts/autoload/SceneLoader.gd"
 
 [display]
 
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/size/mode=0
 window/size/window_width_override=1152
 window/size/window_height_override=648
-window/size/mode=3
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 

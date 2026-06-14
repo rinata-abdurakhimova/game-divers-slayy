@@ -85,7 +85,7 @@ const AUTHORED_BLOCKS: Array[Vector2i] = [
 @export var score_pickup_scene: PackedScene
 @export var boss_projectile_scene: PackedScene
 @export var powerup_scene: PackedScene
-@export_file("*.png", "*.jpg", "*.jpeg", "*.webp") var block_texture_path: String
+@export var block_texture: Texture2D
 
 @export_group("Tuning")
 @export var purple_distance: int = GameRules.FIRST_PURPLE_DISTANCE_BLOCKS
@@ -153,7 +153,7 @@ func _ready() -> void:
 	_powerup_root = get_node_or_null(powerup_root_path) as Node2D
 	_terrain_visual = get_node_or_null(terrain_visual_path) as Node2D
 	_terrain = get_node_or_null(terrain_path) as StaticBody2D
-	_block_texture = _load_runtime_texture(block_texture_path)
+	_block_texture = block_texture
 
 	_build_authored_blocks()
 	_build_tutorial_block()
@@ -245,24 +245,6 @@ func _create_block_visual(position: Vector2) -> CanvasItem:
 	fallback.color = Color(0.68, 0.48, 0.22, 1.0)
 	fallback.position = position
 	return fallback
-
-
-func _load_runtime_texture(source_path: String) -> Texture2D:
-	if source_path.is_empty():
-		return null
-	var image := Image.new()
-	if image.load(ProjectSettings.globalize_path(source_path)) != OK or image.is_empty():
-		push_warning("Unable to load block texture: %s" % source_path)
-		return null
-	return ImageTexture.create_from_image(image)
-
-
-func _block_position(column: int, row: int) -> Vector2:
-	return Vector2(
-		(column - 1) * BLOCK_SIZE + BLOCK_SIZE * 0.5,
-		FLOOR_TOP_Y - (row - 0.5) * BLOCK_SIZE
-	)
-
 
 func _wrapped_block_position(column: int, row: int) -> Vector2:
 	var base: Vector2 = _block_position(column, row)

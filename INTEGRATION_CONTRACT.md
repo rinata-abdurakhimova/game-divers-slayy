@@ -260,6 +260,10 @@ result and HUD UI controls
 The platformer asset pack is visual-only. It does not provide movement, score, water, boss, or restart
 logic.
 
+Release-critical textures must be assigned as Godot `Texture2D` resources in scenes or exported
+properties. Do not load `res://` visuals through `ProjectSettings.globalize_path()`, `Image.load()`,
+or other operating-system file paths because those files are virtual inside Web/PCK exports.
+
 Projectile digits must stay readable over both land sky and water overlay. White projectiles should
 read as white/red arithmetic, and purple projectiles should read as purple arithmetic that is distinct
 from green pickups and power-ups.

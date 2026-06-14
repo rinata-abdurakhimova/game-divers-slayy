@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/CutsceneIntro.gd" id="1_intro"]
 [ext_resource type="Script" path="res://scripts/ui/RuntimeBackdrop.gd" id="2_backdrop"]
+[ext_resource type="Texture2D" path="res://images/background.png" id="3_land"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_card"]
 bg_color = Color(0.188, 0.141, 0.239, 0.97)
@@ -51,7 +52,7 @@ expand_mode = 1
 stretch_mode = 6
 self_modulate = Color(1, 0.76, 0.94, 1)
 script = ExtResource("2_backdrop")
-source_path = "res://images/background.png"
+source_texture = ExtResource("3_land")
 
 [node name="PinkSkyWash" type="ColorRect" parent="."]
 layout_mode = 1

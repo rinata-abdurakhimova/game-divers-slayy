@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/Boss67LevelController.gd" id="1_ctrl"]
 [ext_resource type="PackedScene" path="res://scenes/actors/Player.tscn" id="2_player"]
@@ -7,6 +7,9 @@
 [ext_resource type="PackedScene" path="res://scenes/actors/numbers/BossProjectile.tscn" id="5_projectile"]
 [ext_resource type="PackedScene" path="res://scenes/actors/powerups/PowerUp.tscn" id="6_powerup"]
 [ext_resource type="Script" path="res://scripts/ui/RuntimeBackdrop.gd" id="7_backdrop"]
+[ext_resource type="Texture2D" path="res://images/background.png" id="8_land"]
+[ext_resource type="Texture2D" path="res://images/background-sea-mode.png" id="9_water"]
+[ext_resource type="Texture2D" path="res://assets/third_party/o_lobster/level_01_prop_03.png" id="10_block"]
 
 [sub_resource type="RectangleShape2D" id="Rect_floor"]
 size = Vector2(4800, 40)
@@ -45,7 +48,7 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 script = ExtResource("7_backdrop")
-source_path = "res://images/background.png"
+source_texture = ExtResource("8_land")
 
 [node name="WaterBackground" type="TextureRect" parent="BackgroundCanvas/BackgroundRoot"]
 visible = false
@@ -59,7 +62,7 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 script = ExtResource("7_backdrop")
-source_path = "res://images/background-sea-mode.png"
+source_texture = ExtResource("9_water")
 
 [node name="Background" type="Node2D" parent="."]
 
@@ -174,4 +177,4 @@ terrain_path = NodePath("../Terrain")
 score_pickup_scene = ExtResource("4_pickup")
 boss_projectile_scene = ExtResource("5_projectile")
 powerup_scene = ExtResource("6_powerup")
-block_texture_path = "res://assets/third_party/o_lobster/level_01_prop_03.png"
+block_texture = ExtResource("10_block")

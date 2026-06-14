@@ -87,26 +87,39 @@ func _load_main() -> void:
 
 
 func _start_gameplay() -> void:
+	var game_state: Node = root.get_node(^"GameState")
 	var intro: Control = current_scene.get_node(^"UI/CutsceneIntro") as Control
 	intro.call(&"finish_intro")
 	await process_frame
 	assert(not intro.visible)
+	assert(not (current_scene.get_node(^"UI/ResultScreen") as Control).visible)
 	assert(current_scene.get_node(^"LevelContainer").get_child_count() == 1)
 	var level: Node = current_scene.get_node(^"LevelContainer").get_child(0)
 	assert(level.name == &"Boss67Level")
+	assert((level as Node2D).visible)
+	assert(level.process_mode == Node.PROCESS_MODE_INHERIT)
 	assert(level.get_node(^"LevelController").get_script() != null)
 	var player: CharacterBody2D = level.get_node(^"Actors/Player") as CharacterBody2D
-	assert(player.global_position.distance_to(Vector2(100, 585)) < 1.0)
+	assert(player.global_position.distance_to(Vector2(60, 555)) < 1.0)
 	assert(player.velocity.length_squared() < 1.0)
 	assert(level.get_node(^"Pickups").get_child_count() == 0)
 	assert(level.get_node(^"Projectiles").get_child_count() == 0)
 	assert((current_scene.get_node(^"UI/HUD") as Control).visible)
+	assert(game_state.get("score_cents") == GameRules.BOSS_67_START_SCORE_CENTS)
+	assert(game_state.get("phase") == GameRules.RunPhase.SAFE_START)
+	assert(not game_state.get("outcome_locked"))
 
 
 func _assert_intro_state(game_state: Node) -> void:
 	assert((current_scene.get_node(^"UI/CutsceneIntro") as Control).visible)
-	assert(current_scene.get_node(^"LevelContainer").get_child_count() == 0)
+	assert(current_scene.get_node(^"LevelContainer").get_child_count() == 1)
+	var level: Node2D = current_scene.get_node(^"LevelContainer/Boss67Level") as Node2D
+	assert(not level.visible)
+	assert(level.process_mode == Node.PROCESS_MODE_DISABLED)
 	assert(not (current_scene.get_node(^"UI/HUD") as Control).visible)
+	assert(not (current_scene.get_node(^"UI/TutorialOverlay") as Control).visible)
+	assert(not (current_scene.get_node(^"UI/WaterRuleOverlay") as Control).visible)
+	assert(not (current_scene.get_node(^"UI/ResultScreen") as Control).visible)
 	assert(game_state.get("score_cents") == GameRules.BOSS_67_START_SCORE_CENTS)
 	assert(game_state.get("distance_blocks") == 0)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.HIDDEN)

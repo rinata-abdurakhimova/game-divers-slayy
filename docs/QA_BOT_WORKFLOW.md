@@ -46,7 +46,7 @@ headless Godot boot when `project.godot` and a Godot executable are available.
 13. Touch or simulate a `*0` and confirm score `0.00` fails.
 14. Restart.
 15. Reach `18` blocks and confirm purple projectiles begin.
-16. Reach `28` blocks and confirm water starts for `10` seconds.
+16. Reach `28` blocks and confirm water starts for `20` seconds.
 17. Confirm the HUD shows the active water rule and the reversed-controls condition.
 18. Confirm score can become negative without failing.
 19. Reach exact `67.00` and confirm victory.
