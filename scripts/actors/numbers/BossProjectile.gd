@@ -1,7 +1,7 @@
 class_name BossProjectile
 extends Area2D
 
-@export var speed: float = 180.0
+@export var speed: float = 100.0
 @export var value_cents: int = 50
 @export var operation: StringName = GameRules.SCORE_OPERATION_MULTIPLY
 @export var is_purple: bool = false
