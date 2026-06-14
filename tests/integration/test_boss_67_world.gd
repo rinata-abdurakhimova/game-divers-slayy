@@ -59,10 +59,10 @@ func _run() -> void:
 		if child is Timer:
 			(child as Timer).stop()
 
-	player.global_position = Vector2(-10, 555)
+	player.global_position = Vector2(-600, 555)
 	player.velocity = Vector2(-200, 0)
 	controller.call(&"_process", 0.0)
-	assert(player.global_position.x > 2500.0)
+	assert(player.global_position.x > 1900.0)
 
 	player.global_position = Vector2(864, 555)
 	player.velocity = Vector2.ZERO
@@ -96,7 +96,7 @@ func _run() -> void:
 	purple.set(&"speed", 120.0)
 	purple.set(&"is_purple", true)
 	projectiles.add_child(purple)
-	purple.global_position = Vector2(500, 576)
+	purple.global_position = Vector2(500, 200)
 	await _physics_frames(80)
 	assert(is_instance_valid(purple))
 	assert(purple.global_position.x < 384.0)

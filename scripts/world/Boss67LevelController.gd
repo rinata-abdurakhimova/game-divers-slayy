@@ -13,6 +13,8 @@ const VIEWPORT_HEIGHT: float = 648.0
 const MAP_END_X: float = MAP_COLUMNS * BLOCK_SIZE
 const FIGHT_START_X: float = (FIGHT_START_COLUMN - 1) * BLOCK_SIZE
 const BOSS_ROUTE_COLUMNS: int = MAP_COLUMNS - SAFE_ZONE_COLUMNS
+const WRAP_MARGIN_COLUMNS: int = 12
+const WRAP_MARGIN_X: float = WRAP_MARGIN_COLUMNS * BLOCK_SIZE
 
 const AUTHORED_BLOCKS: Array[Vector2i] = [
 	Vector2i(2, 1),
@@ -122,6 +124,7 @@ var _powerup_timer: Timer
 var _shot_queue_timer: Timer
 var _shot_queue: Array[Dictionary] = []
 var _authored_runtime_nodes: Array[Node] = []
+var _wrapped_runtime_nodes: Array[Node] = []
 var _tutorial_runtime_nodes: Array[Node] = []
 
 
@@ -166,20 +169,28 @@ func _build_authored_blocks() -> void:
 	if not _authored_runtime_nodes.is_empty():
 		return
 	for block: Vector2i in AUTHORED_BLOCKS:
-		var position: Vector2 = _block_position(block.x, block.y)
-		if _terrain != null:
-			var collision_shape := CollisionShape2D.new()
-			var rectangle := RectangleShape2D.new()
-			rectangle.size = Vector2(BLOCK_SIZE, BLOCK_SIZE)
-			collision_shape.shape = rectangle
-			collision_shape.position = position
-			_terrain.add_child(collision_shape)
-			_authored_runtime_nodes.append(collision_shape)
+		_create_block(block.x, block.y, _authored_runtime_nodes)
 
-		if _terrain_visual != null:
-			var visual: CanvasItem = _create_block_visual(position)
-			_terrain_visual.add_child(visual)
-			_authored_runtime_nodes.append(visual)
+	for block: Vector2i in AUTHORED_BLOCKS:
+		_create_block(block.x + MAP_COLUMNS, block.y, _wrapped_runtime_nodes)
+		_create_block(block.x - MAP_COLUMNS, block.y, _wrapped_runtime_nodes)
+
+
+func _create_block(column: int, row: int, nodes: Array[Node]) -> void:
+	var position: Vector2 = _block_position(column, row)
+	if _terrain != null:
+		var collision_shape := CollisionShape2D.new()
+		var rectangle := RectangleShape2D.new()
+		rectangle.size = Vector2(BLOCK_SIZE, BLOCK_SIZE)
+		collision_shape.shape = rectangle
+		collision_shape.position = position
+		_terrain.add_child(collision_shape)
+		nodes.append(collision_shape)
+
+	if _terrain_visual != null:
+		var visual: CanvasItem = _create_block_visual(position)
+		_terrain_visual.add_child(visual)
+		nodes.append(visual)
 
 
 func _build_tutorial_block() -> void:
@@ -242,6 +253,26 @@ func _block_position(column: int, row: int) -> Vector2:
 	)
 
 
+func _wrapped_block_position(column: int, row: int) -> Vector2:
+	var base: Vector2 = _block_position(column, row)
+	var camera_x: float = _camera.global_position.x if _camera != null else base.x
+	var best: Vector2 = base
+	var best_dist: float = absf(base.x - camera_x)
+
+	var wrapped: Vector2 = _block_position(column + MAP_COLUMNS, row)
+	var dist: float = absf(wrapped.x - camera_x)
+	if dist < best_dist:
+		best = wrapped
+		best_dist = dist
+
+	wrapped = _block_position(column - MAP_COLUMNS, row)
+	dist = absf(wrapped.x - camera_x)
+	if dist < best_dist:
+		best = wrapped
+
+	return best
+
+
 func _connect_signals() -> void:
 	var trigger: Area2D = get_node_or_null(safe_trigger_path) as Area2D
 	if trigger != null:
@@ -293,6 +324,7 @@ func _reset_level_visibility() -> void:
 	if _water_background != null:
 		_water_background.hide()
 	_set_runtime_nodes_enabled(_authored_runtime_nodes, false)
+	_set_runtime_nodes_enabled(_wrapped_runtime_nodes, false)
 	_set_runtime_nodes_enabled(_tutorial_runtime_nodes, true)
 
 
@@ -304,11 +336,17 @@ func _clamp_or_loop_player() -> void:
 		_player.global_position.x = clampf(_player.global_position.x, 24.0, FIGHT_START_X - 12.0)
 		return
 
-	if _player.global_position.x < 0.0:
+	if _player.global_position.x < -WRAP_MARGIN_X:
 		_player.global_position.x += MAP_END_X
-	if _player.global_position.x >= MAP_END_X:
+		if _camera != null:
+			_camera.global_position.x += MAP_END_X
+			_camera.reset_smoothing()
+	if _player.global_position.x >= MAP_END_X + WRAP_MARGIN_X:
 		_player.global_position.x -= MAP_END_X
 		_total_blocks += MAP_COLUMNS
+		if _camera != null:
+			_camera.global_position.x -= MAP_END_X
+			_camera.reset_smoothing()
 
 
 func _update_camera_and_boss() -> void:
@@ -352,6 +390,7 @@ func _on_safe_trigger(_body: Node) -> void:
 		_safe_zone.hide()
 	_set_runtime_nodes_enabled(_tutorial_runtime_nodes, false)
 	_set_runtime_nodes_enabled(_authored_runtime_nodes, true)
+	_set_runtime_nodes_enabled(_wrapped_runtime_nodes, true)
 	if _boss != null:
 		_boss.show()
 
@@ -365,8 +404,8 @@ func _on_safe_trigger(_body: Node) -> void:
 		if game_state.has_method(&"set_boss_phase"):
 			game_state.set_boss_phase(GameRules.BossPhase.LAND_WHITE)
 
-	_seed_pickups()
-	_start_timers()
+	call_deferred("_seed_pickups")
+	call_deferred("_start_timers")
 
 
 func _seed_pickups() -> void:
@@ -491,7 +530,7 @@ func _random_pickup_position() -> Vector2:
 		var camera_x: float = _camera.global_position.x if _camera != null else FIGHT_START_X
 		return _clamp_pickup_position(Vector2(camera_x + randf_range(-240.0, 360.0), FLOOR_TOP_Y - BLOCK_SIZE * 2.0))
 
-	var base: Vector2 = _block_position(chosen.x, chosen.y)
+	var base: Vector2 = _wrapped_block_position(chosen.x, chosen.y)
 	var extra_height: float = 1.35 if chosen.y >= 4 else 1.1
 	return _clamp_pickup_position(Vector2(base.x, base.y - BLOCK_SIZE * extra_height))
 
@@ -511,10 +550,22 @@ func _visible_blocks(high_only: bool) -> Array[Vector2i]:
 			continue
 		if high_only and block.y < 4:
 			continue
-		var x: float = _block_position(block.x, block.y).x
-		if x >= left_edge and x <= right_edge:
+		if _block_visible(block.x, block.y, left_edge, right_edge):
 			result.append(block)
 	return result
+
+
+func _block_visible(column: int, row: int, left: float, right: float) -> bool:
+	var x: float = _block_position(column, row).x
+	if x >= left and x <= right:
+		return true
+	x = _block_position(column + MAP_COLUMNS, row).x
+	if x >= left and x <= right:
+		return true
+	x = _block_position(column - MAP_COLUMNS, row).x
+	if x >= left and x <= right:
+		return true
+	return false
 
 
 func _spawn_powerup() -> void:
@@ -545,7 +596,7 @@ func _random_powerup_position() -> Vector2:
 		return Vector2(camera_x + 260.0, FLOOR_TOP_Y - BLOCK_SIZE * 3.5)
 
 	var block: Vector2i = high_candidates[randi() % high_candidates.size()]
-	var base: Vector2 = _block_position(block.x, block.y)
+	var base: Vector2 = _wrapped_block_position(block.x, block.y)
 	return Vector2(base.x, base.y - BLOCK_SIZE * 1.45)
 
 
@@ -619,7 +670,7 @@ func _on_score_operation_applied(
 		return
 	if source != &"score_pickup" or operation != GameRules.SCORE_OPERATION_ADD:
 		return
-	var units: int = value_cents / 100
+	var units: int = int(value_cents / 100.0)
 	if units > 0 and (units % 6 == 0 or units % 7 == 0):
 		_trigger_water(&"score_divisible")
 
