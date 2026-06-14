@@ -72,20 +72,20 @@ const AUTHORED_BLOCKS: Array[Vector2i] = [
 
 @export_group("Tuning")
 @export var purple_distance: int = GameRules.FIRST_PURPLE_DISTANCE_BLOCKS
-@export var max_active_pickups: int = 9
+@export var max_active_pickups: int = 7
 @export var initial_pickup_count: int = 5
-@export var pickup_interval_min: float = 1.6
-@export var pickup_interval_max: float = 3.2
+@export var pickup_interval_min: float = 2.5
+@export var pickup_interval_max: float = 5.0
 @export var projectile_interval_min: float = 2.0
 @export var projectile_interval_max: float = 3.4
-@export var purple_interval_min: float = 3.2
-@export var purple_interval_max: float = 5.4
-@export var shot_gap_seconds: float = 0.75
-@export var purple_chance: float = 0.28
+@export var purple_interval_min: float = 3.5
+@export var purple_interval_max: float = 6.0
+@export var shot_gap_seconds: float = 1.0
+@export var purple_chance: float = 0.35
 @export var first_water_distance: int = GameRules.FIRST_WATER_DISTANCE_BLOCKS
 @export var water_retrigger_cooldown_seconds: float = GameRules.WATER_RETRIGGER_COOLDOWN_SECONDS
-@export var powerup_interval_min: float = 22.0
-@export var powerup_interval_max: float = 36.0
+@export var powerup_interval_min: float = 30.0
+@export var powerup_interval_max: float = 60.0
 @export var boss_camera_offset: Vector2 = Vector2(250.0, -215.0)
 
 var _player: CharacterBody2D
@@ -134,7 +134,6 @@ func _ready() -> void:
 	_build_authored_blocks()
 	_build_tutorial_block()
 	_reset_level_visibility()
-	_configure_player_autopilot([Vector2i(13, 1)])
 	_connect_signals()
 	_create_timers()
 
@@ -322,7 +321,6 @@ func _on_safe_trigger(_body: Node) -> void:
 		_safe_zone.hide()
 	_set_runtime_nodes_enabled(_tutorial_runtime_nodes, false)
 	_set_runtime_nodes_enabled(_authored_runtime_nodes, true)
-	_configure_player_autopilot(AUTHORED_BLOCKS)
 	if _boss != null:
 		_boss.show()
 
@@ -355,7 +353,8 @@ func _queue_volley() -> void:
 
 	var use_purple: bool = _purple_unlocked and randf() < purple_chance
 	var operations: Array[Dictionary] = _boss_operations()
-	var offsets: Array[float] = [-96.0, 0.0, 96.0]
+	var flank_offset: float = -96.0 if randf() < 0.5 else 96.0
+	var offsets: Array[float] = [0.0, flank_offset]
 	offsets.shuffle()
 
 	_shot_queue.clear()
@@ -539,6 +538,8 @@ func _trigger_water(reason: StringName) -> void:
 
 
 func _pick_complication() -> GameRules.WaterComplication:
+	if randf() > 0.5:
+		return GameRules.WaterComplication.INVERTED_GRAVITY
 	return GameRules.WaterComplication.REVERSED_CONTROLS
 
 
@@ -604,7 +605,6 @@ func _on_restart_requested() -> void:
 		_player.global_position = Vector2(60.0, 555.0)
 		_player.velocity = Vector2.ZERO
 	_reset_level_visibility()
-	_configure_player_autopilot([Vector2i(13, 1)])
 
 
 func _start_timers() -> void:
@@ -682,11 +682,3 @@ func _set_node_tree_collision_enabled(node: Node, enabled: bool) -> void:
 		if shape != null:
 			shape.disabled = not enabled
 		_set_node_tree_collision_enabled(child, enabled)
-
-
-func _configure_player_autopilot(blocks: Array[Vector2i]) -> void:
-	if _player == null:
-		return
-	if not _player.has_method(&"configure_autopilot_route"):
-		return
-	_player.call(&"configure_autopilot_route", blocks, FLOOR_TOP_Y, BLOCK_SIZE, MAP_COLUMNS)

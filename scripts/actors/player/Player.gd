@@ -19,7 +19,7 @@ signal reset_completed
 @export_range(0.0, 0.3, 0.01) var jump_buffer_seconds: float = 0.12
 
 @export_group("Water Feel")
-@export var water_friction_multiplier: float = 0.35    # slippery sliding in water
+@export var water_friction_multiplier: float = 0.35
 @export var water_acceleration_multiplier: float = 0.6
 
 @export_group("Input")
@@ -29,13 +29,6 @@ signal reset_completed
 @export var fallback_jump_action: StringName = &"action"
 @export var respect_game_state_input: bool = true
 
-@export_group("Autopilot")
-@export var autopilot_enabled: bool = true
-@export var autopilot_lookahead_columns: float = 3.25
-@export var autopilot_jump_cooldown_seconds: float = 0.22
-@export var autopilot_min_jump_distance: float = 10.0
-@export var autopilot_jump_lead_seconds: float = 0.28
-
 @export_group("Visuals")
 @export var land_visual_path: NodePath = ^"LandVisual"
 @export var water_visual_path: NodePath = ^"WaterVisual"
@@ -44,7 +37,6 @@ var input_enabled: bool = true
 var spawn_position: Vector2 = Vector2.ZERO
 var current_phase: GameRules.Phase = GameRules.Phase.LAND
 
-# Complication state
 var _controls_reversed: bool = false
 var _gravity_inverted: bool = false
 var _has_double_jump: bool = false
@@ -55,11 +47,6 @@ var _water_visual: CanvasItem = null
 var _was_moving: bool = false
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
-var _autopilot_blocks: Array[Vector2i] = []
-var _autopilot_floor_y: float = 570.0
-var _autopilot_block_size: float = 48.0
-var _autopilot_map_columns: int = 53
-var _autopilot_jump_cooldown_left: float = 0.0
 
 
 func _ready() -> void:
@@ -76,7 +63,6 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_update_jump_timers(delta)
-	_update_autopilot(delta)
 	_update_horizontal_velocity(_read_horizontal_input(), delta)
 	_apply_gravity(delta)
 	_try_buffered_jump()
@@ -84,8 +70,6 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_emit_movement_state()
 
-
-# ── Public API ────────────────────────────────────────────────────────────────
 
 func set_input_enabled(enabled: bool) -> void:
 	input_enabled = enabled
@@ -112,6 +96,7 @@ func reset_player(new_spawn_position: Variant = null) -> void:
 	_gravity_inverted = false
 	_has_double_jump = false
 	_double_jump_used = false
+	up_direction = Vector2.UP
 	_apply_phase_visuals(current_phase)
 	reset_completed.emit()
 
@@ -121,23 +106,7 @@ func grant_double_jump() -> void:
 	_double_jump_used = false
 
 
-func configure_autopilot_route(
-	blocks: Array[Vector2i],
-	floor_y: float,
-	block_size: float,
-	map_columns: int
-) -> void:
-	_autopilot_blocks = blocks.duplicate()
-	_autopilot_floor_y = floor_y
-	_autopilot_block_size = block_size
-	_autopilot_map_columns = maxi(1, map_columns)
-
-
-# ── Input ─────────────────────────────────────────────────────────────────────
-
 func _read_horizontal_input() -> float:
-	if autopilot_enabled:
-		return 1.0
 	var raw: float = _get_action_strength(move_right_action) - _get_action_strength(move_left_action)
 	return -raw if _controls_reversed else raw
 
@@ -162,7 +131,7 @@ func _update_jump_timers(delta: float) -> void:
 	var on_ground: bool = _is_on_ground()
 	if on_ground:
 		_coyote_timer = coyote_time_seconds
-		_double_jump_used = false   # reset double-jump on land
+		_double_jump_used = false
 	else:
 		_coyote_timer = maxf(_coyote_timer - delta, 0.0)
 
@@ -197,7 +166,6 @@ func _apply_gravity(delta: float) -> void:
 	var max_speed: float = max_fall_speed
 
 	if _gravity_inverted:
-		# Inverted: player falls UP. Clamp to negative (upward) direction.
 		if _is_on_ground() and velocity.y < 0.0:
 			velocity.y = 0.0
 			return
@@ -214,20 +182,17 @@ func _try_buffered_jump() -> void:
 		return
 
 	if _coyote_timer > 0.0:
-		# Normal jump / inverted ceiling jump.
 		velocity.y = -jump_velocity if _gravity_inverted else jump_velocity
 		_jump_buffer_timer = 0.0
 		_coyote_timer = 0.0
 	elif _has_double_jump and not _double_jump_used:
-		# Double-jump power-up mid-air.
 		velocity.y = -jump_velocity if _gravity_inverted else jump_velocity
 		_double_jump_used = true
 		_jump_buffer_timer = 0.0
 
 
 func _apply_short_hop() -> void:
-	var released: bool = _is_jump_just_released()
-	if not released:
+	if not _is_jump_just_released():
 		return
 	if _gravity_inverted and velocity.y > 0.0:
 		velocity.y *= short_hop_multiplier
@@ -236,11 +201,8 @@ func _apply_short_hop() -> void:
 
 
 func _is_on_ground() -> bool:
-	# In inverted gravity mode, "ground" is the ceiling.
 	return is_on_ceiling() if _gravity_inverted else is_on_floor()
 
-
-# ── Complication helpers ──────────────────────────────────────────────────────
 
 func _apply_complication(complication: GameRules.WaterComplication) -> void:
 	_controls_reversed = (complication == GameRules.WaterComplication.REVERSED_CONTROLS)
@@ -250,11 +212,9 @@ func _apply_complication(complication: GameRules.WaterComplication) -> void:
 
 func _clear_complication() -> void:
 	_controls_reversed = false
-	_gravity_inverted  = false
+	_gravity_inverted = false
 	up_direction = Vector2.UP
 
-
-# ── Internal helpers ──────────────────────────────────────────────────────────
 
 func _stop_for_disabled_input() -> void:
 	velocity = Vector2.ZERO
@@ -286,7 +246,6 @@ func _is_jump_just_released() -> bool:
 
 
 func _is_down_just_pressed() -> bool:
-	# Used only for reversed controls where down acts as jump.
 	return Input.is_action_just_pressed(&"ui_down")
 
 
@@ -301,81 +260,14 @@ func _emit_movement_state() -> void:
 		movement_stopped.emit()
 
 
-func _update_autopilot(delta: float) -> void:
-	if not autopilot_enabled:
-		return
-	if _autopilot_blocks.is_empty():
-		return
-
-	_autopilot_jump_cooldown_left = maxf(0.0, _autopilot_jump_cooldown_left - delta)
-	if _autopilot_jump_cooldown_left > 0.0:
-		return
-	if not _is_on_ground():
-		return
-
-	var next_block: Vector2i = _next_autopilot_block()
-	if next_block == Vector2i.ZERO:
-		return
-
-	var distance: float = _distance_to_block_left(next_block.x)
-	var trigger_distance: float = clampf(
-		move_speed * autopilot_jump_lead_seconds,
-		autopilot_min_jump_distance,
-		_autopilot_block_size * autopilot_lookahead_columns
-	)
-	if distance < autopilot_min_jump_distance or distance > trigger_distance:
-		return
-
-	var current_row: int = _current_autopilot_surface_row()
-	var must_climb: bool = next_block.y > current_row
-	var must_clear_gap: bool = current_row > 0 and next_block.y >= current_row
-	if must_climb or must_clear_gap:
-		velocity.y = jump_velocity
-		_jump_buffer_timer = 0.0
-		_coyote_timer = 0.0
-		_autopilot_jump_cooldown_left = autopilot_jump_cooldown_seconds
-
-
-func _next_autopilot_block() -> Vector2i:
-	var best_block: Vector2i = Vector2i.ZERO
-	var best_distance: float = INF
-	var lookahead_distance: float = _autopilot_block_size * autopilot_lookahead_columns
-	for block: Vector2i in _autopilot_blocks:
-		var distance: float = _distance_to_block_left(block.x)
-		if distance >= 0.0 and distance <= lookahead_distance and distance < best_distance:
-			best_distance = distance
-			best_block = block
-	return best_block
-
-
-func _distance_to_block_left(column: int) -> float:
-	var map_width: float = _autopilot_block_size * float(_autopilot_map_columns)
-	var player_front_x: float = fposmod(global_position.x + 12.0, map_width)
-	var block_left_x: float = float(column - 1) * _autopilot_block_size
-	var distance: float = block_left_x - player_front_x
-	if distance < -_autopilot_block_size * 0.5:
-		distance += map_width
-	return distance
-
-
-func _current_autopilot_surface_row() -> int:
-	var player_bottom_half_height: float = 15.0
-	var row_float: float = (
-		_autopilot_floor_y - player_bottom_half_height - global_position.y
-	) / _autopilot_block_size
-	return maxi(0, int(round(row_float)))
-
-
-# ── GameEvents wiring ─────────────────────────────────────────────────────────
-
 func _connect_game_events() -> void:
-	var ge: Node = get_node_or_null(^"/root/GameEvents")
-	if ge == null:
+	var game_events: Node = get_node_or_null(^"/root/GameEvents")
+	if game_events == null:
 		return
-	_connect_optional_signal(ge, &"water_started",  Callable(self, "_on_water_started"))
-	_connect_optional_signal(ge, &"water_finished", Callable(self, "_on_water_finished"))
-	_connect_optional_signal(ge, &"powerup_started", Callable(self, "_on_powerup_started"))
-	_connect_optional_signal(ge, &"powerup_finished", Callable(self, "_on_powerup_finished"))
+	_connect_optional_signal(game_events, &"water_started", Callable(self, "_on_water_started"))
+	_connect_optional_signal(game_events, &"water_finished", Callable(self, "_on_water_finished"))
+	_connect_optional_signal(game_events, &"powerup_started", Callable(self, "_on_powerup_started"))
+	_connect_optional_signal(game_events, &"powerup_finished", Callable(self, "_on_powerup_finished"))
 
 
 func _connect_optional_signal(source: Node, signal_name: StringName, target: Callable) -> void:
