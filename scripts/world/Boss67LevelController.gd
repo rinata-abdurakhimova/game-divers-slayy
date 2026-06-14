@@ -239,7 +239,10 @@ func _build_tutorial_block() -> void:
 
 
 func _block_position(column: int, row: int) -> Vector2:
-	return Vector2(column * BLOCK_SIZE, FLOOR_TOP_Y - row * BLOCK_SIZE)
+	return Vector2(
+		(column - 1) * BLOCK_SIZE + BLOCK_SIZE * 0.5,
+		FLOOR_TOP_Y - (row - 0.5) * BLOCK_SIZE
+	)
 
 
 func _create_block_visual(position: Vector2) -> CanvasItem:
