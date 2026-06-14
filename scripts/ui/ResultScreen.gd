@@ -26,6 +26,14 @@ func _on_game_over(won: bool, reason: StringName, score_cents: int) -> void:
 	summary_label.text = "EXACT SCORE: 67\nTHE SHORE IS FREE" if won else \
 		"SCORE: %s\n%s" % [ScoreServiceScript.format_score(score_cents), _reason_text(reason)]
 	restart_button.text = "PLAY AGAIN"
+	if not won:
+		# Victory result screen is shown later, after the boss-defeat
+		# cutscene and outro slides finish (see show_result()).
+		show()
+		restart_button.grab_focus()
+
+
+func show_result() -> void:
 	show()
 	restart_button.grab_focus()
 
