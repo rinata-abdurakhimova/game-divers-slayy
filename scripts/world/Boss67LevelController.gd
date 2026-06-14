@@ -700,7 +700,7 @@ func _random_powerup_position() -> Vector2:
 	return position if _is_pickup_position_clear(position) else _find_clear_air_position()
 
 
-func _trigger_water(reason: StringName) -> void:
+func _trigger_water(_reason: StringName) -> void:
 	var game_state: Node = get_node_or_null(^"/root/GameState")
 	if game_state == null or not game_state.has_method(&"begin_water_event"):
 		return
@@ -708,11 +708,9 @@ func _trigger_water(reason: StringName) -> void:
 		return
 
 	_first_water_started = true
-	var variant: GameRules.WaterVariant = GameRules.WaterVariant.WATER_A
+	var variants: Array[GameRules.WaterVariant] = WaterRuleServiceScript.water_variants()
+	var variant: GameRules.WaterVariant = variants[randi() % variants.size()]
 	var complication: GameRules.WaterComplication = _pick_complication()
-	if reason != &"distance_28":
-		var variants: Array[GameRules.WaterVariant] = WaterRuleServiceScript.water_variants()
-		variant = variants[randi() % variants.size()]
 
 	if game_state.has_method(&"set_boss_phase"):
 		game_state.set_boss_phase(GameRules.BossPhase.WATER)
