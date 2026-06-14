@@ -23,8 +23,13 @@ const AUTHORED_BLOCKS: Array[Vector2i] = [
 	
 
 	Vector2i(19, 1),
-	Vector2i(22, 2),
+	Vector2i(21, 3),
+	Vector2i(24, 6),#
+	Vector2i(25, 5),##
+	Vector2i(26, 7),##
 	Vector2i(26, 2),
+	Vector2i(26, 5),#
+	Vector2i(27, 5),#
 	Vector2i(27, 7),#
 	Vector2i(28, 1),
 	Vector2i(28, 4),
