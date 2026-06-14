@@ -19,6 +19,9 @@ const MAX_RECENT_OPERATIONS: int = 4
 @onready var score_panel: Control = %ScoreLabel.get_parent().get_parent()
 @onready var top_margin: MarginContainer = $TopMargin
 @onready var state_panel: Control = %StateLabel.get_parent()
+@onready var right_margin: MarginContainer = %RightMargin
+
+const RECENT_PANEL_FLIPPED_RISE: int = 40
 
 var _recent_operations: Array[String] = []
 var _powerup_seconds: Dictionary[StringName, float] = {}
@@ -145,6 +148,16 @@ func _set_top_panel_flipped(flipped: bool) -> void:
 		top_margin.offset_top = 16.0
 		top_margin.offset_bottom = 128.0
 	_set_state_panel_flipped(flipped)
+	_set_recent_panel_flipped(flipped)
+
+
+func _set_recent_panel_flipped(flipped: bool) -> void:
+	if right_margin == null:
+		return
+	right_margin.add_theme_constant_override(
+		&"margin_top",
+		-RECENT_PANEL_FLIPPED_RISE if flipped else 0
+	)
 
 
 func _set_state_panel_flipped(flipped: bool) -> void:

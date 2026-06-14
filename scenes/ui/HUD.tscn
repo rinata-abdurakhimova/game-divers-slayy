@@ -123,16 +123,20 @@ theme_override_font_sizes/font_size = 16
 text = "TARGET  67"
 horizontal_alignment = 1
 
-[node name="RightColumn" type="VBoxContainer" parent="TopMargin/TopRow"]
+[node name="RightMargin" type="MarginContainer" parent="TopMargin/TopRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="RightColumn" type="VBoxContainer" parent="TopMargin/TopRow/RightMargin"]
 custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="OperationsPanel" type="PanelContainer" parent="TopMargin/TopRow/RightColumn"]
+[node name="OperationsPanel" type="PanelContainer" parent="TopMargin/TopRow/RightMargin/RightColumn"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_panel")
 
-[node name="OperationsLabel" type="Label" parent="TopMargin/TopRow/RightColumn/OperationsPanel"]
+[node name="OperationsLabel" type="Label" parent="TopMargin/TopRow/RightMargin/RightColumn/OperationsPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
@@ -140,17 +144,17 @@ theme_override_font_sizes/font_size = 14
 text = "RECENT\n--"
 horizontal_alignment = 2
 
-[node name="PowerupPanel" type="PanelContainer" parent="TopMargin/TopRow/RightColumn"]
+[node name="PowerupPanel" type="PanelContainer" parent="TopMargin/TopRow/RightMargin/RightColumn"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_panel")
 
-[node name="PowerupColumn" type="VBoxContainer" parent="TopMargin/TopRow/RightColumn/PowerupPanel"]
+[node name="PowerupColumn" type="VBoxContainer" parent="TopMargin/TopRow/RightMargin/RightColumn/PowerupPanel"]
 layout_mode = 2
 theme_override_constants/separation = 3
 
-[node name="SlowPowerupLabel" type="Label" parent="TopMargin/TopRow/RightColumn/PowerupPanel/PowerupColumn"]
+[node name="SlowPowerupLabel" type="Label" parent="TopMargin/TopRow/RightMargin/RightColumn/PowerupPanel/PowerupColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.86, 0.32, 1)
@@ -158,7 +162,7 @@ theme_override_font_sizes/font_size = 15
 text = "★  SLOW BOSS  20.0s"
 horizontal_alignment = 2
 
-[node name="JumpPowerupLabel" type="Label" parent="TopMargin/TopRow/RightColumn/PowerupPanel/PowerupColumn"]
+[node name="JumpPowerupLabel" type="Label" parent="TopMargin/TopRow/RightMargin/RightColumn/PowerupPanel/PowerupColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.42, 1, 0.55, 1)
