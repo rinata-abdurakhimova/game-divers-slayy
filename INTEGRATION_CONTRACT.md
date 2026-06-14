@@ -219,8 +219,8 @@ auto-fill lower rows unless those lower blocks are explicitly listed in the auth
 
 The first water event starts at the `28` block distance milestone and lasts `20` seconds.
 After the first water event has finished, later water events may start when the player collects a land
-pickup whose value is divisible by `6` or `7`. Later water events must use a cooldown so several
-qualifying pickups cannot stack water events instantly.
+pickup and the resulting total score (in whole units) is divisible by `6` or `7`. Later water events
+must use a cooldown so several qualifying pickups cannot stack water events instantly.
 
 Each water event randomly selects one of `REVERSED_CONTROLS` or `INVERTED_GRAVITY` with equal (50/50)
 probability. `INVERTED_GRAVITY` does not change gravity, physics, or floor collision; it rotates the
@@ -282,7 +282,7 @@ The new slice is integrated only when:
 - white projectiles are blocked by terrain;
 - purple projectiles start after `18` blocks and pass through blocks;
 - first water starts after `28` blocks and lasts `20` seconds;
-- later water can retrigger after cooldown when a collected land pickup value is divisible by `6` or `7`;
+- later water can retrigger after cooldown when the total score after a collected land pickup is divisible by `6` or `7`;
 - one water variant applies correctly;
 - score can become negative;
 - score `0.00` fails;

@@ -783,8 +783,11 @@ func _on_score_operation_applied(
 		return
 	if source != &"score_pickup" or operation != GameRules.SCORE_OPERATION_ADD:
 		return
-	var units: int = int(value_cents / 100.0)
-	if units > 0 and (units % 6 == 0 or units % 7 == 0):
+	var game_state: Node = get_node_or_null(^"/root/GameState")
+	if game_state == null:
+		return
+	var score_units: int = int(roundi(game_state.get("score_cents") / 100.0))
+	if score_units > 0 and (score_units % 6 == 0 or score_units % 7 == 0):
 		_trigger_water(&"score_divisible")
 
 
