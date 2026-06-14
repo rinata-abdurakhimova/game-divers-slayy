@@ -1,7 +1,6 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/Main.gd" id="1_main"]
-[ext_resource type="PackedScene" path="res://scenes/ui/LevelBackdropOverlay.tscn" id="2_backdrop"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WaterRuleOverlay.tscn" id="2_water"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/TutorialOverlay.tscn" id="4_tutorial"]
@@ -15,8 +14,6 @@ script = ExtResource("1_main")
 unique_name_in_owner = true
 
 [node name="UI" type="CanvasLayer" parent="."]
-
-[node name="LevelBackdropOverlay" parent="UI" instance=ExtResource("2_backdrop")]
 
 [node name="WaterRuleOverlay" parent="UI" instance=ExtResource("2_water")]
 

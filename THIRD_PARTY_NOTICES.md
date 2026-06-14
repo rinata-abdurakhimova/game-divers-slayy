@@ -7,19 +7,16 @@
 - License: Creative Commons Attribution 4.0 International
 - License text: https://creativecommons.org/licenses/by/4.0/
 
-Level 1 files present in the repository:
+Level 1 file used in the final Boss 67 scene:
 
 ```text
-assets/third_party/o_lobster/level_01_backdrop.png
-assets/third_party/o_lobster/level_01_prop_01.png
-assets/third_party/o_lobster/level_01_prop_02.png
 assets/third_party/o_lobster/level_01_prop_03.png
 ```
 
 Current usage:
 
-- These files remain credited because they are present in the repository and used by the archived
-  `Level_01.tscn` prototype.
+- `level_01_prop_03.png` is scaled with nearest-neighbor filtering to display each authored gameplay
+  block at `48 x 48` pixels.
 - The final Boss 67 UI uses the project-owned `images/background.png` and
   `images/background-sea-mode.png`; they are not third-party assets.
 

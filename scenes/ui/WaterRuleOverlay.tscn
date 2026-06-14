@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/WaterRuleOverlay.gd" id="1_water"]
-[ext_resource type="Script" path="res://scripts/ui/RuntimeBackdrop.gd" id="2_backdrop"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_card"]
 bg_color = Color(0.188, 0.141, 0.239, 0.96)
@@ -28,41 +27,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_water")
-
-[node name="SeaArt" type="TextureRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-self_modulate = Color(0.58, 0.9, 1, 0.3)
-expand_mode = 1
-stretch_mode = 6
-script = ExtResource("2_backdrop")
-source_path = "res://images/background-sea-mode.png"
-
-[node name="WaterTint" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.035, 0.34, 0.72, 0.5)
-
-[node name="DeepWater" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 12
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -230.0
-grow_horizontal = 2
-grow_vertical = 0
-mouse_filter = 2
-color = Color(0.02, 0.2, 0.55, 0.28)
 
 [node name="WaveTop" type="ColorRect" parent="."]
 layout_mode = 1

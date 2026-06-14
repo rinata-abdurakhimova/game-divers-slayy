@@ -19,24 +19,33 @@ func _run() -> void:
 
 	var player: CharacterBody2D = current_scene.get_node(^"Actors/Player") as CharacterBody2D
 	var boss: Node2D = current_scene.get_node(^"Actors/Boss67") as Node2D
+	var camera: Camera2D = current_scene.get_node(^"Camera2D") as Camera2D
 	var controller: Node = current_scene.get_node(^"LevelController")
 	var safe_wall: StaticBody2D = current_scene.get_node(^"SafeWall") as StaticBody2D
 	var safe_zone: Node2D = current_scene.get_node(^"SafeZone") as Node2D
 	var water_overlay: CanvasItem = current_scene.get_node(^"WaterOverlay") as CanvasItem
+	var land_background: Control = current_scene.get_node(
+		^"BackgroundCanvas/BackgroundRoot/LandBackground"
+	) as Control
 	var pickups: Node2D = current_scene.get_node(^"Pickups") as Node2D
 	var projectiles: Node2D = current_scene.get_node(^"Projectiles") as Node2D
-	assert(player != null and boss != null and controller != null)
+	assert(player != null and boss != null and camera != null and controller != null)
 	assert(not boss.get_node(^"BodyVisual").visible)
 	assert(not safe_wall.visible)
 	assert(safe_zone.visible)
 	assert(not water_overlay.visible)
+	assert(land_background != null)
+	assert(is_equal_approx(land_background.anchor_right, 1.0))
+	assert(is_equal_approx(land_background.anchor_bottom, 1.0))
 
 	await _physics_frames(2)
+	var safe_camera_x: float = camera.global_position.x
 	Input.action_press(&"move_right")
 	await _physics_frames(80)
 	Input.action_release(&"move_right")
 	assert(player.global_position.x > 320.0)
 	assert(player.global_position.x < 360.0)
+	assert(is_equal_approx(camera.global_position.x, safe_camera_x))
 	assert(boss.get_node(^"BodyVisual").visible == false)
 
 	controller.call(&"_on_safe_trigger", player)
@@ -44,6 +53,7 @@ func _run() -> void:
 	assert(boss.get_node(^"BodyVisual").visible)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.LAND_WHITE)
 	controller.call(&"_process", 0.0)
+	assert(is_equal_approx(camera.global_position.x, player.global_position.x))
 	assert(boss.global_position.x > player.global_position.x)
 	for child: Node in controller.get_children():
 		if child is Timer:

@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/actors/player/Player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/ui/RuntimeSprite.gd" id="2_visual"]
 
 [sub_resource type="RectangleShape2D" id="CircleShape2D_player"]
 size = Vector2(24, 30)
@@ -39,11 +40,14 @@ position = Vector2(44, 0)
 target_position = Vector2(0, 62)
 collision_mask = 2
 
-[node name="LandVisual" type="Polygon2D" parent="."]
-color = Color(0.18, 0.67, 0.95, 1)
-polygon = PackedVector2Array(0, -16, 13, 11, 0, 6, -13, 11)
+[node name="LandVisual" type="Sprite2D" parent="."]
+script = ExtResource("2_visual")
+source_path = "res://images/slay-diver.svg"
+display_size = Vector2(40, 40)
 
-[node name="WaterVisual" type="Polygon2D" parent="."]
+[node name="WaterVisual" type="Sprite2D" parent="."]
 visible = false
-color = Color(0.95, 0.28, 0.72, 1)
-polygon = PackedVector2Array(0, -17, 14, 5, 9, 14, 0, 8, -9, 14, -14, 5)
+script = ExtResource("2_visual")
+source_path = "res://images/slay-diver.svg"
+display_size = Vector2(42, 42)
+self_modulate = Color(0.82, 0.96, 1, 1)

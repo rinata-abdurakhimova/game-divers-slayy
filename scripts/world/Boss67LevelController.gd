@@ -8,6 +8,7 @@ const SAFE_ZONE_COLUMNS: int = 18
 const FIGHT_START_COLUMN: int = 19
 const BLOCK_SIZE: float = 48.0
 const FLOOR_TOP_Y: float = 570.0
+const SAFE_CAMERA_CENTER_X: float = 288.0
 const VIEWPORT_HEIGHT: float = 648.0
 const MAP_END_X: float = MAP_COLUMNS * BLOCK_SIZE
 const FIGHT_START_X: float = (FIGHT_START_COLUMN - 1) * BLOCK_SIZE
@@ -59,6 +60,8 @@ const AUTHORED_BLOCKS: Array[Vector2i] = [
 @export var safe_zone_path: NodePath
 @export var safe_trigger_path: NodePath
 @export var water_overlay_path: NodePath
+@export var land_background_path: NodePath
+@export var water_background_path: NodePath
 @export var pickup_root_path: NodePath
 @export var projectile_root_path: NodePath
 @export var powerup_root_path: NodePath
@@ -69,6 +72,7 @@ const AUTHORED_BLOCKS: Array[Vector2i] = [
 @export var score_pickup_scene: PackedScene
 @export var boss_projectile_scene: PackedScene
 @export var powerup_scene: PackedScene
+@export_file("*.png", "*.jpg", "*.jpeg", "*.webp") var block_texture_path: String
 
 @export_group("Tuning")
 @export var purple_distance: int = GameRules.FIRST_PURPLE_DISTANCE_BLOCKS
@@ -94,11 +98,14 @@ var _camera: Camera2D
 var _safe_wall: Node
 var _safe_zone: Node
 var _water_overlay: CanvasItem
+var _land_background: CanvasItem
+var _water_background: CanvasItem
 var _pickup_root: Node2D
 var _projectile_root: Node2D
 var _powerup_root: Node2D
 var _terrain_visual: Node2D
 var _terrain: StaticBody2D
+var _block_texture: Texture2D
 
 var _tutorial_done: bool = false
 var _first_water_started: bool = false
@@ -125,11 +132,14 @@ func _ready() -> void:
 	_safe_wall = get_node_or_null(safe_wall_path)
 	_safe_zone = get_node_or_null(safe_zone_path)
 	_water_overlay = get_node_or_null(water_overlay_path) as CanvasItem
+	_land_background = get_node_or_null(land_background_path) as CanvasItem
+	_water_background = get_node_or_null(water_background_path) as CanvasItem
 	_pickup_root = get_node_or_null(pickup_root_path) as Node2D
 	_projectile_root = get_node_or_null(projectile_root_path) as Node2D
 	_powerup_root = get_node_or_null(powerup_root_path) as Node2D
 	_terrain_visual = get_node_or_null(terrain_visual_path) as Node2D
 	_terrain = get_node_or_null(terrain_path) as StaticBody2D
+	_block_texture = _load_runtime_texture(block_texture_path)
 
 	_build_authored_blocks()
 	_build_tutorial_block()
@@ -167,16 +177,7 @@ func _build_authored_blocks() -> void:
 			_authored_runtime_nodes.append(collision_shape)
 
 		if _terrain_visual != null:
-			var visual := Polygon2D.new()
-			var half_size: float = BLOCK_SIZE * 0.5
-			visual.polygon = PackedVector2Array([
-				Vector2(-half_size, -half_size),
-				Vector2(half_size, -half_size),
-				Vector2(half_size, half_size),
-				Vector2(-half_size, half_size),
-			])
-			visual.color = Color(0.68, 0.48, 0.22, 1.0)
-			visual.position = position
+			var visual: CanvasItem = _create_block_visual(position)
 			_terrain_visual.add_child(visual)
 			_authored_runtime_nodes.append(visual)
 
@@ -195,18 +196,43 @@ func _build_tutorial_block() -> void:
 		_tutorial_runtime_nodes.append(collision_shape)
 
 	if _terrain_visual != null:
-		var visual := Polygon2D.new()
-		var half_size: float = BLOCK_SIZE * 0.5
-		visual.polygon = PackedVector2Array([
-			Vector2(-half_size, -half_size),
-			Vector2(half_size, -half_size),
-			Vector2(half_size, half_size),
-			Vector2(-half_size, half_size),
-		])
-		visual.color = Color(0.68, 0.48, 0.22, 1.0)
-		visual.position = position
+		var visual: CanvasItem = _create_block_visual(position)
 		_terrain_visual.add_child(visual)
 		_tutorial_runtime_nodes.append(visual)
+
+
+func _create_block_visual(position: Vector2) -> CanvasItem:
+	if _block_texture != null:
+		var sprite := Sprite2D.new()
+		sprite.texture = _block_texture
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		sprite.position = position
+		var texture_size: Vector2 = _block_texture.get_size()
+		if texture_size.x > 0.0 and texture_size.y > 0.0:
+			sprite.scale = Vector2(BLOCK_SIZE / texture_size.x, BLOCK_SIZE / texture_size.y)
+		return sprite
+
+	var fallback := Polygon2D.new()
+	var half_size: float = BLOCK_SIZE * 0.5
+	fallback.polygon = PackedVector2Array([
+		Vector2(-half_size, -half_size),
+		Vector2(half_size, -half_size),
+		Vector2(half_size, half_size),
+		Vector2(-half_size, half_size),
+	])
+	fallback.color = Color(0.68, 0.48, 0.22, 1.0)
+	fallback.position = position
+	return fallback
+
+
+func _load_runtime_texture(source_path: String) -> Texture2D:
+	if source_path.is_empty():
+		return null
+	var image := Image.new()
+	if image.load(ProjectSettings.globalize_path(source_path)) != OK or image.is_empty():
+		push_warning("Unable to load block texture: %s" % source_path)
+		return null
+	return ImageTexture.create_from_image(image)
 
 
 func _block_position(column: int, row: int) -> Vector2:
@@ -262,6 +288,10 @@ func _reset_level_visibility() -> void:
 		_camera.zoom = Vector2.ONE
 	if _water_overlay != null:
 		_water_overlay.hide()
+	if _land_background != null:
+		_land_background.show()
+	if _water_background != null:
+		_water_background.hide()
 	_set_runtime_nodes_enabled(_authored_runtime_nodes, false)
 	_set_runtime_nodes_enabled(_tutorial_runtime_nodes, true)
 
@@ -286,7 +316,8 @@ func _update_camera_and_boss() -> void:
 		return
 
 	_camera.zoom = Vector2.ONE
-	_camera.global_position = Vector2(_player.global_position.x, VIEWPORT_HEIGHT * 0.5)
+	var camera_x: float = _player.global_position.x if _tutorial_done else SAFE_CAMERA_CENTER_X
+	_camera.global_position = Vector2(camera_x, VIEWPORT_HEIGHT * 0.5)
 
 	if _tutorial_done and _boss != null:
 		_boss.global_position = _camera.global_position + boss_camera_offset
@@ -548,11 +579,19 @@ func _on_water_started(
 ) -> void:
 	if _water_overlay != null:
 		_water_overlay.show()
+	if _land_background != null:
+		_land_background.hide()
+	if _water_background != null:
+		_water_background.show()
 
 
 func _on_water_finished() -> void:
 	if _water_overlay != null:
 		_water_overlay.hide()
+	if _land_background != null:
+		_land_background.show()
+	if _water_background != null:
+		_water_background.hide()
 
 	if _first_water_started:
 		_first_water_finished = true
