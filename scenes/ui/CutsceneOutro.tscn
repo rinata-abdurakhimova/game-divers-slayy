@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/CutsceneIntro.gd" id="1_intro"]
+[ext_resource type="Script" path="res://scripts/ui/CutsceneOutro.gd" id="1_outro"]
 
-[node name="CutsceneIntro" type="Control"]
+[node name="CutsceneOutro" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,7 +10,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 process_mode = 3
-script = ExtResource("1_intro")
+script = ExtResource("1_outro")
 
 [node name="ClipControl" type="Control" parent="."]
 layout_mode = 1
@@ -32,20 +32,39 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="DustParticles" type="CPUParticles2D" parent="ClipControl"]
+[node name="SparkleParticles" type="CPUParticles2D" parent="ClipControl"]
+unique_name_in_owner = true
+emitting = false
+amount = 80
+lifetime = 4.5
+randomness = 1.0
+direction = Vector2(0.1, 1)
+spread = 50.0
+gravity = Vector2(5, 25)
+initial_velocity_min = 30.0
+initial_velocity_max = 90.0
+color = Color(0.4, 0.85, 1.0, 0.7)
+emission_shape = 3
+emission_rect_extents = Vector2(576, 5)
+scale_amount_min = 2.0
+scale_amount_max = 5.0
+
+[node name="GoldParticles" type="CPUParticles2D" parent="ClipControl"]
 unique_name_in_owner = true
 emitting = false
 amount = 60
-lifetime = 6.0
+lifetime = 4.0
 randomness = 1.0
-direction = Vector2(0.3, 1)
-spread = 30.0
-gravity = Vector2(10, 8)
+direction = Vector2(-0.1, 1)
+spread = 40.0
+gravity = Vector2(-5, 20)
 initial_velocity_min = 20.0
-initial_velocity_max = 60.0
-color = Color(0.91, 0.67, 0.35, 0.45)
+initial_velocity_max = 70.0
+color = Color(1.0, 0.85, 0.3, 0.6)
 emission_shape = 3
 emission_rect_extents = Vector2(576, 5)
+scale_amount_min = 1.5
+scale_amount_max = 4.0
 
 [node name="FadeRect" type="ColorRect" parent="."]
 unique_name_in_owner = true
@@ -102,7 +121,7 @@ theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 0.85)
 text = "SPACE / клік →"
 horizontal_alignment = 2
 
-[node name="TitleScreen" type="ColorRect" parent="."]
+[node name="CreditsScreen" type="ColorRect" parent="."]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -111,7 +130,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0, 0, 0, 1.0)
 
-[node name="VBox" type="VBoxContainer" parent="TitleScreen"]
+[node name="VBox" type="VBoxContainer" parent="CreditsScreen"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -120,19 +139,26 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 40
+theme_override_constants/separation = 30
 
-[node name="TitleLabel" type="Label" parent="TitleScreen/VBox"]
+[node name="ThankYouLabel" type="Label" parent="CreditsScreen/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.58, 0.82, 1)
-theme_override_font_sizes/font_size = 56
-text = "SLAY DIVER: RISE OF 67"
+theme_override_font_sizes/font_size = 52
+text = "ДЯКУЄМО ЗА ГРУ"
 horizontal_alignment = 1
 
-[node name="StartButton" type="Button" parent="TitleScreen/VBox"]
+[node name="CreditsLabel" type="Label" parent="CreditsScreen/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/font_size = 28
+text = "Розробники:  Polina · Alina · Rinata"
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="CreditsScreen/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 56)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 28
-text = "СТАРТ"
+text = "ГРАТИ ЗНОВУ"

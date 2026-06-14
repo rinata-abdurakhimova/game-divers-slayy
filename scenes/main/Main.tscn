@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/Main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WaterRuleOverlay.tscn" id="2_water"]
@@ -6,18 +6,13 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/TutorialOverlay.tscn" id="4_tutorial"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ResultScreen.tscn" id="5_result"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CutsceneIntro.tscn" id="6_intro"]
-[ext_resource type="PackedScene" path="res://scenes/world/Boss67Level.tscn" id="7_level"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CutsceneOutro.tscn" id="7_outro"]
 
 [node name="Main" type="Node" unique_id=1068110414]
 script = ExtResource("1_main")
 
 [node name="LevelContainer" type="Node2D" parent="." unique_id=1079596567]
 unique_name_in_owner = true
-
-[node name="Boss67Level" parent="LevelContainer" instance=ExtResource("7_level")]
-unique_name_in_owner = true
-visible = false
-process_mode = 4
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=926552736]
 layer = 100
@@ -31,7 +26,11 @@ unique_name_in_owner = true
 unique_name_in_owner = true
 
 [node name="ResultScreen" parent="UI" unique_id=181566462 instance=ExtResource("5_result")]
+unique_name_in_owner = true
 
 [node name="CutsceneIntro" parent="UI" unique_id=1466810831 instance=ExtResource("6_intro")]
 unique_name_in_owner = true
-offset_left = 6.0
+
+[node name="CutsceneOutro" parent="UI" instance=ExtResource("7_outro")]
+unique_name_in_owner = true
+visible = false
