@@ -32,22 +32,26 @@ headless Godot boot when `project.godot` and a Godot executable are available.
 1. Clean launch into `Main.tscn`.
 2. Skip or complete the placeholder cutscene.
 3. Spawn in the safe sand area.
-4. Walk, fall, land, and jump onto one block.
-5. Confirm the safe area closes after the first taught jump.
-6. Confirm the safe closure does not leave a visible stone-like block in the middle of the playfield.
-7. Walk left after the boss run starts and confirm the player is clamped or blocked, not wrapped.
-8. Confirm Boss 67 appears.
-9. Confirm boss digits are readable and appear to come from Boss 67.
-10. Collect a land pickup and confirm score changes.
-11. Touch or simulate a `*0` and confirm score `0.00` fails.
-12. Restart.
-13. Reach `18` blocks and confirm purple projectiles begin.
-14. Reach `28` blocks and confirm water starts for `10` seconds.
-15. Confirm the HUD shows the active water rule.
-16. Confirm score can become negative without failing.
-17. Reach exact `67.00` and confirm victory.
-18. Restart again.
-19. Confirm input, HUD, water state, projectiles, power-ups, and score reset cleanly.
+4. Confirm the safe area contains no boss-route blocks, pickups, power-ups, projectiles, or boss
+   pressure; it should contain only one tutorial cube.
+5. Walk, fall, land, and jump onto that one block.
+6. Confirm the safe area closes after the first taught jump.
+7. Confirm the safe closure does not leave a visible stone-like block in the middle of the playfield.
+8. Walk left after the boss run starts and confirm the player wraps to the far right of the authored
+   route without losing score, water state, or movement.
+9. Confirm the authored block at `x=30, y=4` exists.
+10. Confirm Boss 67 appears.
+11. Confirm boss digits are readable and appear to come from Boss 67.
+12. Collect a land pickup and confirm score changes.
+13. Touch or simulate a `*0` and confirm score `0.00` fails.
+14. Restart.
+15. Reach `18` blocks and confirm purple projectiles begin.
+16. Reach `28` blocks and confirm water starts for `10` seconds.
+17. Confirm the HUD shows the active water rule and the reversed-controls condition.
+18. Confirm score can become negative without failing.
+19. Reach exact `67.00` and confirm victory.
+20. Restart again.
+21. Confirm input, HUD, water state, projectiles, power-ups, and score reset cleanly.
 
 ## Severity
 

@@ -40,24 +40,26 @@ survive water twists -> hit exact 67 -> win or hit 0 -> play again
 
 - Side-view platformer.
 - Design grid: `12 x 8`.
-- Level 1 uses a `52` cell authored route from the board reference. The player sees only a `12 x 8`
-  camera window at a time.
+- Level 1 uses the latest `53` unique-column board transcription. Column `54` wraps to column `1`.
+  Columns `1-18` are safe-zone/tutorial space; Boss 67 begins at column `19`. The player sees only a
+  `12 x 8` camera window at a time.
 - One block is one gameplay unit.
 - Player is one gameplay unit.
-- Teach walking and one-block jumping. When moving off-screen to the left, the player appears on the right (screen wrap).
+- Teach walking and one-block jumping before the boss starts.
 - Platform stacks may be up to `5` blocks high, but required movement must remain readable.
-- The route loops only at the right edge. Walking left after the boss starts must clamp or block the
-  player, not move them into another route chunk.
+- After the boss starts, the route wraps on both horizontal edges. Walking left past column `1`
+  appears near column `53`, and walking right past column `53` appears near column `1`.
 - Reference controller: `docs/PLATFORMER_CONTROLLER.md`.
 
 ## Opening Flow
 
 1. Placeholder cutscene.
-2. Safe sand-and-sky start.
-3. Player learns to walk and jump onto one block.
-4. The empty space of the safe start disappears after the first taught jump. The closure should not look like an extra foreground
-   stone block in the middle of the route.
-5. Boss 67 appears.
+2. Safe sand-and-sky start across columns `1-18`, with no authored route blocks, pickups, projectiles,
+   power-ups, or boss pressure.
+3. Player learns to walk and jump before column `19`.
+4. Exactly one tutorial cube teaches the first jump. The empty safe start disappears after that taught
+   jump. The closure should not look like an extra foreground stone block in the middle of the route.
+5. Boss 67 appears at column `19`.
 6. Score chase begins.
 
 ## Land Phase
@@ -70,8 +72,9 @@ Land pickups:
 
 Rules:
 
-- Spawn `6` or `7` collectible numbers per visible `12 x 8` screen chunk.
+- Spawn up to `8` or `9` collectible numbers per visible `12 x 8` screen chunk.
 - Pickups can appear on block tops, floor, or two blocks above a floor/block.
+- Some pickups should spawn above reachable high points: height `5`, or height `4` with a jump.
 - Boss throws `*0`, `*0.5`, and `*0.8`.
 - `*0` is very rare.
 - White boss digits are destroyed by blocks.
@@ -86,6 +89,8 @@ Distance is measured in horizontal blocks after the safe start.
 | `0` | Boss 67 appears. |
 | `18` | Purple boss digits begin. |
 | `28` | First water event begins. |
+
+The authored map includes the corrected block at `x=30, y=4`.
 
 Purple digits:
 
@@ -123,10 +128,11 @@ The HUD must show which side is dangerous or helpful in the current water event.
 
 Only one may be active in a water event.
 
-- Reversed controls: left is right, up is down.
-- Inverted gravity: blocks are on the ceiling and gravity pulls upward.
+- Reversed controls: left is right.
+- Inverted gravity: temporarily cut from MVP until ceiling blocks and recovery are stable.
 
-The first water event should be understandable. Do not combine complications.
+The first water event should be understandable. Current MVP always uses reversed controls for water
+complication visibility and does not select inverted gravity.
 
 ## Power-Ups
 
@@ -141,8 +147,8 @@ Power-ups are rare and spawn on high points.
 
 - Placeholder cutscene.
 - Side-view Player movement: walk, fall, land, jump, short hop, coyote time, jump buffering.
-- Safe start with one-block jump teaching.
-- Boss 67 appears after tutorial.
+- Safe start with only one tutorial cube for one-block jump teaching.
+- Safe start lasts `18` columns; Boss 67 appears at column `19`.
 - Score starts at `1.00`.
 - Land pickups and land boss operations.
 - Purple projectiles after `18` blocks.
@@ -157,7 +163,7 @@ Power-ups are rare and spawn on high points.
 ## Should Ship
 
 - All three water variants.
-- One water complication.
+- Reversed-controls water complication.
 - Rare star slow power-up.
 - Rare green double-jump power-up.
 - Basic Boss 67 animations and readable projectile colors.
@@ -165,7 +171,7 @@ Power-ups are rare and spawn on high points.
 
 ## Could Ship
 
-- Both water complications.
+- Inverted gravity after a ceiling-route pass.
 - More authored platform chunks.
 - Boss expression changes based on score.
 - Sound and particles for each operation type.
@@ -217,10 +223,10 @@ Power-ups are rare and spawn on high points.
 
 1. Launch from `Main.tscn`.
 2. Skip/finish cutscene.
-3. Learn walk and one-block jump in safe sand area.
-4. Cross first jump and close safe start.
+3. Learn walk and one-block jump in the 18-column safe sand area.
+4. Cross into column `19` and close safe start.
 5. Confirm no visible center stone/block remains from the safe-start closure.
-6. Walk left and confirm the player does not wrap into another chunk.
+6. Walk left and confirm the player wraps to the far right of the authored route cleanly.
 7. Boss 67 appears.
 8. Confirm boss digits are readable and clearly come from Boss 67.
 9. Collect land pickups and change score.

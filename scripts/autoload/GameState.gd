@@ -88,6 +88,9 @@ func begin_water_event(
 	if outcome_locked or variant == GameRules.WaterVariant.NONE:
 		return
 
+	if complication == GameRules.WaterComplication.INVERTED_GRAVITY:
+		complication = GameRules.WaterComplication.NONE
+
 	phase = GameRules.RunPhase.WATER
 	water_variant = variant
 	water_complication = complication

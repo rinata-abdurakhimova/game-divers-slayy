@@ -89,7 +89,10 @@ func _on_score_operation_applied(
 
 
 func _on_distance_changed(blocks: int) -> void:
-	phase_label.text = "LAND  |  %d BLOCKS" % blocks
+	if GameState.water_variant != GameRules.WaterVariant.NONE:
+		phase_label.text = "WATER  |  %d BLOCKS" % blocks
+	else:
+		phase_label.text = "LAND  |  %d BLOCKS" % blocks
 
 
 func _on_boss_phase_changed(new_phase: GameRules.BossPhase) -> void:
@@ -114,7 +117,7 @@ func _on_water_started(
 	seconds: float
 ) -> void:
 	water_panel.show()
-	phase_label.text = "PINK WATER"
+	phase_label.text = "WATER  |  %d BLOCKS" % GameState.distance_blocks
 	water_rule_label.text = _water_rule_text(variant, complication)
 	_on_water_timer_changed(seconds)
 

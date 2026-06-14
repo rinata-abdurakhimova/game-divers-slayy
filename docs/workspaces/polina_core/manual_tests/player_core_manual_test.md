@@ -44,12 +44,15 @@ Run this after Polina-owned files are implemented in the real project.
 
 - [ ] Launch from `Main.tscn`.
 - [ ] Confirm the cutscene placeholder appears before gameplay.
-- [ ] Confirm player starts in the safe sand/sky tutorial area.
-- [ ] Walk, fall, land, and jump one block.
+- [ ] Confirm player starts in the safe sand/sky tutorial area with no boss-route blocks, pickups,
+      projectiles, power-ups, or boss pressure.
+- [ ] Confirm there is exactly one tutorial cube.
+- [ ] Walk, fall, land, and jump that one block.
 - [ ] Confirm the safe start closes after the tutorial jump.
 - [ ] Confirm the closure does not leave a visible center stone/block.
 - [ ] Walk left after the boss run starts.
-- [ ] Confirm the player is clamped or blocked instead of wrapping into another chunk.
+- [ ] Confirm the player wraps to the far right of the authored route without losing score, water
+      state, or movement.
 - [ ] Confirm Boss 67 appears.
 - [ ] Confirm boss digits are readable and clearly come from Boss 67.
 - [ ] Confirm white boss digits collide with blocks.

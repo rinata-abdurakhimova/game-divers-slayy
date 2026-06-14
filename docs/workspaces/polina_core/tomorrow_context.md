@@ -29,8 +29,9 @@ Current logic:
 
 - The old Guardian10 equation room is replaced.
 - Level starts with a placeholder cutscene, then a safe platformer tutorial.
-- Level 1 is a 52-cell authored route viewed through a `12 x 8` camera window.
-- Only the right edge loops. Walking left after the safe tutorial closes must clamp or block the player.
+- Level 1 is a 53-column authored route viewed through a `12 x 8` camera window.
+- Columns `1-18` are safe-zone/tutorial space; Boss 67 begins at column `19`.
+- After the safe tutorial closes, the route wraps on both horizontal edges.
 - Player starts at score `1.00`.
 - Goal is exact score `67.00`.
 - Score can be negative.

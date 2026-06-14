@@ -52,13 +52,13 @@ only art, not movement or game logic.
   `12 x 8` decision grid.
 - The full Boss 67 route is much longer than one screen. The `12 x 8` grid describes only the readable
   camera window, not the whole map.
-- The board reference defines a `52` cell authored route for Level 1. The route should be rebuilt as
-  deliberate 12-column camera chunks, not as random low blocks along the floor.
 - During the chase, keep the player near the horizontal center of the camera view whenever possible so
   the player can read upcoming pickups, projectiles, sand floor, and water changes.
-- The long route loops only at the authored right edge: when the player reaches the end of the route,
-  wrap or reposition the route back to its beginning cleanly instead of hard-stopping the run.
-- Walking left wraps the player to the right side of the screen, and walking right wraps to the left side (screen wrap).
+- The latest authored route has `53` unique columns because the board transcription includes `x=53`;
+  column `54` is the same wrapped space as column `1`.
+- The first `18` columns are safe-zone/tutorial space, and the boss fight starts at column `19`.
+- After the safe tutorial closes, the route wraps on both horizontal edges: walking left past column
+  `1` appears near column `53`, and walking right past column `53` appears near column `1`.
 - Looping must preserve current score, boss phase, water cooldowns, active power-ups, and projectile
   cleanup. Do not restart the whole run unless the player has won, failed, or explicitly pressed
   restart.
@@ -112,18 +112,18 @@ test starts from `Main.tscn`.
 ### 2. Safe Start
 
 - Player spawns in a safe sand-and-pink-sky area.
-- No boss projectiles are active.
-- The safe start is only the first visible screen. It teaches movement and then stops being a place the
-  player can return to during the boss run.
+- No boss projectiles, score pickups, power-ups, or authored boss-route blocks are active.
+- The safe start is `18` columns wide. It should read as empty sand/sky plus exactly one tutorial cube,
+  used only to teach walking and a one-block jump.
 - Teach:
   - move left/right;
   - fall and land;
   - jump onto one block;
   - short hop versus held jump if implemented.
-- After the player clears the first one-block jump checkpoint, the safe area closes or disappears so
-  the player cannot retreat into the tutorial. If a backstop is needed, it should not read as a
-  foreground stone/platform block in the middle of the screen.
-- Boss 67 appears immediately after that checkpoint.
+- After the player clears the first one-block jump checkpoint, the safe area closes/deactivates and
+  the full authored Boss 67 route appears. Do not leave a foreground stone/platform block in the
+  center of the screen as the closure.
+- Column `13` contains the single safe-zone jump cube. Boss 67 appears at column `19`.
 
 ### 3. Land Boss Phase
 
@@ -168,6 +168,8 @@ Progress is measured in horizontal blocks from the start of the boss run.
 | `0` | Boss 67 appears after the safe jump. |
 | `18` blocks | Boss starts adding rare purple projectiles. |
 | `28` blocks | First water event starts. |
+
+Current authored block correction: include the missing board block at `x=30, y=4`.
 
 Purple projectiles:
 
@@ -220,12 +222,15 @@ Each water event can optionally use one complication:
 | Complication | Behavior |
 | --- | --- |
 | Reversed controls | `left` becomes `right`, `right` becomes `left`, `up/jump` and `down` swap only if the final controls include vertical swim input. |
-| Inverted gravity | Blocks are on the ceiling and gravity pulls upward. The player effectively plays upside down for the water duration. |
+| Inverted gravity | Deferred. It requires a ceiling-block route and manual recovery test before it can be selected. |
 
 MVP rule:
 
 - never combine both complications in the same water event;
-- first water should be no complication or the gentler option;
+- first water uses the gentler reversed-controls complication so the UI can prove the condition is
+  visible without risking the current inverted-gravity disappearance bug;
+- inverted gravity is disabled for the current MVP until a ceiling-block route is implemented,
+  the player can recover after water ends, and the path is manually verified;
 - always show a clear icon/text before enabling the complication.
 
 ### 8. Score Rules
@@ -336,8 +341,8 @@ Restart:
 4. Walk, fall, land, and jump onto one block.
 5. Confirm safe start closes after the first taught jump.
 6. Confirm there is no visible stone-like wall/block left in the center of the playfield after closure.
-7. Walk left after the boss run starts and confirm the player is clamped or blocked, not wrapped into
-   another route chunk.
+7. Walk left after the boss run starts and confirm the player wraps to the far right of the authored
+   route without losing score, boss phase, or movement.
 8. Confirm Boss 67 appears.
 9. Confirm boss projectiles visibly originate from Boss 67 and their operations are readable.
 10. Collect land pickups and avoid `*0`, `*0.5`, `*0.8`.

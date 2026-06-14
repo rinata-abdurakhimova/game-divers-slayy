@@ -21,11 +21,15 @@ func _run() -> void:
 	var boss: Node2D = current_scene.get_node(^"Actors/Boss67") as Node2D
 	var controller: Node = current_scene.get_node(^"LevelController")
 	var safe_wall: StaticBody2D = current_scene.get_node(^"SafeWall") as StaticBody2D
+	var safe_zone: Node2D = current_scene.get_node(^"SafeZone") as Node2D
+	var water_overlay: CanvasItem = current_scene.get_node(^"WaterOverlay") as CanvasItem
 	var pickups: Node2D = current_scene.get_node(^"Pickups") as Node2D
 	var projectiles: Node2D = current_scene.get_node(^"Projectiles") as Node2D
 	assert(player != null and boss != null and controller != null)
 	assert(not boss.get_node(^"BodyVisual").visible)
 	assert(not safe_wall.visible)
+	assert(safe_zone.visible)
+	assert(not water_overlay.visible)
 
 	await _physics_frames(2)
 	Input.action_press(&"move_right")
@@ -33,15 +37,10 @@ func _run() -> void:
 	Input.action_release(&"move_right")
 	assert(player.global_position.x > 320.0)
 	assert(player.global_position.x < 360.0)
+	assert(boss.get_node(^"BodyVisual").visible == false)
 
-	Input.action_press(&"move_right")
-	Input.action_press(&"jump")
-	await _physics_frames(20)
-	Input.action_release(&"jump")
-	await _physics_frames(20)
-	Input.action_release(&"move_right")
-	assert(safe_wall.visible)
-	assert(not safe_wall.get_node(^"Visual").visible)
+	controller.call(&"_on_safe_trigger", player)
+	assert(not safe_zone.visible)
 	assert(boss.get_node(^"BodyVisual").visible)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.LAND_WHITE)
 	controller.call(&"_process", 0.0)
@@ -50,13 +49,12 @@ func _run() -> void:
 		if child is Timer:
 			(child as Timer).stop()
 
-	player.global_position = Vector2(430, 585)
+	player.global_position = Vector2(-10, 555)
 	player.velocity = Vector2(-200, 0)
 	controller.call(&"_process", 0.0)
-	assert(player.global_position.x >= controller.get("boss_run_left_bound_x"))
-	assert(player.velocity.x >= 0.0)
+	assert(player.global_position.x > 2500.0)
 
-	player.global_position = Vector2(576, 585)
+	player.global_position = Vector2(864, 555)
 	player.velocity = Vector2.ZERO
 	await _physics_frames(2)
 	assert(player.is_on_floor())
@@ -94,7 +92,7 @@ func _run() -> void:
 	assert(purple.global_position.x < 384.0)
 	purple.queue_free()
 
-	player.global_position = Vector2(576 + 18 * 48, 520)
+	player.global_position = Vector2(864 + 18 * 48, 520)
 	controller.call(&"_process", 0.0)
 	assert(game_state.get("distance_blocks") >= 18)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.LAND_PURPLE)
@@ -102,11 +100,14 @@ func _run() -> void:
 	game_state.call(&"apply_score_operation", GameRules.SCORE_OPERATION_ADD, 500, &"test")
 	assert(game_state.get("phase") != GameRules.RunPhase.WATER)
 
-	player.global_position = Vector2(576 + 28 * 48, 520)
+	player.global_position = Vector2(864 + 28 * 48, 520)
 	controller.call(&"_process", 0.0)
 	assert(game_state.get("phase") == GameRules.RunPhase.WATER)
 	assert(game_state.get("water_seconds_left") > 9.9)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.WATER)
+	assert(game_state.get("water_variant") == GameRules.WaterVariant.WATER_A)
+	assert(game_state.get("water_complication") == GameRules.WaterComplication.REVERSED_CONTROLS)
+	assert(water_overlay.visible)
 
 	controller.call(&"_spawn_pickup")
 	var water_pickup: Node = pickups.get_child(pickups.get_child_count() - 1)
@@ -120,6 +121,7 @@ func _run() -> void:
 
 	game_state.call(&"finish_water_event")
 	assert(game_state.get("phase") == GameRules.RunPhase.LAND)
+	assert(not water_overlay.visible)
 	game_state.call(&"apply_score_operation", GameRules.SCORE_OPERATION_ADD, 600, &"score_pickup")
 	assert(game_state.get("phase") == GameRules.RunPhase.LAND)
 	controller.set(&"_water_cooldown_left", 0.0)

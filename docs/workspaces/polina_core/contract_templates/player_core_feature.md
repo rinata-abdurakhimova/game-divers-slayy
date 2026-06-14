@@ -57,8 +57,8 @@ Core gameplay provides:
 - distance thresholds for boss/purple/water gates.
 - land and water operation pools.
 - water retrigger logic for land values divisible by 6 or 7.
-- right-edge-only route loop support through contract constants/state; walking left after the boss
-  starts must clamp or block instead of wrapping.
+- two-edge route wrap support through contract constants/state; walking left past column `1` appears
+  near column `53`, and walking right past column `53` appears near column `1`.
 
 Assets:
 
@@ -93,7 +93,7 @@ Isolation test:
 9. Confirm no repeated airborne jump without active double-jump power-up.
 10. Activate temporary double jump and confirm it expires after 5 seconds.
 11. Simulate reversed controls and restore normal controls.
-12. Simulate inverted gravity and restore normal gravity.
+12. Do not simulate inverted gravity in MVP; it is disabled until a ceiling-route pass exists.
 13. Reset and confirm movement state is clean.
 
 Score test:
@@ -115,7 +115,7 @@ Main-scene test:
 4. Walk, fall, and jump one block.
 5. Confirm safe start closes behind the player.
 6. Confirm the closure does not leave a visible center stone/block.
-7. Walk left and confirm the player does not wrap into another chunk.
+7. Walk left and confirm the player wraps to the far right of the authored route cleanly.
 8. Confirm Boss 67 appears.
 9. Confirm boss digits are readable and clearly come from Boss 67.
 10. Reach 18 blocks and confirm purple projectiles are enabled.

@@ -6,8 +6,9 @@
   fight against Boss 67.
 - Runtime: placeholder cutscene, safe sand tutorial, Boss 67 appears, player changes score through
   pickups/projectiles, water events introduce rule variants and movement complications.
-- Level shape: Level 1 uses the board reference as a 52-cell authored route viewed through a `12 x 8`
-  camera window. Only the right edge loops; walking left after the safe start closes must clamp or
+- Level shape: Level 1 uses the latest board transcription as a 53-column authored route viewed through
+  a `12 x 8` camera window. Columns `1-18` are safe-zone/tutorial space; Boss 67 begins at column `19`.
+  Only the right edge loops back to column `19`; walking left after the safe start closes must clamp or
   block the player, never wrap them into another chunk.
 - Safe start: it exists only on the opening screen and must not leave a visible stone-like block in the
   middle of gameplay after it closes.

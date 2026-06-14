@@ -25,8 +25,8 @@ The player must always know:
 ## Grid And Scale
 
 - Design grid: `12 x 8`.
-- Level 1 route: `52` authored cells from the board reference, shown through the `12 x 8` camera
-  window.
+- Level 1 route: `53` authored columns from the latest board transcription, shown through the `12 x 8`
+  camera window. Columns `1-18` are safe-zone/tutorial space.
 - One block = one gameplay unit.
 - Player = one gameplay unit.
 - Use a clear side-view platform layout.
@@ -71,7 +71,8 @@ Visuals:
 
 - sand floor;
 - pink sky;
-- one block teaching jump;
+- 18 columns of safe tutorial space;
+- a reachable jump lesson before column `19`;
 - no boss projectiles.
 
 After the first taught jump, visually close or remove the safe start so the boss fight begins.
@@ -100,7 +101,8 @@ Water is not a new level. It is a timed mode.
 - Keep sand/block silhouettes visible.
 - Show `10` second timer.
 - Show current water variant.
-- Show complication warning before reversed controls or inverted gravity begins.
+- Show complication warning before reversed controls begins.
+- Do not show inverted gravity in the MVP; it is deferred until a ceiling route exists.
 
 ## Power-Ups
 

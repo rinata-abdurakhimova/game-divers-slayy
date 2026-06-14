@@ -217,11 +217,8 @@ func _is_on_ground() -> bool:
 
 func _apply_complication(complication: GameRules.WaterComplication) -> void:
 	_controls_reversed = (complication == GameRules.WaterComplication.REVERSED_CONTROLS)
-	_gravity_inverted  = (complication == GameRules.WaterComplication.INVERTED_GRAVITY)
-	if _gravity_inverted:
-		up_direction = Vector2.DOWN
-	else:
-		up_direction = Vector2.UP
+	_gravity_inverted = false
+	up_direction = Vector2.UP
 
 
 func _clear_complication() -> void:

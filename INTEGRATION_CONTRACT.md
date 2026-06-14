@@ -196,12 +196,12 @@ All operations round to the nearest cent after application.
 ## Distance Contract
 
 Progress is measured in horizontal blocks from the boss-run start, after the safe tutorial closes.
-The post-tutorial terrain is a 52-block loop, or 2496 px at the current 48 px block size. This 52-block
-route comes from the board reference and must be authored as readable 12-column chunks. When the player
-passes the right edge, they wrap back to the left. Cumulative distance never resets and drives
-permanent boss-phase milestones.
+The current board transcription has 53 unique columns at 48 px per column; column `54` is the same
+space as column `1`. Columns `1-18` are safe-zone tutorial space; Boss 67 starts at column `19`.
 
-Both left and right edges loop (screen wrap). Walking off the left edge spawns the player on the right edge, and vice versa.
+After the safe tutorial closes, the authored route wraps on both horizontal edges. Walking left past
+column `1` appears near column `53`; walking right past column `53` appears near column `1`.
+Score, boss phase, water cooldowns, active power-ups, and projectiles must persist through wrapping.
 
 | Distance | Event |
 | --- | --- |
@@ -216,6 +216,10 @@ After the first water event has finished, later water events may start when the 
 pickup whose value is divisible by `6` or `7`. Later water events must use a cooldown so several
 qualifying pickups cannot stack water events instantly.
 
+Current MVP water complication selection is restricted to `REVERSED_CONTROLS`. `INVERTED_GRAVITY`
+stays in the enum and docs, but must not be selected until Alina adds a ceiling-block route and Polina
+verifies that the player remains visible and recovers when water ends.
+
 ## Power-Up Contract
 
 | Kind | Visual | Effect | Duration |
@@ -224,6 +228,10 @@ qualifying pickups cannot stack water events instantly.
 | `double_jump` | green up arrow | Player gets one temporary extra jump. | `5` seconds |
 
 Power-ups are rare and spawn at high points.
+
+`INVERTED_GRAVITY` is temporarily contract-disabled for the MVP build. It remains an enum value for
+future work, but level logic must not select it until ceiling blocks and a manual recovery route are
+implemented.
 
 ## Stable Asset Roles
 
@@ -256,10 +264,12 @@ The new slice is integrated only when:
 
 - cutscene can be skipped;
 - player walks, falls, lands, and jumps in an isolated test room;
-- safe start teaches one-block jump;
+- safe start is empty sand/sky plus exactly one tutorial cube;
+- safe start is 18 columns wide and the boss fight begins at column 19;
 - Boss 67 appears after the safe start closes;
 - the safe-start closure does not leave a visible stone-like block in the middle of the screen;
-- the player cannot walk left and wrap into another chunk;
+- after the boss starts, the player can wrap left/right across the authored route edges;
+- the authored board includes the missing block at `x=30, y=4`;
 - land pickups change score;
 - white projectiles are blocked by terrain;
 - purple projectiles start after `18` blocks and pass through blocks;

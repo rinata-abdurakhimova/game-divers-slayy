@@ -75,20 +75,22 @@ Movement:
 Map/grid assumptions:
 
 - Visible design chunk is `12 x 8` tiles.
-- Full Level 1 route is `52` authored cells from the board reference.
+- Full Level 1 route is `53` authored columns from the latest board transcription.
+- Columns `1-18` are safe-zone/tutorial space. Boss 67 begins at column `19`.
 - One tile is one cube.
 - Player is `1 x 1` tile.
 - Maximum intended terrain stack is 5 tiles high.
 - Every required route must be reachable with the approved movement kit.
-- The route loops only at the right edge. Walking left after the boss starts must clamp or block the
-  player, not wrap into another chunk.
+- After the boss starts, the route wraps on both horizontal edges. Walking left past column `1`
+  appears near column `53`, and walking right past column `53` appears near column `1`.
 
 Opening flow:
 
 - A cutscene scene appears first. Story text is deferred.
-- The player starts in a safe sand-and-sky tutorial area.
-- The first interaction teaches walking, falling, and one-block jumping.
-- After the first successful tutorial jump/block, the safe start closes behind the player.
+- The player starts in a safe sand-and-sky tutorial area with no boss-route blocks, pickups,
+  projectiles, power-ups, or boss pressure.
+- Exactly one tutorial cube teaches walking, falling, and one-block jumping.
+- After the player crosses into column `19`, the safe start closes behind the player.
 - The safe-start closure must not read as a visible stone/block in the middle of the playfield.
 - Boss 67 appears only after the player has demonstrated basic platforming.
 
@@ -105,8 +107,10 @@ Land pickups:
 
 Spawn density:
 
-- 6 or 7 collectible score values per visible `12 x 8` chunk.
+- 8 or 9 collectible score values per visible `12 x 8` chunk.
 - Pickups may sit on floor/block tops or 2 tiles above a floor/block so the player must jump.
+- High-value opportunities should include reachable high points at height `5`, or height `4` with a
+  jump.
 
 Boss land projectiles:
 
@@ -168,8 +172,9 @@ Water complications:
 
 - At most one complication per water event.
 - Possible complication 1: reversed controls.
-- Possible complication 2: inverted gravity with ceiling blocks and upward gravity.
-- The first water event may use no complication or the gentlest version if readability is at risk.
+- Inverted gravity is contract-disabled for MVP until ceiling blocks and recovery are stable.
+- Current MVP uses reversed controls for water complication visibility. Inverted gravity stays disabled
+  until Alina adds a ceiling route and Polina verifies player recovery after water ends.
 
 ## Power-Ups
 
@@ -279,7 +284,7 @@ Progression:
 
 - Boss appears after the tutorial jump.
 - Safe-start closure does not leave a visible center block.
-- Walking left after the boss starts does not wrap the player into another chunk.
+- Walking left after the boss starts wraps the player to the far right of the authored route cleanly.
 - Purple projectiles unlock at 18 blocks.
 - First water starts at 28 blocks.
 - Later water starts only after qualifying land pickups and cooldown.
@@ -291,7 +296,7 @@ Progression:
 
 To Alina:
 
-- Build side-view terrain on the `52` authored cells / `12 x 8` readable chunk rule.
+- Build side-view terrain on the `53` authored columns / `12 x 8` readable chunk rule.
 - Keep required jumps inside the approved movement ability.
 - Use sand/blocks from the selected visual asset pack.
 - White projectiles need block collision. Purple projectiles need pass-through behavior.
