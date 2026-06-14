@@ -223,6 +223,10 @@ func _build_tutorial_block() -> void:
 		_tutorial_runtime_nodes.append(visual)
 
 
+func _block_position(column: int, row: int) -> Vector2:
+	return Vector2(column * BLOCK_SIZE, FLOOR_TOP_Y - row * BLOCK_SIZE)
+
+
 func _create_block_visual(position: Vector2) -> CanvasItem:
 	if _block_texture != null:
 		var sprite := Sprite2D.new()
