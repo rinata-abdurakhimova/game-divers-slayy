@@ -26,8 +26,8 @@ var _real_timer:      float  = 0.0
 var _phase:           int    = 0   # 0=idle,1=slow,2=leap,3=strike,4=shake,5=shatter,6=fade
 var _boss_start_pos:  Vector2
 var _player_start_pos: Vector2
-var _hit_stop_timer:  float  = 0.0
 var _hit_stop_dur:    float  = 0.15
+var _hit_stop_start_msec: int = 0
 var _shake_timer:     float  = 0.0
 var _active:          bool   = false
 var _flash_timer:     float  = 0.0
@@ -102,8 +102,8 @@ func _process(delta: float) -> void:
 	if not _active:
 		return
 
-	# Use unscaled delta for cutscene timing
-	var real_delta: float = delta / Engine.time_scale
+	# Use unscaled delta for cutscene timing (avoid div-by-zero during hit-stop, time_scale=0)
+	var real_delta: float = delta / Engine.time_scale if Engine.time_scale > 0.0 else 0.0
 
 	match _phase:
 		1:  # Slow-mo starts, wait 0.5s
@@ -122,11 +122,10 @@ func _process(delta: float) -> void:
 				_real_timer = 0.0
 				_phase = 3
 				Engine.time_scale = 0.0  # FREEZE (hit-stop)
+				_hit_stop_start_msec = Time.get_ticks_msec()
 
-		3:  # Hit-stop (uses real process time, not game time)
-			_hit_stop_timer += delta  # real seconds (time_scale=0)
-			if _hit_stop_timer >= _hit_stop_dur:
-				_hit_stop_timer = 0.0
+		3:  # Hit-stop (wall-clock time, since time_scale=0 makes delta 0)
+			if Time.get_ticks_msec() - _hit_stop_start_msec >= int(_hit_stop_dur * 1000.0):
 				Engine.time_scale = 1.0
 				_phase = 4
 				# Trigger shockwave at boss position
