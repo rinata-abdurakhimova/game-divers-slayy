@@ -18,6 +18,7 @@ const MAX_RECENT_OPERATIONS: int = 4
 
 @onready var score_panel: Control = %ScoreLabel.get_parent().get_parent()
 @onready var top_margin: MarginContainer = $TopMargin
+@onready var state_panel: Control = %StateLabel.get_parent()
 
 var _recent_operations: Array[String] = []
 var _powerup_seconds: Dictionary[StringName, float] = {}
@@ -143,6 +144,22 @@ func _set_top_panel_flipped(flipped: bool) -> void:
 		top_margin.anchor_bottom = 0.0
 		top_margin.offset_top = 16.0
 		top_margin.offset_bottom = 128.0
+	_set_state_panel_flipped(flipped)
+
+
+func _set_state_panel_flipped(flipped: bool) -> void:
+	if state_panel == null:
+		return
+	if flipped:
+		state_panel.anchor_top = 0.0
+		state_panel.anchor_bottom = 0.0
+		state_panel.offset_top = 16.0
+		state_panel.offset_bottom = 60.0
+	else:
+		state_panel.anchor_top = 1.0
+		state_panel.anchor_bottom = 1.0
+		state_panel.offset_top = -62.0
+		state_panel.offset_bottom = -18.0
 
 
 func _on_powerup_started(kind: StringName, seconds: float) -> void:
