@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="480" height="480" shape-rendering="crispEdges">
+  <defs>
+    <style>
+      .outline { fill: #222222; }
+      .pink { fill: #ffa6c9; }
+      .dark-pink { fill: #e07a9e; }
+      .visor { fill: #5cdbfe; }
+      .white { fill: #ffffff; }
+      .eyes { fill: #1f3c4d; }
+    </style>
+  </defs>
+
+  <path class="outline" d="
+    M17 1h3v1h-3z 
+    M8 2h5v1h-5z M17 2h1v1h-1z M19 2h1v1h-1z 
+    M6 3h2v1h-2z M13 3h2v1h-2z M17 3h1v1h-1z M19 3h1v1h-1z 
+    M5 4h1v1h-1z M15 4h1v1h-1z M17 4h1v1h-1z M19 4h1v1h-1z 
+    M4 5h1v1h-1z M8 5h10v1h-10z M19 5h1v1h-1z 
+    M4 6h1v1h-1z M7 6h1v1h-1z M16 6h2v1h-2z M19 6h1v1h-1z 
+    M3 7h2v1h-2z M7 7h1v1h-1z M16 7h2v1h-2z M19 7h1v1h-1z 
+    M3 8h1v1h-1z M7 8h1v1h-1z M16 8h2v1h-2z M19 8h1v1h-1z 
+    M3 9h1v1h-1z M7 9h9v1h-9z M19 9h1v1h-1z 
+    M4 10h1v1h-1z M15 10h5v1h-5z 
+    M2 11h3v1h-3z M17 11h1v1h-1z 
+    M1 12h1v1h-1z M5 12h1v1h-1z M8 12h1v1h-1z M13 12h1v1h-1z M17 12h1v1h-1z 
+    M1 13h1v1h-1z M5 13h1v1h-1z M8 13h1v1h-1z M13 13h1v1h-1z M17 13h1v1h-1z 
+    M1 14h1v1h-1z M5 14h1v1h-1z M8 14h1v1h-1z M13 14h1v1h-1z M17 14h1v1h-1z 
+    M2 15h4v1h-4z M16 15h1v1h-1z 
+    M6 16h2v1h-2z M15 16h2v1h-2z 
+    M7 17h1v1h-1z M10 17h1v1h-1z M13 17h1v1h-1z M16 17h1v1h-1z 
+    M7 18h1v1h-1z M10 18h1v1h-1z M13 18h1v1h-1z M16 18h1v1h-1z 
+    M7 19h4v1h-4z M13 19h4v1h-4z
+  "/>
+
+  <path class="pink" d="
+    M8 3h5v1h-5z 
+    M6 4h9v1h-9z 
+    M6 5h2v1h-2z 
+    M6 6h1v1h-1z 
+    M6 7h1v1h-1z 
+    M4 8h1v1h-1z M6 8h1v1h-1z 
+    M4 9h1v1h-1z M6 9h1v1h-1z 
+    M5 10h2v1h-2z M8 10h6v1h-6z 
+    M6 11h10v1h-10z 
+    M2 12h3v1h-3z M7 12h1v1h-1z M9 12h1v1h-1z M12 12h1v1h-1z M14 12h1v1h-1z M16 12h1v1h-1z 
+    M2 13h3v1h-3z M7 13h1v1h-1z M9 13h1v1h-1z M12 13h1v1h-1z M14 13h1v1h-1z M16 13h1v1h-1z 
+    M2 14h3v1h-3z M7 14h1v1h-1z M9 14h1v1h-1z M12 14h1v1h-1z M14 14h1v1h-1z M16 14h1v1h-1z 
+    M7 15h8v1h-8z 
+    M9 16h4v1h-4z 
+    M9 17h1v1h-1z M15 17h1v1h-1z 
+    M9 18h1v1h-1z M15 18h1v1h-1z
+  "/>
+
+  <path class="dark-pink" d="
+    M5 5h1v1h-1z 
+    M5 6h1v1h-1z 
+    M5 7h1v1h-1z 
+    M5 8h1v1h-1z 
+    M5 9h1v1h-1z 
+    M7 10h1v1h-1z M14 10h1v1h-1z 
+    M5 11h1v1h-1z M16 11h1v1h-1z 
+    M6 12h1v1h-1z M10 12h2v1h-2z M15 12h1v1h-1z 
+    M6 13h1v1h-1z M10 13h2v1h-2z M15 13h1v1h-1z 
+    M6 14h1v1h-1z M10 14h2v1h-2z M15 14h1v1h-1z 
+    M6 15h1v1h-1z M15 15h1v1h-1z 
+    M8 16h1v1h-1z M13 16h2v1h-2z 
+    M8 17h1v1h-1z M14 17h1v1h-1z 
+    M8 18h1v1h-1z M14 18h1v1h-1z
+  "/>
+
+  <path class="white" d="
+    M18 2h1v1h-1z 
+    M18 3h1v1h-1z 
+    M18 4h1v1h-1z 
+    M18 5h1v1h-1z 
+    M8 6h4v1h-4z M18 6h1v1h-1z 
+    M8 7h2v1h-2z M18 7h1v1h-1z 
+    M8 8h4v1h-4z M18 8h1v1h-1z 
+    M16 9h3v1h-3z
+  "/>
+
+  <path class="visor" d="
+    M12 6h4v1h-4z 
+    M11 7h2v1h-2z M14 7h2v1h-2z 
+    M12 8h4v1h-4z
+  "/>
+
+  <path class="eyes" d="
+    M10 7h1v1h-1z 
+    M13 7h1v1h-1z
+  "/>
+</svg>
