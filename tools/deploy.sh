@@ -35,7 +35,10 @@ find_command() {
 }
 
 godot_path="$(find_command "${GODOT_EXE:-}" godot4 godot || true)"
-butler_path="$(find_command "${BUTLER_PATH:-}" butler || true)"
+butler_path="$(find_command "${BUTLER_PATH:-}" butler \
+  "/Users/alina1/Library/Application Support/itch/broth/butler/versions/15.27.0/butler" \
+  "/Users/alina1/Library/Application Support/itch/broth/butler/butler" \
+  || true)"
 
 if [[ -z "$godot_path" ]]; then
   echo "Godot was not found. Set GODOT_EXE to the Godot console executable." >&2
