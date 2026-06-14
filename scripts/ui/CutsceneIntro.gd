@@ -116,12 +116,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	get_viewport().set_input_as_handled()
 	if _is_typing:
-		# First click: reveal all text immediately
 		_subtitle.visible_characters = -1
 		_is_typing = false
 		_prompt.show()
-	elif not _slide_done:
-		# Second click: skip to next slide
+	if not _slide_done:
+		# Single click: stop narration and skip to next slide
 		_slide_done = true
 		_advance()
 
