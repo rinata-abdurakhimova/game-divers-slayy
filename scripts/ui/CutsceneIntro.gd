@@ -51,6 +51,7 @@ var _heat_mat:       ShaderMaterial
 var _glitch_mat:     ShaderMaterial
 var _current_tween:  Tween
 var _glitch_tween:   Tween
+var _fade_tween:     Tween
 
 
 func _ready() -> void:
@@ -222,14 +223,18 @@ func _trigger_shake() -> void:
 
 
 func _fade_in(dur: float) -> void:
-	var t := create_tween()
-	t.tween_property(_fade_rect, "color", Color(0, 0, 0, 0), dur)
+	if _fade_tween:
+		_fade_tween.kill()
+	_fade_tween = create_tween()
+	_fade_tween.tween_property(_fade_rect, "color", Color(0, 0, 0, 0), dur)
 
 
 func _fade_out(dur: float, callback: Callable) -> void:
-	var t := create_tween()
-	t.tween_property(_fade_rect, "color", Color(0, 0, 0, 1), dur)
-	t.finished.connect(callback)
+	if _fade_tween:
+		_fade_tween.kill()
+	_fade_tween = create_tween()
+	_fade_tween.tween_property(_fade_rect, "color", Color(0, 0, 0, 1), dur)
+	_fade_tween.finished.connect(callback)
 
 
 func _show_title_screen() -> void:

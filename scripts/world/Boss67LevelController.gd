@@ -406,6 +406,11 @@ func _on_safe_trigger(_body: Node) -> void:
 		return
 	_tutorial_done = true
 
+	# Push the player clearly past the safe-zone clamp boundary (FIGHT_START_X - 12)
+	# so it can never be yanked back into the safe zone on the frame this fires.
+	if _player != null:
+		_player.global_position.x = maxf(_player.global_position.x, FIGHT_START_X + 4.0)
+
 	if _safe_zone != null:
 		_safe_zone.hide()
 	_set_runtime_nodes_enabled(_tutorial_runtime_nodes, false)

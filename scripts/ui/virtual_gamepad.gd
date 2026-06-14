@@ -4,19 +4,16 @@ extends Control
 @export var joystick_base_radius: float = 60.0
 @export var joystick_thumb_radius: float = 25.0
 @export var jump_btn_radius: float = 50.0
-@export var action_btn_radius: float = 30.0
 @export var pause_btn_radius: float = 24.0
 
 var _cached_vp_size: Vector2
 var _joystick_base_pos: Vector2
 var _jump_btn_center: Vector2
-var _action_btn_center: Vector2
 var _pause_btn_center: Vector2
 
 var _joystick_touch_id: int = -1
 var _joystick_value: Vector2 = Vector2.ZERO
 var _jump_touch_id: int = -1
-var _action_touch_id: int = -1
 var _pause_touch_id: int = -1
 
 
@@ -67,10 +64,6 @@ func _try_claim_touch(touch: InputEventScreenTouch) -> void:
 		_jump_touch_id = touch.index
 		Input.action_press("jump")
 
-	elif touch.position.distance_to(_action_btn_center) < action_btn_radius * 1.5:
-		_action_touch_id = touch.index
-		_send_action(&"action", true)
-
 
 func _release_touch(touch_index: int) -> void:
 	if touch_index == _joystick_touch_id:
@@ -82,9 +75,6 @@ func _release_touch(touch_index: int) -> void:
 	elif touch_index == _jump_touch_id:
 		_jump_touch_id = -1
 		Input.action_release("jump")
-	elif touch_index == _action_touch_id:
-		_action_touch_id = -1
-		Input.action_release("action")
 	elif touch_index == _pause_touch_id:
 		_pause_touch_id = -1
 
@@ -131,10 +121,10 @@ func _recalculate_positions() -> void:
 		return
 	_cached_vp_size = vp_size
 
-	_joystick_base_pos = Vector2(joystick_base_radius + 20, vp_size.y - joystick_base_radius - 20)
-	_jump_btn_center = Vector2(vp_size.x - jump_btn_radius - 20, vp_size.y - jump_btn_radius - 20)
-	_action_btn_center = Vector2(vp_size.x - action_btn_radius - 25, vp_size.y - jump_btn_radius * 2.0 - action_btn_radius - 30)
-	_pause_btn_center = Vector2(vp_size.x - pause_btn_radius - 20, pause_btn_radius + 20)
+	var m: float = 45.0
+	_joystick_base_pos = Vector2(joystick_base_radius + m, vp_size.y - joystick_base_radius - m)
+	_jump_btn_center = Vector2(vp_size.x - jump_btn_radius - m, vp_size.y - jump_btn_radius - m)
+	_pause_btn_center = Vector2(vp_size.x - pause_btn_radius - m, pause_btn_radius + m)
 
 
 func _draw() -> void:
@@ -152,10 +142,6 @@ func _draw() -> void:
 	draw_circle(_jump_btn_center, jump_btn_radius, Color(0.3, 0.8, 0.4, 0.5))
 	draw_circle(_jump_btn_center, jump_btn_radius, Color(0.3, 0.8, 0.4, 0.8), false, 2.0)
 	_draw_centered_text("JUMP", _jump_btn_center, 18)
-
-	draw_circle(_action_btn_center, action_btn_radius, Color(0.6, 0.6, 0.8, 0.5))
-	draw_circle(_action_btn_center, action_btn_radius, Color(0.6, 0.6, 0.8, 0.8), false, 2.0)
-	_draw_centered_text("ACT", _action_btn_center, 12)
 
 	draw_circle(_pause_btn_center, pause_btn_radius, Color(0.8, 0.6, 0.2, 0.5))
 	draw_circle(_pause_btn_center, pause_btn_radius, Color(0.8, 0.6, 0.2, 0.8), false, 2.0)
