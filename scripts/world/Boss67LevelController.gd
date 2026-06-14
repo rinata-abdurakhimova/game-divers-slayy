@@ -718,12 +718,14 @@ func _trigger_water(_reason: StringName) -> void:
 
 
 func _pick_complication() -> GameRules.WaterComplication:
-	return GameRules.WaterComplication.REVERSED_CONTROLS
+	if randi() % 2 == 0:
+		return GameRules.WaterComplication.REVERSED_CONTROLS
+	return GameRules.WaterComplication.INVERTED_GRAVITY
 
 
 func _on_water_started(
 	_variant: GameRules.WaterVariant,
-	_complication: GameRules.WaterComplication,
+	complication: GameRules.WaterComplication,
 	_seconds: float
 ) -> void:
 	if _water_overlay != null:
@@ -732,6 +734,7 @@ func _on_water_started(
 		_land_background.hide()
 	if _water_background != null:
 		_water_background.show()
+	_set_world_flipped(complication == GameRules.WaterComplication.INVERTED_GRAVITY)
 
 
 func _on_water_finished() -> void:
@@ -741,6 +744,7 @@ func _on_water_finished() -> void:
 		_land_background.show()
 	if _water_background != null:
 		_water_background.hide()
+	_set_world_flipped(false)
 
 	if _first_water_started:
 		_first_water_finished = true
@@ -755,6 +759,12 @@ func _on_water_finished() -> void:
 		else GameRules.BossPhase.LAND_WHITE
 	)
 	game_state.set_boss_phase(next_phase)
+
+
+func _set_world_flipped(flipped: bool) -> void:
+	if _camera != null:
+		_camera.ignore_rotation = false
+		_camera.rotation = PI if flipped else 0.0
 
 
 func _on_score_operation_applied(
@@ -787,6 +797,7 @@ func _on_restart_requested() -> void:
 	_total_blocks = 0
 	_local_blocks = 0
 	_purple_unlocked = false
+	_set_world_flipped(false)
 	if _player != null:
 		_player.global_position = Vector2(60.0, 555.0)
 		_player.velocity = Vector2.ZERO

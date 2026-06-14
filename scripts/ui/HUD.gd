@@ -17,6 +17,7 @@ const MAX_RECENT_OPERATIONS: int = 4
 @onready var pause_panel: Control = %PausePanel
 
 @onready var score_panel: Control = %ScoreLabel.get_parent().get_parent()
+@onready var top_margin: MarginContainer = $TopMargin
 
 var _recent_operations: Array[String] = []
 var _powerup_seconds: Dictionary[StringName, float] = {}
@@ -59,6 +60,7 @@ func _on_run_started() -> void:
 	pause_panel.hide()
 	water_panel.hide()
 	powerup_panel.hide()
+	_set_top_panel_flipped(false)
 	_apply_snapshot(GameState.get_run_snapshot())
 
 
@@ -114,6 +116,7 @@ func _on_water_started(
 	water_rule_label.text = _water_rule_text(variant, complication)
 	_set_water_complication(complication)
 	_on_water_timer_changed(seconds)
+	_set_top_panel_flipped(complication == GameRules.WaterComplication.INVERTED_GRAVITY)
 
 
 func _on_water_timer_changed(seconds_left: float) -> void:
@@ -124,6 +127,22 @@ func _on_water_finished() -> void:
 	water_panel.hide()
 	water_complication_label.hide()
 	phase_label.text = "LAND  |  %d BLOCKS" % GameState.distance_blocks
+	_set_top_panel_flipped(false)
+
+
+func _set_top_panel_flipped(flipped: bool) -> void:
+	if top_margin == null:
+		return
+	if flipped:
+		top_margin.anchor_top = 1.0
+		top_margin.anchor_bottom = 1.0
+		top_margin.offset_top = -128.0
+		top_margin.offset_bottom = -16.0
+	else:
+		top_margin.anchor_top = 0.0
+		top_margin.anchor_bottom = 0.0
+		top_margin.offset_top = 16.0
+		top_margin.offset_bottom = 128.0
 
 
 func _on_powerup_started(kind: StringName, seconds: float) -> void:
@@ -152,16 +171,17 @@ func _apply_snapshot(snapshot: Dictionary) -> void:
 	)
 	water_panel.visible = snapshot_water != GameRules.WaterVariant.NONE
 	if snapshot_water != GameRules.WaterVariant.NONE:
-		water_rule_label.text = _water_rule_text(
-			snapshot_water,
-			snapshot.get("water_complication", GameRules.WaterComplication.NONE)
+		var snapshot_complication: GameRules.WaterComplication = snapshot.get(
+			"water_complication",
+			GameRules.WaterComplication.NONE
 		)
-		_set_water_complication(
-			snapshot.get("water_complication", GameRules.WaterComplication.NONE)
-		)
+		water_rule_label.text = _water_rule_text(snapshot_water, snapshot_complication)
+		_set_water_complication(snapshot_complication)
 		_on_water_timer_changed(float(snapshot.get("water_seconds_left", 0.0)))
+		_set_top_panel_flipped(snapshot_complication == GameRules.WaterComplication.INVERTED_GRAVITY)
 	else:
 		water_complication_label.hide()
+		_set_top_panel_flipped(false)
 
 	_powerup_seconds.clear()
 	var snapshot_powerups: Dictionary = snapshot.get("active_powerups", {})

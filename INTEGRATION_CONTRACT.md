@@ -222,9 +222,11 @@ After the first water event has finished, later water events may start when the 
 pickup whose value is divisible by `6` or `7`. Later water events must use a cooldown so several
 qualifying pickups cannot stack water events instantly.
 
-Current MVP water complication selection is restricted to `REVERSED_CONTROLS`. `INVERTED_GRAVITY`
-stays in the enum and docs, but must not be selected until Alina adds a ceiling-block route and Polina
-verifies that the player remains visible and recovers when water ends.
+Each water event randomly selects one of `REVERSED_CONTROLS` or `INVERTED_GRAVITY` with equal (50/50)
+probability. `INVERTED_GRAVITY` does not change gravity, physics, or floor collision; it rotates the
+camera and the player visuals 180 degrees so the sand/terrain appears at the top of the screen for the
+duration of the water event. Both complications clear automatically when the water event ends or on
+restart. Operand/score selection logic is unaffected by either complication.
 
 ## Power-Up Contract
 
@@ -234,10 +236,6 @@ verifies that the player remains visible and recovers when water ends.
 | `double_jump` | green up arrow | Player gets one temporary extra jump. | `20` seconds |
 
 Power-ups are rare and spawn at high points.
-
-`INVERTED_GRAVITY` is temporarily contract-disabled for the MVP build. It remains an enum value for
-future work, but level logic must not select it until ceiling blocks and a manual recovery route are
-implemented.
 
 ## Stable Asset Roles
 
