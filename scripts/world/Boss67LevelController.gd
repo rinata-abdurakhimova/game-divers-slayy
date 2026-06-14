@@ -72,8 +72,8 @@ const AUTHORED_BLOCKS: Array[Vector2i] = [
 
 @export_group("Tuning")
 @export var purple_distance: int = GameRules.FIRST_PURPLE_DISTANCE_BLOCKS
-@export var max_active_pickups: int = 7
-@export var initial_pickup_count: int = 5
+@export var max_active_pickups: int = 9
+@export var initial_pickup_count: int = 7
 @export var pickup_interval_min: float = 2.5
 @export var pickup_interval_max: float = 5.0
 @export var projectile_interval_min: float = 2.0
@@ -538,8 +538,6 @@ func _trigger_water(reason: StringName) -> void:
 
 
 func _pick_complication() -> GameRules.WaterComplication:
-	if randf() > 0.5:
-		return GameRules.WaterComplication.INVERTED_GRAVITY
 	return GameRules.WaterComplication.REVERSED_CONTROLS
 
 
