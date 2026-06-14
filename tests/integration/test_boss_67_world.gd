@@ -138,7 +138,7 @@ func _run() -> void:
 	game_state.call(&"apply_score_operation", GameRules.SCORE_OPERATION_ADD, 600, &"score_pickup")
 	assert(game_state.get("phase") == GameRules.RunPhase.LAND)
 	controller.set(&"_water_cooldown_left", 0.0)
-	game_state.call(&"apply_score_operation", GameRules.SCORE_OPERATION_ADD, 700, &"score_pickup")
+	game_state.call(&"apply_score_operation", GameRules.SCORE_OPERATION_ADD, 500, &"score_pickup")
 	assert(game_state.get("phase") == GameRules.RunPhase.WATER)
 
 	current_scene.queue_free()
