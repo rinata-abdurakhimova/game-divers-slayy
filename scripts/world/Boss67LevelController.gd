@@ -155,7 +155,7 @@ func _process(delta: float) -> void:
 func _build_authored_blocks() -> void:
 	if not _authored_runtime_nodes.is_empty():
 		return
-	for block: Vector2i in AUTHORED_BLOCKS:
+	for block: Vector2i in _stacked_authored_blocks():
 		var position: Vector2 = _block_position(block.x, block.y)
 		if _terrain != null:
 			var collision_shape := CollisionShape2D.new()
@@ -179,6 +179,19 @@ func _build_authored_blocks() -> void:
 			visual.position = position
 			_terrain_visual.add_child(visual)
 			_authored_runtime_nodes.append(visual)
+
+
+func _stacked_authored_blocks() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	var seen: Dictionary[String, bool] = {}
+	for top_block: Vector2i in AUTHORED_BLOCKS:
+		for row: int in range(1, top_block.y + 1):
+			var key: String = "%d:%d" % [top_block.x, row]
+			if seen.has(key):
+				continue
+			seen[key] = true
+			result.append(Vector2i(top_block.x, row))
+	return result
 
 
 func _build_tutorial_block() -> void:

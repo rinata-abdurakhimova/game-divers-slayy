@@ -30,6 +30,9 @@ func _run() -> void:
 	assert(not safe_wall.visible)
 	assert(safe_zone.visible)
 	assert(not water_overlay.visible)
+	var stacked_blocks: Array = controller.call(&"_stacked_authored_blocks")
+	assert(Vector2i(30, 1) in stacked_blocks)
+	assert(Vector2i(30, 4) in stacked_blocks)
 
 	await _physics_frames(2)
 	Input.action_press(&"move_right")

@@ -4,8 +4,11 @@ extends Control
 @onready var score_hint: Control = %ScoreHint
 @onready var action_hint: Control = %ActionHint
 
+@export var goal_hint_seconds: float = 2.4
+
 var _movement_seen: bool = false
 var _score_change_seen: bool = false
+var _goal_tween: Tween
 
 
 func _ready() -> void:
@@ -22,11 +25,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		_movement_seen = true
 		movement_hint.hide()
 		score_hint.show()
+		_hide_goal_after_delay()
 
 
 func _on_run_started() -> void:
 	_movement_seen = false
 	_score_change_seen = false
+	if _goal_tween != null:
+		_goal_tween.kill()
 	movement_hint.show()
 	score_hint.hide()
 	action_hint.hide()
@@ -41,10 +47,7 @@ func _on_score_operation_applied(
 		return
 	_score_change_seen = true
 	score_hint.hide()
-	action_hint.show()
-	var tween: Tween = create_tween()
-	tween.tween_interval(3.0)
-	tween.tween_callback(action_hint.hide)
+	action_hint.hide()
 
 
 func _on_water_started(
@@ -55,3 +58,11 @@ func _on_water_started(
 	movement_hint.hide()
 	score_hint.hide()
 	action_hint.hide()
+
+
+func _hide_goal_after_delay() -> void:
+	if _goal_tween != null:
+		_goal_tween.kill()
+	_goal_tween = create_tween()
+	_goal_tween.tween_interval(goal_hint_seconds)
+	_goal_tween.tween_callback(score_hint.hide)

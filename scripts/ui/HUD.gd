@@ -100,11 +100,11 @@ func _on_boss_phase_changed(new_phase: GameRules.BossPhase) -> void:
 		GameRules.BossPhase.HIDDEN:
 			state_label.text = "BOSS 67 IS AHEAD"
 		GameRules.BossPhase.LAND_WHITE:
-			state_label.text = "DODGE WHITE NUMBERS"
+			state_label.text = "WHITE NUMBERS HIT BLOCKS"
 			_score_visibility_timer = 4.0
 			score_panel.show()
 		GameRules.BossPhase.LAND_PURPLE:
-			state_label.text = "PURPLE NUMBERS JOINED"
+			state_label.text = "PURPLE NUMBERS PASS THROUGH BLOCKS"
 		GameRules.BossPhase.WATER:
 			state_label.text = "WATER RULE ACTIVE"
 		GameRules.BossPhase.DEFEATED:

@@ -46,6 +46,8 @@ survive water twists -> hit exact 67 -> win or hit 0 -> play again
 - One block is one gameplay unit.
 - Player is one gameplay unit.
 - Teach walking and one-block jumping before the boss starts.
+- Authored `y` values describe standable column height. Runtime terrain fills from floor to that
+  height, while pickups use the top height for placement.
 - Platform stacks may be up to `5` blocks high, but required movement must remain readable.
 - After the boss starts, the route wraps on both horizontal edges. Walking left past column `1`
   appears near column `53`, and walking right past column `53` appears near column `1`.

@@ -63,6 +63,9 @@ only art, not movement or game logic.
   cleanup. Do not restart the whole run unless the player has won, failed, or explicitly pressed
   restart.
 - The player initially learns to jump one block.
+- Authored terrain `y` values define the top height of a standable sand column. Runtime terrain fills
+  every row from the floor up to that top height, so the player can stand and walk on blocks instead
+  of seeing unreachable floating collision islands.
 - Terrain stacks may be up to `5` blocks high, but every required path must remain reachable with the
   approved movement kit.
 - Camera may follow horizontally after the safe tutorial strip, but each screen-length chunk should

@@ -47,7 +47,7 @@ theme_override_styles/panel = SubResource("StyleBox_banner")
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
 theme_override_font_sizes/font_size = 18
-text = "MOVE: A/D OR ARROWS     JUMP: SPACE"
+text = "A/D OR ARROWS: MOVE     SPACE: JUMP     R: RESTART"
 horizontal_alignment = 1
 
 [node name="ScoreHint" type="PanelContainer" parent="Hints"]
@@ -60,7 +60,7 @@ theme_override_styles/panel = SubResource("StyleBox_banner")
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
 theme_override_font_sizes/font_size = 18
-text = "COLLECT OPERATIONS. REACH EXACTLY 67."
+text = "GOAL: REACH EXACTLY 67"
 horizontal_alignment = 1
 
 [node name="ActionHint" type="PanelContainer" parent="Hints"]
@@ -73,5 +73,5 @@ theme_override_styles/panel = SubResource("StyleBox_banner")
 layout_mode = 2
 theme_override_colors/font_color = Color(0.87, 0.98, 1, 1)
 theme_override_font_sizes/font_size = 18
-text = "ENTER / E: INTERACT OR CLOSE RULE CARDS"
+text = "ENTER / E: CLOSE RULE CARDS"
 horizontal_alignment = 1
