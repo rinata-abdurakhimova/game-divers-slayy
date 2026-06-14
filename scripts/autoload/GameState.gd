@@ -14,9 +14,19 @@ var outcome_locked: bool = false
 var active_powerups: Dictionary[StringName, float] = {}
 
 
+var _last_esc_time: float = 0.0
+
 func _process(delta: float) -> void:
 	_update_water_timer(delta)
 	_update_powerup_timers(delta)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
+		var t := Time.get_ticks_msec() / 1000.0
+		if t - _last_esc_time < 0.5:
+			get_tree().quit()
+		_last_esc_time = t
 
 
 func reset_boss_67_run() -> void:

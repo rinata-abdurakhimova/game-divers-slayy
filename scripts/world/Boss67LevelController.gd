@@ -10,24 +10,16 @@ const MAP_WIDTH_PX: float = MAP_COLUMNS * BLOCK_SIZE   # 2544 px
 const FLOOR_TOP_Y: float = 570.0
 const VIEWPORT_H: float  = 648.0
 
-# Safe zone spans columns 1-18. Single jump-block at column 13.
-# Fight starts the moment player crosses column 19 (the SafeTrigger).
-const SAFE_ZONE_COLS: int        = 18
-const TUTORIAL_BLOCK_COL: int    = 13
-const FIGHT_START_COL: int       = 19
+# Safe zone spans columns 1-3.
+const SAFE_ZONE_COLS: int        = 3
+const TUTORIAL_BLOCK_COL: int    = 2
+const FIGHT_START_COL: int       = 4
 
 # ── Authored block layout (col 1-53, height 1-8 above floor) ─────────────────
-# All blocks are from col 19 onward — safe zone has ONLY the col-13 tutorial block.
+# Adjusted to be sparse and playable without double-jump.
 const AUTHORED_BLOCKS: Array = [
-	# battle zone starts at col 19
-	[20,3],[20,4],
-	[22,1],[23,1],[23,2],
-	[26,2],[26,3],
-	[28,3],[28,5],[29,3],
-	[32,1],
-	[37,1],[38,2],[39,3],[40,1],
-	[46,3],[46,5],[47,3],[48,1],[48,4],
-	[50,3],[52,3],[53,2],
+	[6, 1], [9, 2], [14, 1], [18, 3], [22, 1], [25, 2], [29, 3],
+	[33, 1], [36, 2], [39, 4], [43, 2], [46, 1], [49, 3], [52, 1]
 ]
 
 # ── Exports ───────────────────────────────────────────────────────────────────
@@ -192,12 +184,21 @@ func _process(delta: float) -> void:
 	if _camera != null:
 		_camera.global_position.x = _player.global_position.x
 		_camera.global_position.y = VIEWPORT_H * 0.5
+		
+		# Flip camera if gravity is inverted
+		var gs: Node = get_node_or_null(^"/root/GameState")
+		if gs != null and gs.get("water_complication") == GameRules.WaterComplication.INVERTED_GRAVITY:
+			_camera.zoom.y = -1.0
+		else:
+			_camera.zoom.y = 1.0
 
-	# Boss hovers just above the top edge of the camera.
+	# Boss hovers near the top of the world (y=50).
+	# With normal gravity (zoom=1), this is near the top of the screen.
+	# With inverted gravity (zoom=-1), this visually flips to the bottom of the screen.
 	if _tutorial_done and _boss != null and _camera != null:
 		_boss.global_position = Vector2(
 			_camera.global_position.x,
-			_camera.global_position.y - VIEWPORT_H * 0.5 - 30.0
+			50.0
 		)
 
 	if not _tutorial_done:
@@ -266,11 +267,9 @@ func _on_safe_trigger(_body: Node) -> void:
 	_start_timers()
 
 
-# ── Double-shot system ────────────────────────────────────────────────────────
-# Each volley = 2 projectiles, 1 second apart.
-# Shot 1: aimed directly at the player.
-# Shot 2: aimed 96 px ahead OR behind (random).
-# Which fires first is shuffled.
+# ── Triple-shot system ────────────────────────────────────────────────────────
+# Each volley = 3 projectiles, 1 second apart.
+# Shots: aimed directly at the player, ahead (+96px), behind (-96px).
 
 func _queue_volley() -> void:
 	if _boss == null or _projectile_root == null or boss_projectile_scene == null:
@@ -282,9 +281,8 @@ func _queue_volley() -> void:
 	var px: float = _player.global_position.x if _player != null else 0.0
 	var py: float = FLOOR_TOP_Y - BLOCK_SIZE * 0.5
 
-	# Two target offsets — randomise whether the "flanking" shot is in front or behind.
-	var flank: float = (1.0 if randf() > 0.5 else -1.0) * 96.0
-	var offsets: Array[float] = [0.0, flank]
+	# Three target offsets — randomise order.
+	var offsets: Array[float] = [-96.0, 0.0, 96.0]
 	offsets.shuffle()
 
 	_shot_queue.clear()
@@ -375,9 +373,27 @@ func _spawn_pickup() -> void:
 
 func _random_pickup_pos() -> Vector2:
 	var cam_x: float = _camera.global_position.x if _camera != null else 300.0
+	
+	# 70% chance to spawn exactly above an authored block
+	if randf() < 0.70 and not AUTHORED_BLOCKS.is_empty():
+		var block = AUTHORED_BLOCKS[randi() % AUTHORED_BLOCKS.size()]
+		var col: int = block[0]
+		var height: int = block[1]
+		# Find the equivalent column based on current total blocks
+		var current_wrap: int = _total_blocks / MAP_COLUMNS
+		# Calculate X relative to the player's current wrap
+		var wx: float = (current_wrap * MAP_COLUMNS + col - 1) * BLOCK_SIZE + BLOCK_SIZE * 0.5
+		
+		# Ensure it's not too far behind the camera, if it is, push it to next wrap
+		if wx < cam_x - 300.0:
+			wx += MAP_WIDTH_PX
+			
+		var wy: float = FLOOR_TOP_Y - (height + 1.5) * BLOCK_SIZE
+		return Vector2(wx, wy)
+
+	# 30% chance to spawn randomly
 	var x: float = cam_x - 260.0 + randf() * 520.0
-	# Either on-floor or 2 blocks above floor.
-	var y: float = FLOOR_TOP_Y - BLOCK_SIZE * (0.5 if randf() > 0.5 else 2.5)
+	var y: float = FLOOR_TOP_Y - BLOCK_SIZE * 2.5
 	return Vector2(x, y)
 
 

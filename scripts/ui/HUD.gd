@@ -14,8 +14,12 @@ const MAX_RECENT_OPERATIONS: int = 4
 @onready var state_label: Label = %StateLabel
 @onready var pause_panel: Control = %PausePanel
 
+# The parent PanelContainer for Score and Target labels
+@onready var score_panel: Control = %ScoreLabel.get_parent().get_parent()
+
 var _recent_operations: Array[String] = []
 var _powerup_seconds: Dictionary[StringName, float] = {}
+var _score_visibility_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -35,6 +39,12 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if not get_tree().paused:
+		if _score_visibility_timer > 0.0:
+			_score_visibility_timer -= delta
+			if _score_visibility_timer <= 0.0:
+				score_panel.hide()
+
 	if _powerup_seconds.is_empty() or get_tree().paused:
 		return
 	for kind: StringName in _powerup_seconds:
@@ -49,6 +59,8 @@ func set_paused(paused: bool) -> void:
 func _on_run_started() -> void:
 	_recent_operations.clear()
 	_powerup_seconds.clear()
+	_score_visibility_timer = 0.0
+	score_panel.hide()
 	operations_label.text = "RECENT\n--"
 	state_label.text = "REACH EXACTLY 67"
 	pause_panel.hide()
@@ -57,6 +69,8 @@ func _on_run_started() -> void:
 
 func _on_score_changed(_score_cents: int, _display: String) -> void:
 	score_label.text = "SCORE  %s" % _format_score_ui(_score_cents)
+	_score_visibility_timer = 3.0
+	score_panel.show()
 
 
 func _on_score_operation_applied(
@@ -84,6 +98,8 @@ func _on_boss_phase_changed(new_phase: GameRules.BossPhase) -> void:
 			state_label.text = "BOSS 67 IS AHEAD"
 		GameRules.BossPhase.LAND_WHITE:
 			state_label.text = "DODGE WHITE NUMBERS"
+			_score_visibility_timer = 4.0
+			score_panel.show()
 		GameRules.BossPhase.LAND_PURPLE:
 			state_label.text = "PURPLE NUMBERS JOINED"
 		GameRules.BossPhase.WATER:

@@ -65,11 +65,11 @@ polygon = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 
 [node name="SafeZoneBg" type="Polygon2D" parent="SafeZone"]
 color = Color(0.16, 0.12, 0.26, 0.7)
-polygon = PackedVector2Array(0, -50, 864, -50, 864, 570, 0, 570)
+polygon = PackedVector2Array(0, -50, 144, -50, 144, 570, 0, 570)
 
 [node name="SafeZoneBorder" type="Polygon2D" parent="SafeZone"]
 color = Color(0.4, 0.7, 1.0, 0.3)
-polygon = PackedVector2Array(858, -50, 864, -50, 864, 570, 858, 570)
+polygon = PackedVector2Array(138, -50, 144, -50, 144, 570, 138, 570)
 
 [node name="SafeLabel" type="Label" parent="SafeZone"]
 position = Vector2(20, 60)
@@ -94,7 +94,7 @@ shape = SubResource("Rect_boundary")
 [node name="Navigation" type="Node2D" parent="."]
 
 [node name="SafeTrigger" type="Area2D" parent="Navigation"]
-position = Vector2(912, 284)
+position = Vector2(144, 284)
 monitoring = true
 
 [node name="TriggerShape" type="CollisionShape2D" parent="Navigation/SafeTrigger"]
