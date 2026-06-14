@@ -203,9 +203,8 @@ After the safe tutorial closes, the authored route wraps on both horizontal edge
 column `1` appears near column `53`; walking right past column `53` appears near column `1`.
 Score, boss phase, water cooldowns, active power-ups, and projectiles must persist through wrapping.
 
-Authored block coordinates use `y` as a column top height. Runtime terrain must fill all block rows
-from the floor through that height so blocks are standable; pickup and power-up placement may still
-target the top listed height.
+Authored block coordinates are exact single-block placements from the board. Runtime terrain must not
+auto-fill lower rows unless those lower blocks are explicitly listed in the authored coordinate set.
 
 | Distance | Event |
 | --- | --- |

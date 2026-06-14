@@ -134,6 +134,7 @@ func _ready() -> void:
 	_build_authored_blocks()
 	_build_tutorial_block()
 	_reset_level_visibility()
+	_configure_player_autopilot([Vector2i(13, 1)])
 	_connect_signals()
 	_create_timers()
 
@@ -155,7 +156,7 @@ func _process(delta: float) -> void:
 func _build_authored_blocks() -> void:
 	if not _authored_runtime_nodes.is_empty():
 		return
-	for block: Vector2i in _stacked_authored_blocks():
+	for block: Vector2i in AUTHORED_BLOCKS:
 		var position: Vector2 = _block_position(block.x, block.y)
 		if _terrain != null:
 			var collision_shape := CollisionShape2D.new()
@@ -179,19 +180,6 @@ func _build_authored_blocks() -> void:
 			visual.position = position
 			_terrain_visual.add_child(visual)
 			_authored_runtime_nodes.append(visual)
-
-
-func _stacked_authored_blocks() -> Array[Vector2i]:
-	var result: Array[Vector2i] = []
-	var seen: Dictionary[String, bool] = {}
-	for top_block: Vector2i in AUTHORED_BLOCKS:
-		for row: int in range(1, top_block.y + 1):
-			var key: String = "%d:%d" % [top_block.x, row]
-			if seen.has(key):
-				continue
-			seen[key] = true
-			result.append(Vector2i(top_block.x, row))
-	return result
 
 
 func _build_tutorial_block() -> void:
@@ -334,6 +322,7 @@ func _on_safe_trigger(_body: Node) -> void:
 		_safe_zone.hide()
 	_set_runtime_nodes_enabled(_tutorial_runtime_nodes, false)
 	_set_runtime_nodes_enabled(_authored_runtime_nodes, true)
+	_configure_player_autopilot(AUTHORED_BLOCKS)
 	if _boss != null:
 		_boss.show()
 
@@ -615,6 +604,7 @@ func _on_restart_requested() -> void:
 		_player.global_position = Vector2(60.0, 555.0)
 		_player.velocity = Vector2.ZERO
 	_reset_level_visibility()
+	_configure_player_autopilot([Vector2i(13, 1)])
 
 
 func _start_timers() -> void:
@@ -692,3 +682,11 @@ func _set_node_tree_collision_enabled(node: Node, enabled: bool) -> void:
 		if shape != null:
 			shape.disabled = not enabled
 		_set_node_tree_collision_enabled(child, enabled)
+
+
+func _configure_player_autopilot(blocks: Array[Vector2i]) -> void:
+	if _player == null:
+		return
+	if not _player.has_method(&"configure_autopilot_route"):
+		return
+	_player.call(&"configure_autopilot_route", blocks, FLOOR_TOP_Y, BLOCK_SIZE, MAP_COLUMNS)

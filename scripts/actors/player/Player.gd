@@ -29,6 +29,13 @@ signal reset_completed
 @export var fallback_jump_action: StringName = &"action"
 @export var respect_game_state_input: bool = true
 
+@export_group("Autopilot")
+@export var autopilot_enabled: bool = true
+@export var autopilot_lookahead_columns: float = 3.25
+@export var autopilot_jump_cooldown_seconds: float = 0.22
+@export var autopilot_min_jump_distance: float = 10.0
+@export var autopilot_jump_lead_seconds: float = 0.28
+
 @export_group("Visuals")
 @export var land_visual_path: NodePath = ^"LandVisual"
 @export var water_visual_path: NodePath = ^"WaterVisual"
@@ -48,6 +55,11 @@ var _water_visual: CanvasItem = null
 var _was_moving: bool = false
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
+var _autopilot_blocks: Array[Vector2i] = []
+var _autopilot_floor_y: float = 570.0
+var _autopilot_block_size: float = 48.0
+var _autopilot_map_columns: int = 53
+var _autopilot_jump_cooldown_left: float = 0.0
 
 
 func _ready() -> void:
@@ -64,6 +76,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_update_jump_timers(delta)
+	_update_autopilot(delta)
 	_update_horizontal_velocity(_read_horizontal_input(), delta)
 	_apply_gravity(delta)
 	_try_buffered_jump()
@@ -108,9 +121,23 @@ func grant_double_jump() -> void:
 	_double_jump_used = false
 
 
+func configure_autopilot_route(
+	blocks: Array[Vector2i],
+	floor_y: float,
+	block_size: float,
+	map_columns: int
+) -> void:
+	_autopilot_blocks = blocks.duplicate()
+	_autopilot_floor_y = floor_y
+	_autopilot_block_size = block_size
+	_autopilot_map_columns = maxi(1, map_columns)
+
+
 # ── Input ─────────────────────────────────────────────────────────────────────
 
 func _read_horizontal_input() -> float:
+	if autopilot_enabled:
+		return 1.0
 	var raw: float = _get_action_strength(move_right_action) - _get_action_strength(move_left_action)
 	return -raw if _controls_reversed else raw
 
@@ -272,6 +299,71 @@ func _emit_movement_state() -> void:
 		movement_started.emit()
 	else:
 		movement_stopped.emit()
+
+
+func _update_autopilot(delta: float) -> void:
+	if not autopilot_enabled:
+		return
+	if _autopilot_blocks.is_empty():
+		return
+
+	_autopilot_jump_cooldown_left = maxf(0.0, _autopilot_jump_cooldown_left - delta)
+	if _autopilot_jump_cooldown_left > 0.0:
+		return
+	if not _is_on_ground():
+		return
+
+	var next_block: Vector2i = _next_autopilot_block()
+	if next_block == Vector2i.ZERO:
+		return
+
+	var distance: float = _distance_to_block_left(next_block.x)
+	var trigger_distance: float = clampf(
+		move_speed * autopilot_jump_lead_seconds,
+		autopilot_min_jump_distance,
+		_autopilot_block_size * autopilot_lookahead_columns
+	)
+	if distance < autopilot_min_jump_distance or distance > trigger_distance:
+		return
+
+	var current_row: int = _current_autopilot_surface_row()
+	var must_climb: bool = next_block.y > current_row
+	var must_clear_gap: bool = current_row > 0 and next_block.y >= current_row
+	if must_climb or must_clear_gap:
+		velocity.y = jump_velocity
+		_jump_buffer_timer = 0.0
+		_coyote_timer = 0.0
+		_autopilot_jump_cooldown_left = autopilot_jump_cooldown_seconds
+
+
+func _next_autopilot_block() -> Vector2i:
+	var best_block: Vector2i = Vector2i.ZERO
+	var best_distance: float = INF
+	var lookahead_distance: float = _autopilot_block_size * autopilot_lookahead_columns
+	for block: Vector2i in _autopilot_blocks:
+		var distance: float = _distance_to_block_left(block.x)
+		if distance >= 0.0 and distance <= lookahead_distance and distance < best_distance:
+			best_distance = distance
+			best_block = block
+	return best_block
+
+
+func _distance_to_block_left(column: int) -> float:
+	var map_width: float = _autopilot_block_size * float(_autopilot_map_columns)
+	var player_front_x: float = fposmod(global_position.x + 12.0, map_width)
+	var block_left_x: float = float(column - 1) * _autopilot_block_size
+	var distance: float = block_left_x - player_front_x
+	if distance < -_autopilot_block_size * 0.5:
+		distance += map_width
+	return distance
+
+
+func _current_autopilot_surface_row() -> int:
+	var player_bottom_half_height: float = 15.0
+	var row_float: float = (
+		_autopilot_floor_y - player_bottom_half_height - global_position.y
+	) / _autopilot_block_size
+	return maxi(0, int(round(row_float)))
 
 
 # ── GameEvents wiring ─────────────────────────────────────────────────────────
