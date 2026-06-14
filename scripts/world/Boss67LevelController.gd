@@ -25,31 +25,43 @@ const AUTHORED_BLOCKS: Array[Vector2i] = [
 	Vector2i(19, 1),
 	Vector2i(22, 2),
 	Vector2i(26, 2),
+	Vector2i(27, 7),#
 	Vector2i(28, 1),
 	Vector2i(28, 4),
+	Vector2i(28, 7),#
+	Vector2i(30, 6),#
 	Vector2i(30, 3),
+	Vector2i(31, 6),#
 	Vector2i(31, 2),
 	Vector2i(32, 2),
 	Vector2i(32, 5),
 	Vector2i(34, 4),
 	Vector2i(34, 1),
+	Vector2i(35, 3),#
 	Vector2i(37, 3),
 	Vector2i(39, 1),
 	Vector2i(40, 1),
 	Vector2i(40, 2),
+	Vector2i(42, 2),#
 	Vector2i(43, 2),
 	Vector2i(43, 3),
 	Vector2i(45, 3),
 	Vector2i(45, 5),
 	Vector2i(46, 3),
 	Vector2i(47, 4),
+	Vector2i(48, 3), #
 	Vector2i(49, 1),
+	Vector2i(50, 1),#
+	Vector2i(50, 2),#
+	Vector2i(51, 1),#
 
 	Vector2i(1, 1),
 	Vector2i(2, 2),
 	Vector2i(3, 3),
+	Vector2i(3, 7),#
 	Vector2i(4, 1),
-
+	Vector2i(5, 6),#
+	Vector2i(7, 6),#
 	Vector2i(9, 5),
 	Vector2i(9, 3),
 	Vector2i(10, 3),
@@ -60,8 +72,6 @@ const AUTHORED_BLOCKS: Array[Vector2i] = [
 	Vector2i(15, 2),
 	Vector2i(17, 1),
 
-	Vector2i(27, 7),
-	Vector2i(28, 7),
 	
 ]
 
