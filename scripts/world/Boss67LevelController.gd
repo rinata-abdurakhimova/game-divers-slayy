@@ -119,6 +119,8 @@ const AUTHORED_BLOCKS: Array[Vector2i] = [
 @export var powerup_interval_min: float = 30.0
 @export var powerup_interval_max: float = 60.0
 @export var boss_camera_offset: Vector2 = Vector2(250.0, -215.0)
+@export var slow_speed_multiplier: float = 0.5
+@export var slow_interval_multiplier: float = 1.6
 
 var _player: CharacterBody2D
 var _boss: Node2D
@@ -143,6 +145,7 @@ var _total_blocks: int = 0
 var _local_blocks: int = 0
 var _last_blocks: int = -1
 var _purple_unlocked: bool = false
+var _boss_slowed: bool = false
 
 var _pickup_timer: Timer
 var _projectile_timer: Timer
@@ -300,6 +303,8 @@ func _connect_signals() -> void:
 	_opt_connect(game_events, &"water_started", _on_water_started)
 	_opt_connect(game_events, &"water_finished", _on_water_finished)
 	_opt_connect(game_events, &"score_operation_applied", _on_score_operation_applied)
+	_opt_connect(game_events, &"powerup_started", _on_powerup_started)
+	_opt_connect(game_events, &"powerup_finished", _on_powerup_finished)
 
 
 func _opt_connect(source: Node, signal_name: StringName, callback: Callable) -> void:
@@ -465,7 +470,10 @@ func _fire_next_shot() -> void:
 		return
 	_fire_projectile(_shot_queue.pop_front())
 	if not _shot_queue.is_empty():
-		_shot_queue_timer.start(shot_gap_seconds)
+		var gap_seconds: float = shot_gap_seconds
+		if _boss_slowed:
+			gap_seconds *= slow_interval_multiplier
+		_shot_queue_timer.start(gap_seconds)
 
 
 func _fire_projectile(data: Dictionary) -> void:
@@ -476,6 +484,8 @@ func _fire_projectile(data: Dictionary) -> void:
 	projectile.set(&"operation", data["operation"])
 	projectile.set(&"value_cents", data["value_cents"])
 	projectile.set(&"is_purple", data["purple"])
+	if _boss_slowed:
+		projectile.set(&"speed", float(projectile.get(&"speed")) * slow_speed_multiplier)
 
 	var spawn: Vector2 = _boss.global_position if _boss != null else Vector2.ZERO
 	var target: Vector2 = data["target"]
@@ -786,6 +796,16 @@ func _on_score_operation_applied(
 		_trigger_water(&"score_divisible")
 
 
+func _on_powerup_started(kind: StringName, _seconds: float) -> void:
+	if kind == GameRules.POWERUP_SLOW:
+		_boss_slowed = true
+
+
+func _on_powerup_finished(kind: StringName) -> void:
+	if kind == GameRules.POWERUP_SLOW:
+		_boss_slowed = false
+
+
 func _on_restart_requested() -> void:
 	_stop_timers()
 	_cleanup(_pickup_root)
@@ -800,6 +820,7 @@ func _on_restart_requested() -> void:
 	_total_blocks = 0
 	_local_blocks = 0
 	_purple_unlocked = false
+	_boss_slowed = false
 	_set_world_flipped(false)
 	if _player != null:
 		_player.global_position = Vector2(60.0, 555.0)
@@ -830,6 +851,9 @@ func _start_pickup_timer() -> void:
 func _start_projectile_timer() -> void:
 	var minimum: float = purple_interval_min if _purple_unlocked else projectile_interval_min
 	var maximum: float = purple_interval_max if _purple_unlocked else projectile_interval_max
+	if _boss_slowed:
+		minimum *= slow_interval_multiplier
+		maximum *= slow_interval_multiplier
 	_projectile_timer.start(randf_range(minimum, maximum))
 
 

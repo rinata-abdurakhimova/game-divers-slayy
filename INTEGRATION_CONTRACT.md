@@ -232,7 +232,7 @@ restart. Operand/score selection logic is unaffected by either complication.
 
 | Kind | Visual | Effect | Duration |
 | --- | --- | --- | --- |
-| `slow` | star | Boss and projectiles slow down. | `20` seconds |
+| `slow` | star | Boss tints blue; new projectiles spawn slower and travel at reduced speed. | `20` seconds |
 | `double_jump` | green up arrow | Player gets one temporary extra jump. | `20` seconds |
 
 Power-ups are rare and spawn at high points.
