@@ -33,3 +33,4 @@ desktop.ini
 # Local crash and log output.
 crash_logs/
 logs/
+.env

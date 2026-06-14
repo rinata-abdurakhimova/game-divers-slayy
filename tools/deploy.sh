@@ -8,8 +8,14 @@ butler_path="/Users/alina1/Library/Application Support/itch/broth/butler/version
 echo "=== Exporting Web build ==="
 godot --headless --export-release "Web" "$project_root/build/web/index.html"
 
+echo "=== Loading .env ==="
+if [ -f "$project_root/.env" ]; then
+  set -a
+  source "$project_root/.env"
+  set +a
+fi
+
 echo "=== Pushing to itch.io ==="
-BUTLER_API_KEY="tcMvHQQB5e0PkotyzHNbsNtWgzEhfG0C3C3KaTFf" \
-  "$butler_path" push "$project_root/build/web" alina-anila/slay-diver-rise-of-67:web
+"$butler_path" push "$project_root/build/web" alina-anila/slay-diver-rise-of-67:web
 
 echo "=== Done ==="
