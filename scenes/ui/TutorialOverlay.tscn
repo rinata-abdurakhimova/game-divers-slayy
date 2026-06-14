@@ -48,7 +48,7 @@ theme_override_styles/panel = SubResource("StyleBox_banner")
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
 theme_override_font_sizes/font_size = 18
-text = "A/D OR ARROWS: MOVE     SPACE: JUMP     R: RESTART"
+text = "ARROW KEYS: MOVE     UP ARROW: JUMP"
 horizontal_alignment = 1
 
 [node name="ScoreHint" type="PanelContainer" parent="Hints"]
