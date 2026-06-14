@@ -19,16 +19,18 @@ static func apply_score_operation(
 	operation: StringName,
 	value_cents: int
 ) -> int:
+	var result_cents: int
 	match operation:
 		GameRules.SCORE_OPERATION_ADD:
-			return current_score_cents + value_cents
+			result_cents = current_score_cents + value_cents
 		GameRules.SCORE_OPERATION_SUBTRACT:
-			return current_score_cents - value_cents
+			result_cents = current_score_cents - value_cents
 		GameRules.SCORE_OPERATION_MULTIPLY:
-			return _multiply_and_round_to_cents(current_score_cents, value_cents)
+			result_cents = _multiply_and_round_to_cents(current_score_cents, value_cents)
 		_:
 			push_warning("Unknown score operation: %s" % operation)
 			return current_score_cents
+	return _round_to_whole_score(result_cents)
 
 
 static func is_victory_score(score_cents: int) -> bool:
@@ -56,9 +58,14 @@ static func multiplier_to_cents(multiplier: float) -> int:
 
 
 static func format_score(score_cents: int) -> String:
-	var sign_prefix: String = "-" if score_cents < 0 else ""
-	var absolute_score: int = absi(score_cents)
-	var whole: int = int(floor(float(absolute_score) / 100.0))
+	var rounded_score: int = _round_to_whole_score(score_cents)
+	return str(rounded_score / 100)
+
+
+static func format_operation_value(value_cents: int) -> String:
+	var sign_prefix: String = "-" if value_cents < 0 else ""
+	var absolute_score: int = absi(value_cents)
+	var whole: int = absolute_score / 100
 	var cents: int = absolute_score % 100
 	if cents == 0:
 		return "%s%d" % [sign_prefix, whole]
@@ -70,13 +77,13 @@ static func format_score(score_cents: int) -> String:
 static func operation_label(operation: StringName, value_cents: int) -> String:
 	match operation:
 		GameRules.SCORE_OPERATION_ADD:
-			return "+%s" % format_score(value_cents)
+			return "+%s" % format_operation_value(value_cents)
 		GameRules.SCORE_OPERATION_SUBTRACT:
-			return "-%s" % format_score(value_cents)
+			return "-%s" % format_operation_value(value_cents)
 		GameRules.SCORE_OPERATION_MULTIPLY:
-			return "*%s" % format_score(value_cents)
+			return "*%s" % format_operation_value(value_cents)
 		_:
-			return "?%s" % format_score(value_cents)
+			return "?%s" % format_operation_value(value_cents)
 
 
 static func make_snapshot(score_cents: int) -> Dictionary:
@@ -96,3 +103,10 @@ static func _multiply_and_round_to_cents(score_cents: int, multiplier_cents: int
 	var sign_value: int = -1 if product < 0 else 1
 	var absolute_product: int = absi(product)
 	return sign_value * int(floor(float(absolute_product + 50) / 100.0))
+
+
+static func _round_to_whole_score(score_cents: int) -> int:
+	var sign_value: int = -1 if score_cents < 0 else 1
+	var absolute_score: int = absi(score_cents)
+	var rounded_units: int = int(floor(float(absolute_score + 50) / 100.0))
+	return sign_value * rounded_units * 100

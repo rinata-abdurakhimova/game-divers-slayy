@@ -41,18 +41,32 @@ func _update_label() -> void:
 	if label != null:
 		label.text = _operation_text()
 	var bg: Polygon2D = get_node_or_null(^"Bg") as Polygon2D
+	var glow: Polygon2D = get_node_or_null(^"Glow") as Polygon2D
+	var outline: Polygon2D = get_node_or_null(^"Outline") as Polygon2D
 	if bg != null:
 		match operation:
 			GameRules.SCORE_OPERATION_ADD:
 				bg.color = Color(0.2, 0.85, 0.55, 1.0)
+				if glow != null:
+					glow.color = Color(0.3, 1.0, 0.68, 0.28)
+				if outline != null:
+					outline.color = Color(0.035, 0.22, 0.16, 1.0)
 			GameRules.SCORE_OPERATION_SUBTRACT:
 				bg.color = Color(0.2, 0.45, 0.95, 1.0)
+				if glow != null:
+					glow.color = Color(0.35, 0.72, 1.0, 0.28)
+				if outline != null:
+					outline.color = Color(0.04, 0.12, 0.38, 1.0)
 			GameRules.SCORE_OPERATION_MULTIPLY:
 				bg.color = Color(0.95, 0.75, 0.15, 1.0)
+				if glow != null:
+					glow.color = Color(1.0, 0.88, 0.3, 0.3)
+				if outline != null:
+					outline.color = Color(0.36, 0.22, 0.02, 1.0)
 
 
 func _operation_text() -> String:
-	var amount_text: String = ScoreServiceScript.format_score(value_cents)
+	var amount_text: String = ScoreServiceScript.format_operation_value(value_cents)
 	match operation:
 		GameRules.SCORE_OPERATION_ADD:
 			return "+%s" % amount_text

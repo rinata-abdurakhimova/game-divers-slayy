@@ -34,7 +34,8 @@ survive water twists -> hit exact 67 -> win or hit 0 -> play again
 - Fail: score becomes exactly `0.00`.
 - Score can be negative.
 - Score can exceed `67.00`; the player continues until exact `67.00` or `0.00`.
-- Use fixed-point arithmetic and display up to two decimals.
+- Use fixed-point cents for operation inputs, but round every resulting score to the nearest whole
+  number and display it without decimals.
 
 ## Screen And Movement
 
@@ -103,7 +104,7 @@ Purple digits:
 
 ## Water Events
 
-Water lasts `10` seconds.
+Water lasts `20` seconds.
 
 Water can first appear at `28` blocks. After the first water event, another water event can begin when
 the player collects a land number divisible by `6` or `7`, with cooldown.
@@ -142,8 +143,8 @@ Power-ups are rare and spawn on high points.
 
 | Visual | Effect | Duration |
 | --- | --- | --- |
-| Star | Slow Boss 67 and projectiles. | `5` seconds |
-| Green up arrow | Temporary double jump. | `5` seconds |
+| Star | Slow Boss 67 and projectiles. | `20` seconds |
+| Green up arrow | Temporary double jump. | `20` seconds |
 
 ## Must Ship
 
@@ -234,7 +235,7 @@ Power-ups are rare and spawn on high points.
 9. Collect land pickups and change score.
 10. Avoid a `*0` or prove it fails if touched.
 11. Reach `18` blocks and see purple digits begin.
-12. Reach `28` blocks and enter water for `10` seconds.
+12. Reach `28` blocks and enter water for `20` seconds.
 13. Apply one water variant correctly.
 14. Reach exact `67.00` and win.
 15. Restart and confirm clean state.

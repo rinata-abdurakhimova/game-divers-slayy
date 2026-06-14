@@ -2,7 +2,7 @@ class_name PowerUp
 extends Area2D
 
 @export var kind: StringName = &"slow"
-@export var duration_seconds: float = 5.0
+@export var duration_seconds: float = GameRules.POWERUP_DURATION_SECONDS
 
 var _collected: bool = false
 
@@ -31,10 +31,15 @@ func _on_body_entered(body: Node) -> void:
 
 func _update_visual() -> void:
 	var icon: Polygon2D = get_node_or_null(^"Icon") as Polygon2D
+	var label: Label = get_node_or_null(^"Label") as Label
 	if icon == null:
 		return
 	match kind:
 		&"slow":
 			icon.color = Color(1, 0.85, 0.2, 1)
+			if label != null:
+				label.text = "★"
 		&"double_jump":
 			icon.color = Color(0.2, 0.9, 0.3, 1)
+			if label != null:
+				label.text = "↑"

@@ -8,7 +8,7 @@ func _initialize() -> void:
 	assert(WaterRuleServiceScript.should_unlock_purple_projectiles(18))
 	assert(not WaterRuleServiceScript.should_start_first_water(27))
 	assert(WaterRuleServiceScript.should_start_first_water(28))
-	assert(WaterRuleServiceScript.water_duration_seconds() == 10.0)
+	assert(WaterRuleServiceScript.water_duration_seconds() == 20.0)
 
 	assert(not WaterRuleServiceScript.can_land_pickup_trigger_water(5))
 	assert(WaterRuleServiceScript.can_land_pickup_trigger_water(6))
@@ -51,7 +51,7 @@ func _initialize() -> void:
 
 	var snapshot: Dictionary = WaterRuleServiceScript.water_rule_snapshot(GameRules.WaterVariant.WATER_B)
 	assert(snapshot["variant"] == GameRules.WaterVariant.WATER_B)
-	assert(snapshot["duration_seconds"] == 10.0)
+	assert(snapshot["duration_seconds"] == 20.0)
 	assert((snapshot["boss_operations"] as Array).size() == 4)
 	assert((snapshot["floor_operations"] as Array).size() == 4)
 

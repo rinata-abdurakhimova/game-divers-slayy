@@ -182,7 +182,7 @@ Purple projectiles:
 
 ### 5. Water Events
 
-Water lasts exactly `10` seconds.
+Water lasts exactly `20` seconds.
 
 When water starts:
 
@@ -242,8 +242,9 @@ MVP rule:
 - Score `0.00` is immediate failure / play again.
 - Score `67.00` is immediate victory.
 - Score may exceed `67`; the player can continue until another operation brings it to exactly `67`.
-- Use fixed-point arithmetic internally, rounded to two decimal places, to avoid floating-point drift.
-- Display score with up to two decimals.
+- Use fixed-point cents internally for stable operation inputs, then round every result to the nearest
+  whole score.
+- Display the current score as a whole number. Keep multiplier labels such as `x0.5` exact.
 - When a projectile or pickup would produce `0.00`, show the failure state after applying the effect.
 
 ### 9. Power-Ups
@@ -252,8 +253,8 @@ Power-ups are rare and appear on high or risky platform points.
 
 | Icon | Meaning | Duration |
 | --- | --- | --- |
-| Star | Slow Boss 67 and all projectiles. | `5` seconds |
-| Green up arrow | Temporary double jump. | `5` seconds |
+| Star | Slow Boss 67 and all projectiles. | `20` seconds |
+| Green up arrow | Temporary double jump. | `20` seconds |
 
 Do not add more power-ups until the core score chase works.
 
@@ -349,7 +350,7 @@ Restart:
 9. Confirm boss projectiles visibly originate from Boss 67 and their operations are readable.
 10. Collect land pickups and avoid `*0`, `*0.5`, `*0.8`.
 11. Reach 18 blocks and confirm rare purple projectiles begin.
-12. Reach 28 blocks and confirm water lasts `10` seconds.
+12. Reach 28 blocks and confirm water lasts `20` seconds.
 13. Confirm the selected water rule set is shown in the HUD.
 14. Confirm score can go negative but `0.00` fails.
 15. Reach exactly `67.00` and confirm victory.

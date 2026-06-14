@@ -15,6 +15,9 @@ const FIGHT_START_X: float = (FIGHT_START_COLUMN - 1) * BLOCK_SIZE
 const BOSS_ROUTE_COLUMNS: int = MAP_COLUMNS - SAFE_ZONE_COLUMNS
 const WRAP_MARGIN_COLUMNS: int = 12
 const WRAP_MARGIN_X: float = WRAP_MARGIN_COLUMNS * BLOCK_SIZE
+const PICKUP_VISUAL_HALF_SIZE: Vector2 = Vector2(29.0, 18.0)
+const PICKUP_STONE_CLEARANCE: float = 6.0
+const PICKUP_SEPARATION: float = 14.0
 
 const AUTHORED_BLOCKS: Array[Vector2i] = [
 	Vector2i(2, 1),
@@ -510,7 +513,13 @@ func _spawn_pickup(restart_timer: bool = true) -> void:
 	var operation_data: Dictionary = operations[randi() % operations.size()]
 	pickup.set(&"operation", operation_data["operation"])
 	pickup.set(&"value_cents", operation_data["value_cents"])
-	pickup.global_position = _random_pickup_position()
+	var spawn_position: Vector2 = _random_pickup_position()
+	if not spawn_position.is_finite():
+		pickup.queue_free()
+		if restart_timer:
+			_start_pickup_timer()
+		return
+	pickup.global_position = spawn_position
 	_pickup_root.add_child(pickup)
 
 	if restart_timer:
@@ -520,19 +529,92 @@ func _spawn_pickup(restart_timer: bool = true) -> void:
 func _random_pickup_position() -> Vector2:
 	var candidates: Array[Vector2i] = _visible_blocks(false)
 	var high_candidates: Array[Vector2i] = _visible_blocks(true)
-	var chosen: Vector2i
+	candidates.shuffle()
+	high_candidates.shuffle()
 
-	if not high_candidates.is_empty() and randf() < 0.45:
-		chosen = high_candidates[randi() % high_candidates.size()]
-	elif not candidates.is_empty() and randf() < 0.90:
-		chosen = candidates[randi() % candidates.size()]
-	else:
-		var camera_x: float = _camera.global_position.x if _camera != null else FIGHT_START_X
-		return _clamp_pickup_position(Vector2(camera_x + randf_range(-240.0, 360.0), FLOOR_TOP_Y - BLOCK_SIZE * 2.0))
+	var preferred: Array[Vector2i] = high_candidates if (
+		not high_candidates.is_empty() and randf() < 0.45
+	) else candidates
+	for block: Vector2i in preferred:
+		var position: Vector2 = _pickup_position_for_block(block)
+		if _is_pickup_position_clear(position):
+			return position
 
-	var base: Vector2 = _wrapped_block_position(chosen.x, chosen.y)
-	var extra_height: float = 1.35 if chosen.y >= 4 else 1.1
+	for block: Vector2i in candidates:
+		var position: Vector2 = _pickup_position_for_block(block)
+		if _is_pickup_position_clear(position):
+			return position
+
+	return _find_clear_air_position()
+
+
+func _pickup_position_for_block(block: Vector2i) -> Vector2:
+	var base: Vector2 = _wrapped_block_position(block.x, block.y)
+	var extra_height: float = 1.55 if block.y >= 4 else 1.4
 	return _clamp_pickup_position(Vector2(base.x, base.y - BLOCK_SIZE * extra_height))
+
+
+func _find_clear_air_position() -> Vector2:
+	var camera_x: float = _camera.global_position.x if _camera != null else FIGHT_START_X
+	if _tutorial_done:
+		camera_x = maxf(camera_x, FIGHT_START_X + 288.0)
+	var horizontal_offsets: Array[float] = [
+		-384.0, -288.0, -192.0, -96.0, 0.0, 96.0, 192.0, 288.0, 384.0, 480.0
+	]
+	var heights: Array[float] = [2.0, 3.25, 4.5, 5.75]
+	horizontal_offsets.shuffle()
+	heights.shuffle()
+
+	for height: float in heights:
+		for offset: float in horizontal_offsets:
+			var position := Vector2(
+				clampf(
+					camera_x + offset,
+					-WRAP_MARGIN_X + 24.0,
+					MAP_END_X + WRAP_MARGIN_X - 24.0
+				),
+				FLOOR_TOP_Y - BLOCK_SIZE * height
+			)
+			if _is_pickup_position_clear(position):
+				return position
+
+	return Vector2.INF
+
+
+func _is_pickup_position_clear(position: Vector2) -> bool:
+	if not position.is_finite():
+		return false
+	var pickup_rect := Rect2(
+		position - PICKUP_VISUAL_HALF_SIZE,
+		PICKUP_VISUAL_HALF_SIZE * 2.0
+	).grow(PICKUP_STONE_CLEARANCE)
+	if pickup_rect.end.y >= FLOOR_TOP_Y:
+		return false
+
+	var block_size := Vector2(BLOCK_SIZE, BLOCK_SIZE)
+	for block: Vector2i in AUTHORED_BLOCKS:
+		if block.x < FIGHT_START_COLUMN:
+			continue
+		for column_offset: int in [-MAP_COLUMNS, 0, MAP_COLUMNS]:
+			var block_center: Vector2 = _block_position(block.x + column_offset, block.y)
+			var block_rect := Rect2(block_center - block_size * 0.5, block_size)
+			if pickup_rect.intersects(block_rect):
+				return false
+
+	if _pickup_root != null:
+		var separation_size: Vector2 = PICKUP_VISUAL_HALF_SIZE + Vector2.ONE * PICKUP_SEPARATION
+		var separation_rect := Rect2(position - separation_size, separation_size * 2.0)
+		for child: Node in _pickup_root.get_children():
+			var active_pickup: Node2D = child as Node2D
+			if active_pickup == null or active_pickup.is_queued_for_deletion():
+				continue
+			var active_rect := Rect2(
+				active_pickup.global_position - PICKUP_VISUAL_HALF_SIZE,
+				PICKUP_VISUAL_HALF_SIZE * 2.0
+			)
+			if separation_rect.intersects(active_rect):
+				return false
+	return true
 
 
 func _clamp_pickup_position(position: Vector2) -> Vector2:
@@ -549,6 +631,8 @@ func _visible_blocks(high_only: bool) -> Array[Vector2i]:
 		if block.x < FIGHT_START_COLUMN:
 			continue
 		if high_only and block.y < 4:
+			continue
+		if AUTHORED_BLOCKS.has(Vector2i(block.x, block.y + 1)):
 			continue
 		if _block_visible(block.x, block.y, left_edge, right_edge):
 			result.append(block)
@@ -584,7 +668,12 @@ func _spawn_powerup() -> void:
 	var kinds: Array[StringName] = [GameRules.POWERUP_SLOW, GameRules.POWERUP_DOUBLE_JUMP]
 	powerup.set(&"kind", kinds[randi() % kinds.size()])
 	powerup.set(&"duration_seconds", GameRules.POWERUP_DURATION_SECONDS)
-	powerup.global_position = _random_powerup_position()
+	var spawn_position: Vector2 = _random_powerup_position()
+	if not spawn_position.is_finite():
+		powerup.queue_free()
+		_start_powerup_timer()
+		return
+	powerup.global_position = spawn_position
 	_powerup_root.add_child(powerup)
 	_start_powerup_timer()
 
@@ -597,7 +686,8 @@ func _random_powerup_position() -> Vector2:
 
 	var block: Vector2i = high_candidates[randi() % high_candidates.size()]
 	var base: Vector2 = _wrapped_block_position(block.x, block.y)
-	return Vector2(base.x, base.y - BLOCK_SIZE * 1.45)
+	var position := Vector2(base.x, base.y - BLOCK_SIZE * 1.55)
+	return position if _is_pickup_position_clear(position) else _find_clear_air_position()
 
 
 func _trigger_water(reason: StringName) -> void:

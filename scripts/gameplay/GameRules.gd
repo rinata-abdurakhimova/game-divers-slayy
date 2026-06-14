@@ -63,7 +63,7 @@ const LAND_BOSS_MULTIPLIERS_CENTS: Array[int] = [0, 50, 80]
 
 const FIRST_PURPLE_DISTANCE_BLOCKS: int = 18
 const FIRST_WATER_DISTANCE_BLOCKS: int = 28
-const WATER_DURATION_SECONDS: float = 10.0
+const WATER_DURATION_SECONDS: float = 20.0
 const WATER_RETRIGGER_COOLDOWN_SECONDS: float = 4.0
 const WATER_RETRIGGER_DIVISORS: Array[int] = [6, 7]
 
@@ -78,7 +78,7 @@ const WATER_C_FLOOR_MULTIPLIERS_CENTS: Array[int] = [200, 600, 300, 100]
 
 const POWERUP_SLOW: StringName = &"slow"
 const POWERUP_DOUBLE_JUMP: StringName = &"double_jump"
-const POWERUP_DURATION_SECONDS: float = 5.0
+const POWERUP_DURATION_SECONDS: float = 20.0
 
 const LAND_OPERATION: Operation = Operation.ADD
 const LAND_CORRECT_OPERANDS: Array[int] = [4, 6]

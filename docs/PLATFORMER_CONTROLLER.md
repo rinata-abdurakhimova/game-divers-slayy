@@ -29,7 +29,7 @@ Disable or remove:
 - corner correction;
 - combat/attack behavior.
 
-Temporary double jump exists only as a rare `5` second power-up and must not become the default player
+Temporary double jump exists only as a rare `20` second power-up and must not become the default player
 controller.
 
 ## Integration

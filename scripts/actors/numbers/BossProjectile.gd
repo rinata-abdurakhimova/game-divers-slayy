@@ -78,10 +78,26 @@ func _apply_operation() -> void:
 
 func _update_visual() -> void:
 	var bg: Polygon2D = get_node_or_null(^"Bg") as Polygon2D
+	var glow: Polygon2D = get_node_or_null(^"Glow") as Polygon2D
+	var outline: Polygon2D = get_node_or_null(^"Outline") as Polygon2D
+	var trail: Polygon2D = get_node_or_null(^"Trail") as Polygon2D
+	var warning_stripe: Polygon2D = get_node_or_null(^"WarningStripe") as Polygon2D
 	var label: Label   = get_node_or_null(^"Label") as Label
 
 	if bg != null:
 		bg.color = Color(0.57, 0.27, 1.0, 1.0) if is_purple else Color(1.0, 1.0, 1.0, 1.0)
+	if glow != null:
+		glow.color = Color(0.7, 0.3, 1.0, 0.34) if is_purple \
+			else Color(1.0, 0.2, 0.28, 0.28)
+	if outline != null:
+		outline.color = Color(0.2, 0.02, 0.36, 1.0) if is_purple \
+			else Color(0.45, 0.02, 0.06, 1.0)
+	if trail != null:
+		trail.color = Color(0.72, 0.3, 1.0, 0.58) if is_purple \
+			else Color(1.0, 0.25, 0.32, 0.58)
+	if warning_stripe != null:
+		warning_stripe.color = Color(1.0, 1.0, 1.0, 0.16) if is_purple \
+			else Color(0.9, 0.05, 0.1, 0.18)
 
 	if label != null:
 		label.text = _operation_text()
@@ -96,9 +112,8 @@ func _update_visual() -> void:
 			outline_color = Color(1.0, 1.0, 1.0, 1.0)      # white outline
 		label.add_theme_color_override(&"font_color", font_color)
 		label.add_theme_color_override(&"font_outline_color", outline_color)
-		label.add_theme_constant_override(&"outline_size", 4)
-		# Large font size for readability.
-		label.add_theme_font_size_override(&"font_size", 22)
+		label.add_theme_constant_override(&"outline_size", 2)
+		label.add_theme_font_size_override(&"font_size", 14)
 
 
 func _operation_text() -> String:

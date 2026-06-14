@@ -1,6 +1,6 @@
 extends Control
 
-@export var auto_hide_seconds: float = 2.2
+@export var auto_hide_seconds: float = 4.5
 
 @onready var rule_card: Control = %RuleCard
 @onready var rule_title: Label = %RuleTitle

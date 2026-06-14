@@ -170,6 +170,9 @@ score == 0.00
 ```
 
 Score may be negative. Score may exceed `67.00`. The player continues until exact `67.00` or `0.00`.
+After every valid operation, the stored score is rounded to the nearest whole number. `score_cents`
+therefore remains a multiple of `100`; cents are retained only as the fixed-point transport format.
+Operation labels keep their exact values, such as `*0.5`, `*0.8`, and `*1.15`.
 
 Land pickups:
 
@@ -191,7 +194,7 @@ Water variants:
 | `WATER_B` | `+3`, `+5`, `+6`, `+7` | `*0.5`, `*0.2`, `*0.3`, `*0` |
 | `WATER_C` | `-5`, `-1`, `-2`, `-7`, `-10` | `*2`, `*6`, `*3`, `*1` |
 
-All operations round to the nearest cent after application.
+All operation results round to the nearest whole number after application.
 
 ## Distance Contract
 
@@ -214,7 +217,7 @@ auto-fill lower rows unless those lower blocks are explicitly listed in the auth
 
 ## Water Contract
 
-The first water event starts at the `28` block distance milestone and lasts `10` seconds.
+The first water event starts at the `28` block distance milestone and lasts `20` seconds.
 After the first water event has finished, later water events may start when the player collects a land
 pickup whose value is divisible by `6` or `7`. Later water events must use a cooldown so several
 qualifying pickups cannot stack water events instantly.
@@ -227,8 +230,8 @@ verifies that the player remains visible and recovers when water ends.
 
 | Kind | Visual | Effect | Duration |
 | --- | --- | --- | --- |
-| `slow` | star | Boss and projectiles slow down. | `5` seconds |
-| `double_jump` | green up arrow | Player gets one temporary extra jump. | `5` seconds |
+| `slow` | star | Boss and projectiles slow down. | `20` seconds |
+| `double_jump` | green up arrow | Player gets one temporary extra jump. | `20` seconds |
 
 Power-ups are rare and spawn at high points.
 
@@ -276,7 +279,7 @@ The new slice is integrated only when:
 - land pickups change score;
 - white projectiles are blocked by terrain;
 - purple projectiles start after `18` blocks and pass through blocks;
-- first water starts after `28` blocks and lasts `10` seconds;
+- first water starts after `28` blocks and lasts `20` seconds;
 - later water can retrigger after cooldown when a collected land pickup value is divisible by `6` or `7`;
 - one water variant applies correctly;
 - score can become negative;

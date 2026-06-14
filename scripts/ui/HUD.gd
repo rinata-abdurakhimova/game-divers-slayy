@@ -215,10 +215,20 @@ func _operation_label_ui(operation: StringName, value_cents: int) -> String:
 		prefix = "-"
 	elif operation == GameRules.SCORE_OPERATION_MULTIPLY:
 		prefix = "x"
-	return "%s%s" % [prefix, _format_score_ui(value_cents)]
+	return "%s%s" % [prefix, _format_operation_value_ui(value_cents)]
 
 
 func _format_score_ui(value_cents: int) -> String:
+	return str(int(round(float(value_cents) / 100.0)))
+
+
+func _format_operation_value_ui(value_cents: int) -> String:
 	var sign_prefix: String = "-" if value_cents < 0 else ""
 	var absolute_value: int = absi(value_cents)
-	return "%s%d.%02d" % [sign_prefix, int(absolute_value / 100), absolute_value % 100]
+	var whole: int = absolute_value / 100
+	var cents: int = absolute_value % 100
+	if cents == 0:
+		return "%s%d" % [sign_prefix, whole]
+	if cents % 10 == 0:
+		return "%s%d.%d" % [sign_prefix, whole, cents / 10]
+	return "%s%d.%02d" % [sign_prefix, whole, cents]

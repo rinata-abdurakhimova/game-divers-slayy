@@ -41,15 +41,23 @@ func _initialize() -> void:
 	)
 	assert(game_state.get("phase") == GameRules.RunPhase.WATER)
 	assert(game_state.get("water_seconds_left") > 0.0)
-	game_state.call(&"_process", 9.9)
+	game_state.call(&"_process", 19.9)
 	assert(game_state.get("water_variant") == GameRules.WaterVariant.WATER_A)
 	assert(game_state.get("water_seconds_left") > 0.0)
 	game_state.call(&"_process", 0.2)
 	assert(game_state.get("water_variant") == GameRules.WaterVariant.NONE)
 	assert(game_state.get("phase") == GameRules.RunPhase.LAND)
 
-	game_state.call(&"activate_powerup", GameRules.POWERUP_SLOW, 5.0)
+	game_state.call(
+		&"activate_powerup",
+		GameRules.POWERUP_SLOW,
+		GameRules.POWERUP_DURATION_SECONDS
+	)
 	assert((game_state.get("active_powerups") as Dictionary).has(GameRules.POWERUP_SLOW))
+	assert(is_equal_approx(
+		float((game_state.get("active_powerups") as Dictionary)[GameRules.POWERUP_SLOW]),
+		20.0
+	))
 
 	game_state.call(&"reset_boss_67_run")
 	assert(game_state.get("water_variant") == GameRules.WaterVariant.NONE)

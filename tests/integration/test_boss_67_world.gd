@@ -113,7 +113,7 @@ func _run() -> void:
 	player.global_position = Vector2(864 + 28 * 48, 520)
 	controller.call(&"_process", 0.0)
 	assert(game_state.get("phase") == GameRules.RunPhase.WATER)
-	assert(game_state.get("water_seconds_left") > 9.9)
+	assert(game_state.get("water_seconds_left") > 19.9)
 	assert(game_state.get("boss_phase") == GameRules.BossPhase.WATER)
 	assert(game_state.get("water_variant") == GameRules.WaterVariant.WATER_A)
 	assert(game_state.get("water_complication") == GameRules.WaterComplication.REVERSED_CONTROLS or game_state.get("water_complication") == GameRules.WaterComplication.NONE)
