@@ -790,6 +790,10 @@ func _on_restart_requested() -> void:
 	if _player != null:
 		_player.global_position = Vector2(60.0, 555.0)
 		_player.velocity = Vector2.ZERO
+		_player.modulate = Color.WHITE
+		_player.show()
+		if _player.has_method(&"apply_phase"):
+			_player.apply_phase(GameRules.Phase.LAND)
 	_reset_level_visibility()
 
 
