@@ -230,8 +230,8 @@ func _refresh_powerup_text() -> void:
 	var jump_seconds: float = float(_powerup_seconds.get(GameRules.POWERUP_DOUBLE_JUMP, 0.0))
 	slow_powerup_label.visible = slow_seconds > 0.0
 	jump_powerup_label.visible = jump_seconds > 0.0
-	slow_powerup_label.text = "★  SLOW BOSS  %.1fs" % slow_seconds
-	jump_powerup_label.text = "↑↑  DOUBLE JUMP  %.1fs" % jump_seconds
+	slow_powerup_label.text = "SLOW BOSS  %.1fs" % slow_seconds
+	jump_powerup_label.text = "DOUBLE JUMP  %.1fs" % jump_seconds
 	powerup_panel.show()
 
 

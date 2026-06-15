@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="1_hud"]
-[ext_resource type="FontFile" path="res://assets/fonts/NotoSansSymbols2-Regular.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
 bg_color = Color(0.188, 0.141, 0.239, 0.92)
@@ -90,9 +89,8 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
-theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
-text = "↔  LEFT / RIGHT REVERSED"
+text = "LEFT / RIGHT REVERSED"
 autowrap_mode = 2
 
 [node name="CenterColumn" type="VBoxContainer" parent="TopMargin/TopRow"]
@@ -160,18 +158,16 @@ theme_override_constants/separation = 3
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.86, 0.32, 1)
-theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 15
-text = "★  SLOW BOSS  20.0s"
+text = "SLOW BOSS  20.0s"
 horizontal_alignment = 2
 
 [node name="JumpPowerupLabel" type="Label" parent="TopMargin/TopRow/RightMargin/RightColumn/PowerupPanel/PowerupColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.42, 1, 0.55, 1)
-theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 15
-text = "↑↑  DOUBLE JUMP  20.0s"
+text = "DOUBLE JUMP  20.0s"
 horizontal_alignment = 2
 
 [node name="StatePanel" type="PanelContainer" parent="."]

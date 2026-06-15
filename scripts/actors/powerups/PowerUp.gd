@@ -38,8 +38,8 @@ func _update_visual() -> void:
 		&"slow":
 			icon.color = Color(1, 0.85, 0.2, 1)
 			if label != null:
-				label.text = "★"
+				label.text = "S"
 		&"double_jump":
 			icon.color = Color(0.2, 0.9, 0.3, 1)
 			if label != null:
-				label.text = "↑"
+				label.text = "J"

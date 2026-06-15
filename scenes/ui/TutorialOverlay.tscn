@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/TutorialOverlay.gd" id="1_tutorial"]
-[ext_resource type="FontFile" path="res://assets/fonts/NotoSansSymbols2-Regular.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_banner"]
 bg_color = Color(0.188, 0.141, 0.239, 0.9)
@@ -48,9 +47,8 @@ theme_override_styles/panel = SubResource("StyleBox_banner")
 [node name="Label" type="Label" parent="Hints/MovementHint"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.91, 1)
-theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
-text = "← → : MOVE     ↑ : JUMP"
+text = "ARROW KEYS LEFT/RIGHT : MOVE   ARROW UP : JUMP"
 horizontal_alignment = 1
 
 [node name="ScoreHint" type="PanelContainer" parent="Hints"]
