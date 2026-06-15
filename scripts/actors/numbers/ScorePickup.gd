@@ -2,6 +2,7 @@ class_name ScorePickup
 extends Area2D
 
 const ScoreServiceScript = preload("res://scripts/gameplay/ScoreService.gd")
+const EXPIRY_SECONDS: float = 60.0
 
 @export var value_cents: int = 100
 @export var operation: StringName = GameRules.SCORE_OPERATION_ADD
@@ -12,6 +13,16 @@ var _collected: bool = false
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	_update_label()
+	_start_expiry_timer()
+
+
+func _start_expiry_timer() -> void:
+	var timer := Timer.new()
+	timer.wait_time = EXPIRY_SECONDS
+	timer.one_shot = true
+	timer.timeout.connect(queue_free)
+	add_child(timer)
+	timer.start()
 
 
 func set_value(cents: int) -> void:
