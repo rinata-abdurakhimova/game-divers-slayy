@@ -655,7 +655,12 @@ func _visible_blocks(high_only: bool) -> Array[Vector2i]:
 			continue
 		if AUTHORED_BLOCKS.has(Vector2i(block.x, block.y + 1)):
 			continue
-		if _block_visible(block.x, block.y, left_edge, right_edge):
+		if block.x < FIGHT_START_COLUMN:
+			var wrapped: Vector2 = _wrapped_block_position(block.x, block.y)
+			if not wrapped.is_equal_approx(_block_position(block.x, block.y)) \
+					and wrapped.x >= left_edge and wrapped.x <= right_edge:
+				result.append(block)
+		elif _block_visible(block.x, block.y, left_edge, right_edge):
 			result.append(block)
 	return result
 
