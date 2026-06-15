@@ -583,8 +583,6 @@ func _pickup_position_for_block(block: Vector2i) -> Vector2:
 
 func _find_clear_air_position() -> Vector2:
 	var camera_x: float = _camera.global_position.x if _camera != null else FIGHT_START_X
-	if _tutorial_done:
-		camera_x = maxf(camera_x, FIGHT_START_X + 288.0)
 	var horizontal_offsets: Array[float] = [
 		-384.0, -288.0, -192.0, -96.0, 0.0, 96.0, 192.0, 288.0, 384.0, 480.0
 	]
@@ -650,11 +648,9 @@ func _clamp_pickup_position(position: Vector2) -> Vector2:
 func _visible_blocks(high_only: bool) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	var camera_x: float = _camera.global_position.x if _camera != null else FIGHT_START_X
-	var left_edge: float = camera_x - 360.0
-	var right_edge: float = camera_x + 620.0
+	var left_edge: float = camera_x - 660.0
+	var right_edge: float = camera_x + 660.0
 	for block: Vector2i in AUTHORED_BLOCKS:
-		if block.x < FIGHT_START_COLUMN:
-			continue
 		if high_only and block.y < 4:
 			continue
 		if AUTHORED_BLOCKS.has(Vector2i(block.x, block.y + 1)):
