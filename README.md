@@ -95,6 +95,9 @@ bash tools/qa.sh
 ### Game Over — The Numbers Won
 ![Game over](screenshots/game_over.png)
 
+### Boss 67 defeated — exactly 67.00
+![Game over](screenshots/player-wins.png)
+
 ### From whiteboard to game — the original design session
 ![Whiteboard](screenshots/whiteboard.png)
 
