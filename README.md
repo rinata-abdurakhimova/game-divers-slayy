@@ -23,6 +23,17 @@ you otherwise.
 
 Exactly `67` and you've slain the guardian. Anything else, and the deep claims another diver.
 
+## Cutscenes & Lore
+
+The game ships with a full hand-written lore and two cinematic cutscene sequences:
+
+- **Intro cutscene** — three illustrated slides with original Ukrainian voice narration walk the player through the world collapse caused by the arithmetic anomaly, before the dive begins.
+- **Fight-start cutscene** — an in-engine action sequence where the Slay Diver and Boss 67 face off before the chase kicks off.
+- **Boss-defeat cutscene** — a hit-stop victory sequence when the player reaches exactly 67.
+- **Outro cutscene** — three closing illustrated slides with narration, showing the anomaly losing its grip on reality after the exact score is achieved.
+
+The world of *Slay Diver* is built around the concept of a **mathematical anomaly** rewriting the constants of reality — gravity, water physics, and arithmetic itself. Each Blue Flood event is a **SYSTEM OVERRIDE**: the rules change mid-run and the player must adapt on the fly.
+
 ## Play
 
 `Slay Diver: Rise of 67` is a desktop platformer boss chase. Change the running score and reach
@@ -69,6 +80,23 @@ On macOS or Linux:
 ```bash
 bash tools/qa.sh
 ```
+
+## Screenshots
+
+### Land Phase — collecting score toward 67
+![Land gameplay](screenshots/land_gameplay.png)
+
+### BLUE FLOOD: Rules Changed — underwater anomaly card
+![Water rule card](screenshots/water_rule_card.png)
+
+### Water Phase — gravity inverted, controls reversed
+![Gravity inverted](screenshots/water_gravity_inverted.png)
+
+### Game Over — The Numbers Won
+![Game over](screenshots/game_over.png)
+
+### From whiteboard to game — the original design session
+![Whiteboard](screenshots/whiteboard.png)
 
 ## Web Export
 
